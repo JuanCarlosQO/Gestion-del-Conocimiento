@@ -1,0 +1,7 @@
+/* app-shell.css — layout compartido de todas las páginas interiores */
+html, body { height: 100%; overflow: hidden; }
+.contenedor_padre { display: flex; height: 100vh; overflow: hidden; }
+.panel { flex: 1; display: none; flex-direction: column;
+         align-items: center; justify-content: center;
+         padding: 36px 48px; overflow-y: auto; }
+.panel.active { display: flex; }

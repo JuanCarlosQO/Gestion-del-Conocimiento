@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+  <link href="{% static 'css/persona.css' %}" rel="stylesheet">
+  <title>Pago — SIGIC</title>
+</head>
+<body>
+<div class="contenedor_padre">
+
+  <div class="boton_contenedor">
+    <div class="letras" id="vista_title">PAGO</div>
+    <div id="ordena_boton">
+      <div class="letragestion" id="letra_gestion">Gestionar</div>
+      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
+      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
+      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
+      <button id="botones" onclick="showPanel('panel4')">📋 Ver todos</button>
+      <button id="botonVolver">⬅ Volver</button>
+    </div>
+  </div>
+
+  <!-- AGREGAR -->
+  <div class="panel" id="panel1">
+    <div class="form-card">
+      <div class="panel-header">
+        <div class="panel-header-icon">💳</div>
+        <div><h2>Registrar Pago</h2><p>Complete los datos del nuevo pago</p></div>
+      </div>
+      <form id="registroPago">
+        <label class="labels">Fecha de Pago</label>
+        <input type="date" class="entrada" id="fecha_pago" required>
+        <label class="labels">Precio por Kilo (COP)</label>
+        <input type="text" class="entrada" id="preciokilo_pago" placeholder="Ej: 4200" required>
+        <label class="labels">ID del Reporte</label>
+        <input type="text" class="entrada" id="fk_idreport" placeholder="ID del reporte asociado" required>
+        <label class="labels">Método de Pago</label>
+        <select class="selector" id="metodo_pago" required>
+          <option value="0">— Seleccione —</option>
+          <option value="1">Efectivo</option>
+          <option value="2">Transferencia</option>
+          <option value="3">Tarjeta</option>
+        </select>
+        <button type="submit" class="botonsum">💾 Guardar</button>
+      </form>
+      <div id="resultado"></div>
+    </div>
+  </div>
+
+  <!-- BUSCAR -->
+  <div class="panel" id="panel2">
+    <div class="search-card">
+      <div class="panel-header">
+        <div class="panel-header-icon">🔍</div>
+        <div><h2>Buscar Pago</h2><p>Ingrese el ID para consultar</p></div>
+      </div>
+      <form id="buscarpago">
+        <label class="labels">ID del Pago</label>
+        <input type="text" class="entrada" id="id_buscar" placeholder="ID del pago" required>
+        <button type="submit" class="botonsum">🔍 Buscar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDITAR -->
+  <div class="panel" id="panel22">
+    <div class="form-card">
+      <div class="panel-header">
+        <div class="panel-header-icon">✏️</div>
+        <div><h2>Editar Pago</h2><p>Modifique los campos necesarios</p></div>
+      </div>
+      <form id="editarpago">
+        <label class="labels">ID Pago</label>
+        <input type="text" class="entrada2" id="id_pago2" disabled>
+        <label class="labels">Fecha de Pago</label>
+        <input type="date" class="entrada2" id="fecha_pago2" disabled>
+        <label class="labels">Precio por Kilo</label>
+        <input type="text" class="entrada2" id="preciokilo_pago2" disabled>
+        <label class="labels">Estado de Pago</label>
+        <input type="text" class="entrada2" id="estado_pago2" disabled>
+        <label class="labels">Monto de Pago</label>
+        <input type="text" class="entrada2" id="monto_pago2" disabled>
+        <label class="labels">ID Reporte Asociado</label>
+        <input type="number" class="entrada2" id="fk_idreport2" disabled>
+        <label class="labels">Método de Pago</label>
+        <select class="selector" id="metodo_pago2" disabled>
+          <option value="">— Seleccione —</option>
+          <option value="1">Efectivo</option>
+          <option value="2">Transferencia</option>
+          <option value="3">Tarjeta</option>
+        </select>
+        <div class="btn-row">
+          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
+          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
+          <button type="button" class="botonsum" id="botonvolvered" style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">↩ Volver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ELIMINAR -->
+  <div class="panel" id="panel3">
+    <div class="form-card">
+      <div class="panel-header">
+        <div class="panel-header-icon">🗑️</div>
+        <div><h2>Eliminar Pago</h2><p>Esta acción no se puede deshacer</p></div>
+      </div>
+      <form id="eliminarPago">
+        <label class="labels">ID del Pago</label>
+        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
+        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- VER TODOS -->
+  <div class="panel" id="panel4">
+    <div class="panel-tabla">
+      <div class="tabla-header">
+        <h2>Lista de Pagos</h2>
+        <span class="tabla-count" id="contador-pagos">Cargando...</span>
+      </div>
+      <div class="tabla-wrap">
+        <table id="mostrarPago">
+          <thead>
+            <tr><th>ID Pago</th><th>Fecha</th><th>Precio/kg</th><th>Estado</th><th>Monto</th><th>ID Reporte</th><th>Método</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+function safeLocaleDate(v){if(!v)return'—';const d=new Date(v);if(isNaN(d.getTime()))return'—';return d.toLocaleDateString('es-CO');}
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+  const el=document.getElementById(id);if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
+  const r=document.getElementById('resultado');if(r)r.innerHTML='';
+}
+document.getElementById('botonVolver').addEventListener('click',()=>{window.location.href='{{ volver_url }}';});
+document.getElementById('botonvolvered').addEventListener('click',()=>{
+  showPanel('panel2');
+  document.getElementById('botondesbloquear').disabled=false;document.getElementById('botoneditar').disabled=true;
+  document.getElementById('metodo_pago2').disabled=true;
+  document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
+  document.getElementById('editarpago').reset();
+});
+document.getElementById('registroPago').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const metodo=parseInt(document.getElementById('metodo_pago').value);
+  if(metodo===0){alert('Seleccione un método de pago');return;}
+  try{
+    const r=await fetch('/api/pago',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      fecha_pago:document.getElementById('fecha_pago').value,
+      preciokilo_pago:parseFloat(document.getElementById('preciokilo_pago').value),
+      fk_idreport:(document.getElementById('fk_idreport').value||'').trim(),
+      metodo_pago:metodo,
+    })});
+    const d=await r.json();
+    const metodos={1:'Efectivo',2:'Transferencia',3:'Tarjeta'};
+    if(r.ok){document.getElementById('resultado').innerHTML=`<div id="resultado"><div id="tituloDatos">Pago registrado</div><p><strong>Fecha:</strong> ${document.getElementById('fecha_pago').value}</p><p><strong>Precio/kg:</strong> ${document.getElementById('preciokilo_pago').value}</p><p><strong>Método:</strong> ${metodos[metodo]}</p></div>`;document.getElementById('registroPago').reset();}
+    else alert(d.message);
+  }catch{alert('Error al registrar.');}
+});
+document.getElementById('buscarpago').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id_buscar').value;
+  try{
+    const r=await fetch(`/api/pago/${id}`);const d=await r.json();
+    if(r.ok){
+      showPanel('panel22');
+      document.getElementById('id_pago2').value=d.data.id_pago;
+      document.getElementById('fecha_pago2').value=d.data.fecha_pago?d.data.fecha_pago.split('T')[0]:'';
+      document.getElementById('preciokilo_pago2').value=d.data.preciokilo_pago||'';
+      document.getElementById('estado_pago2').value=d.data.estado_pago||'';
+      document.getElementById('monto_pago2').value=d.data.monto_pago||'';
+      document.getElementById('fk_idreport2').value=d.data.fk_idreport||'';
+      document.getElementById('metodo_pago2').value=d.data.metodo_pago_codigo||'';
+    }else alert(d.message||'No encontrado');
+  }catch{alert('Error al buscar.');}
+  document.getElementById('buscarpago').reset();
+});
+document.getElementById('botondesbloquear').addEventListener('click',()=>{
+  document.querySelectorAll('.entrada2').forEach(e=>{if(e.id!=='id_pago2'&&e.id!=='fk_idreport2'&&e.id!=='estado_pago2'&&e.id!=='monto_pago2') e.disabled=false;});
+  document.getElementById('metodo_pago2').disabled=false;
+  document.getElementById('botoneditar').disabled=false;document.getElementById('botondesbloquear').disabled=true;
+});
+document.getElementById('editarpago').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id_pago2').value;
+  try{
+    const r=await fetch(`/api/pago/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      id_pago:id,fecha_pago:document.getElementById('fecha_pago2').value,
+      preciokilo_pago:parseFloat(document.getElementById('preciokilo_pago2').value)||null,
+      estado_pago:document.getElementById('estado_pago2').value,
+      monto_pago:parseFloat(document.getElementById('monto_pago2').value)||null,
+      metodo_pago:document.getElementById('metodo_pago2').value,
+    })});
+    const d=await r.json();
+    if(r.ok){alert('Actualizado con éxito');document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);document.getElementById('metodo_pago2').disabled=true;showPanel('panel2');document.getElementById('editarpago').reset();}
+    else alert(d.message||'Error');
+  }catch{alert('Error al guardar.');}
+  document.getElementById('botondesbloquear').disabled=false;document.getElementById('botoneditar').disabled=true;
+});
+document.getElementById('eliminarPago').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id_eliminar').value;
+  if(!confirm(`¿Eliminar pago ID ${id}?`)) return;
+  try{
+    const r=await fetch(`/api/pago/${id}`,{method:'DELETE'});const d=await r.json();
+    alert(r.ok?d.message:(d.message||'Error'));if(r.ok){document.getElementById('eliminarPago').reset();obtenerPagos();}
+  }catch{alert('Error al eliminar.');}
+});
+async function obtenerPagos(){
+  try{
+    const r=await fetch('/api/pago');const pagos=await r.json();
+    const tbody=document.querySelector('#mostrarPago tbody');
+    const counter=document.getElementById('contador-pagos');
+    tbody.innerHTML='';
+    if(!Array.isArray(pagos)||!pagos.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';if(counter)counter.textContent='0 registros';return;}
+    if(counter) counter.textContent=pagos.length+' registros';
+    pagos.forEach(p=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p.id_pago||'—'}</td><td>${safeLocaleDate(p.fecha_pago)}</td><td>${p.preciokilo_pago||'—'}</td><td>${p.estado_pago||'—'}</td><td>${p.monto_pago??'N/A'}</td><td>${p.fk_idreport||'—'}</td><td>${p.metodo_pago||'—'}</td>`;tbody.appendChild(tr);});
+  }catch(err){console.error(err);}
+}
+document.addEventListener('DOMContentLoaded',()=>{obtenerPagos();setInterval(obtenerPagos,5000);});
+</script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

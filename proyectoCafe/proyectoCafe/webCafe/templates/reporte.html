@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+  <link href="{% static 'css/persona.css' %}" rel="stylesheet">
+  <title>Reporte — SIGIC</title>
+</head>
+<body>
+<div class="contenedor_padre">
+
+  <div class="boton_contenedor">
+    <div class="letras" id="vista_title">{% if is_recolector %}MIS REPORTES{% else %}REPORTE{% endif %}</div>
+    <div id="ordena_boton">
+      <div class="letragestion" id="letra_gestion">Gestionar</div>
+      {% if not is_recolector %}<button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>{% endif %}
+      <button id="botones" onclick="showPanel('panel4')">📋 Ver todos</button>
+      <button id="botonVolver">⬅ Volver</button>
+    </div>
+  </div>
+
+  <!-- ELIMINAR -->
+  {% if not is_recolector %}
+  <div class="panel" id="panel3">
+    <div class="form-card">
+      <div class="panel-header">
+        <div class="panel-header-icon">🗑️</div>
+        <div><h2>Eliminar Reporte</h2><p>Esta acción no se puede deshacer</p></div>
+      </div>
+      <form id="eliminarReporte">
+        <label class="labels">ID del Reporte</label>
+        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
+        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- VER TODOS -->
+  <div class="panel" id="panel4">
+    <div class="panel-tabla">
+      <div class="tabla-header">
+        <h2>{% if is_recolector %}Mis Reportes{% else %}Lista de Reportes{% endif %}</h2>
+        <div style="display:flex;align-items:center;gap:12px;">
+          {% if is_recolector %}
+          <input type="date" class="entrada" id="filtroFechaReporte" style="width:160px;margin:0;padding:7px 12px;font-size:12px;">
+          <button class="botonsum" type="button" id="btnLimpiarFiltro" style="margin:0;padding:7px 14px;font-size:12px;min-height:36px;">✕ Limpiar</button>
+          {% endif %}
+          <span class="tabla-count" id="contadorReportes">Cargando...</span>
+        </div>
+      </div>
+      <div class="tabla-wrap">
+        <table id="mostrarReportes">
+          <thead>
+            <tr><th>ID Reporte</th><th>Estado</th><th>Total Recolección</th><th>ID Recolector</th><th>Fecha</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+function safeDateYYYYMMDD(v){if(!v)return'—';const d=new Date(v);if(isNaN(d.getTime()))return'—';return d.toISOString().split('T')[0];}
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+  const el=document.getElementById(id);if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
+}
+document.getElementById('botonVolver').addEventListener('click',()=>{window.location.href='{{ volver_url }}';});
+
+let _cache=[];
+function pintarTabla(reportes){
+  const tbody=document.getElementById('mostrarReportes').querySelector('tbody');
+  const counter=document.getElementById('contadorReportes');
+  tbody.innerHTML='';
+  if(!Array.isArray(reportes)||!reportes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';if(counter)counter.textContent='0 registros';return;}
+  if(counter) counter.textContent=reportes.length+' reporte(s)';
+  reportes.forEach(rep=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${rep.id_reporte||'—'}</td><td><span class="badge-${rep.estado_reporte?'activo':'inactivo'}">${rep.estado_reporte?'Activo':'Inactivo'}</span></td><td>${rep.totalrecoleccion_reporte||'—'}</td><td>${rep.fk_idrecolector||'—'}</td><td>${safeDateYYYYMMDD(rep.fecha_reporte)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function aplicarFiltro(){
+  const inp=document.getElementById('filtroFechaReporte');
+  if(!inp) return;
+  const v=(inp.value||'').trim();
+  pintarTabla(v?_cache.filter(r=>safeDateYYYYMMDD(r.fecha_reporte)===v):_cache);
+}
+async function obtenerReportes(){
+  try{
+    const r=await fetch('/api/productosreporte');const data=await r.json();
+    _cache=Array.isArray(data)?data:[];
+    aplicarFiltro();
+  }catch(err){console.error(err);}
+}
+
+{% if not is_recolector %}
+document.getElementById('eliminarReporte').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id_eliminar').value;
+  if(!confirm(`¿Eliminar reporte ID ${id}?`)) return;
+  try{
+    const r=await fetch(`/api/productosreporte/${id}`,{method:'DELETE'});const d=await r.json();
+    alert(r.ok?'Reporte eliminado':(d.message||'Error'));if(r.ok){document.getElementById('eliminarReporte').reset();obtenerReportes();}
+  }catch{alert('Error al eliminar.');}
+});
+{% endif %}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  obtenerReportes();setInterval(obtenerReportes,5000);
+  showPanel('panel4');
+  const inp=document.getElementById('filtroFechaReporte');
+  const btn=document.getElementById('btnLimpiarFiltro');
+  if(inp) inp.addEventListener('change',aplicarFiltro);
+  if(btn) btn.addEventListener('click',()=>{if(inp)inp.value='';pintarTabla(_cache);});
+});
+</script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

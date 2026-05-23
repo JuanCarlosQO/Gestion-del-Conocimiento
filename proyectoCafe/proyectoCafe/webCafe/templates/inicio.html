@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="{% static 'css/inicio.css' %}" rel="stylesheet">
+  <title>SIGIC — Acceso</title>
+</head>
+<body>
+
+  <div class="contenedor_padre">
+
+    <!-- ── PANEL IZQUIERDO (carrusel) ── -->
+    <div id="carrusel">
+      <div class="carousel-inner2">
+        <img src="{% static 'img/cafe.jpg' %}"         class="slide" alt="cafe">
+        <img src="{% static 'img/campo.jpg' %}"        class="slide" alt="campo">
+        <img src="{% static 'img/paisaje.jpg' %}"      class="slide" alt="paisaje">
+        <img src="{% static 'img/Cafes.jpeg' %}"       class="slide" alt="cafes">
+        <img src="{% static 'img/planta.jpg' %}"       class="slide" alt="planta">
+        <img src="{% static 'img/RECOLECTOR.jpg' %}"   class="slide" alt="recolector">
+        <img src="{% static 'img/cafePaquete.jpeg' %}" class="slide" alt="cafePaquete">
+      </div>
+
+      <div class="left-content">
+        <div class="left-badge">
+          <span></span>
+          Sistema Activo
+        </div>
+        <div class="left-bottom">
+          <div class="left-logo-row">
+            <img src="{% static 'img/logo_f.png' %}" alt="logo">
+            <span class="brand">Fincas Cafeteras</span>
+          </div>
+          <div class="left-title">Gestión Integral<br>de Producción</div>
+          <div class="left-sub">Suaza · Huila · Colombia</div>
+          <div class="dot-row" id="dotRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL DERECHO (login) ── -->
+    <div class="login">
+
+      <div id="centrarlogo">
+        <img src="{% static 'img/logo_f.png' %}" id="imglogo" alt="logo">
+        <span class="letras">Portal de acceso</span>
+      </div>
+
+      <div class="login-welcome">Bienvenido de vuelta</div>
+      <div class="login-sub">Ingresa tus credenciales para continuar</div>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <form class="formulario" id="formulario" method="POST" action="">
+        {% csrf_token %}
+        <div>
+          <label for="username">Usuario</label>
+          <input type="text" id="username" name="username"
+                 placeholder="Tu nombre de usuario"
+                 autocomplete="username" required>
+        </div>
+        <div>
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password"
+                 placeholder="Mínimo 6 caracteres"
+                 autocomplete="current-password" required>
+        </div>
+        <button type="submit" id="ingresoBoton">
+          Ingresar al sistema
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+    /* ── Carrusel ── */
+    const inner  = document.querySelector('.carousel-inner2');
+    const slides = document.querySelectorAll('.slide');
+    const dotRow = document.getElementById('dotRow');
+    let idx = 0;
+    const tot = slides.length;
+
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', 'Imagen ' + (i + 1));
+      d.addEventListener('click', () => goTo(i));
+      dotRow.appendChild(d);
+    });
+
+    function updateDots() {
+      dotRow.querySelectorAll('.dot').forEach((d, i) =>
+        d.classList.toggle('active', i === idx));
+    }
+    function goTo(n) {
+      idx = n;
+      inner.style.transform = `translateX(-${idx * 100}%)`;
+      updateDots();
+    }
+    function next() { goTo((idx + 1) % tot); }
+
+    let timer = setInterval(next, 4500);
+    inner.parentElement.addEventListener('mouseenter', () => clearInterval(timer));
+    inner.parentElement.addEventListener('mouseleave', () => { timer = setInterval(next, 4500); });
+  </script>
+
+</body>
+</html>

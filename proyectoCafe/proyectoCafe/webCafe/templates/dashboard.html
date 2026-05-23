@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+  <link href="{% static 'css/global.css' %}" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <title>Panel de Control — SIGIC</title>
+  <style>
+    :root {
+      --g-950:#011a12;--g-900:#022c22;--g-800:#064e3b;--g-700:#065f46;
+      --g-600:#047857;--g-500:#059669;--g-400:#10b981;--g-300:#34d399;
+      --g-200:#6ee7b7;--g-100:#a7f3d0;--g-50:#d1fae5;--g-25:#ecfdf5;
+      --gold:#d4a843;--gold-l:#f0c96a;
+      --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+      --page:#f0fdf4;--card:#ffffff;
+      --sh-card:0 2px 12px rgba(2,44,34,0.08),0 1px 3px rgba(2,44,34,0.05);
+      --sh-hover:0 8px 28px rgba(2,44,34,0.13),0 2px 8px rgba(2,44,34,0.07);
+      --sh-em:0 4px 18px rgba(5,150,105,0.22);
+      --radius:14px;--tr:all 0.28s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;background:var(--page);color:#022c22;-webkit-font-smoothing:antialiased}
+
+    /* ── LAYOUT ── */
+    .db-wrapper{display:flex;height:100vh;overflow:hidden}
+
+    /* ── SIDEBAR ── */
+    .db-sidebar{width:240px;min-width:240px;background:linear-gradient(180deg,var(--g-950) 0%,#010f09 100%);display:flex;flex-direction:column;border-right:1px solid rgba(52,211,153,0.10);box-shadow:4px 0 20px rgba(1,26,18,0.25);position:relative;z-index:10;overflow-y:auto}
+    .db-sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--g-400),var(--gold),var(--g-300),transparent);background-size:200% 100%;animation:shimBar 3s linear infinite}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;padding:26px 20px 16px}
+    .sidebar-logo img{width:36px;height:36px;filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(52,211,153,0.3))}
+    .sidebar-logo .brand{font-family:'Syne','Inter',sans-serif;font-size:11px;font-weight:800;color:var(--g-200);letter-spacing:0.18em;text-transform:uppercase}
+    .sidebar-section{font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(110,231,183,0.40);padding:16px 20px 8px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:rgba(167,243,208,0.65);cursor:pointer;transition:var(--tr);border:none;background:transparent;text-align:left;text-decoration:none;width:100%;position:relative;overflow:hidden}
+    .nav-item::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:linear-gradient(180deg,var(--g-400),var(--gold));border-radius:0 3px 3px 0;transform:scaleY(0);transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+    .nav-item:hover,.nav-item.active{background:rgba(16,185,129,0.10);color:var(--g-100);transform:translateX(3px)}
+    .nav-item:hover::before,.nav-item.active::before{transform:scaleY(1)}
+    .nav-item .icon{font-size:16px;width:20px;text-align:center}
+    .nav-badge{margin-left:auto;background:var(--g-500);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
+    .sidebar-bottom{margin-top:auto;padding:16px 10px 20px}
+    .btn-salir{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.22);color:rgba(252,165,165,0.85);font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:var(--tr)}
+    .btn-salir:hover{background:rgba(239,68,68,0.22);transform:translateX(2px)}
+
+    /* ── MAIN ── */
+    .db-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .db-topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;min-height:60px;background:#fff;border-bottom:1px solid rgba(5,150,105,0.10);box-shadow:0 1px 8px rgba(2,44,34,0.06)}
+    .topbar-left h1{font-family:'Syne','Inter',sans-serif;font-size:18px;font-weight:800;color:var(--g-900);letter-spacing:-0.01em}
+    .topbar-left p{font-size:12px;color:#6b7280;margin-top:1px}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-time{font-size:13px;font-weight:600;color:var(--g-700);background:var(--g-25);padding:5px 14px;border-radius:99px;border:1px solid rgba(5,150,105,0.15)}
+    .topbar-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g-500),var(--g-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;box-shadow:var(--sh-em)}
+    .topbar-notif{position:relative;cursor:pointer;font-size:18px;color:var(--g-600)}
+    .notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff}
+    .db-scroll{flex:1;overflow-y:auto;padding:24px 28px 32px}
+
+    /* ── BANNER ── */
+    .welcome-banner{background:linear-gradient(135deg,var(--g-700) 0%,var(--g-950) 100%);border-radius:var(--radius);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;position:relative;overflow:hidden;animation:fadeInUp .5s ease-out both}
+    .welcome-banner::before{content:'';position:absolute;top:-60px;right:60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.12) 0%,transparent 65%)}
+    .welcome-banner::after{content:'';position:absolute;bottom:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 65%)}
+    .banner-text h2{font-family:'Syne','Inter',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:4px}
+    .banner-text p{font-size:13px;color:rgba(255,255,255,0.60)}
+    .banner-stats{display:flex;gap:20px;position:relative;z-index:1}
+    .banner-stat{text-align:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px 22px;backdrop-filter:blur(10px)}
+    .banner-stat .val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;display:block;line-height:1}
+    .banner-stat .lbl{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:0.14em;text-transform:uppercase;margin-top:4px}
+
+    /* ── INFO STRIP ── */
+    .info-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;animation:fadeInUp .55s ease-out .05s both}
+    .info-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.12);padding:18px 20px;box-shadow:var(--sh-card);transition:var(--tr);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+    .info-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+    .info-card.em::before{background:linear-gradient(90deg,var(--g-500),var(--g-300))}
+    .info-card.gld::before{background:linear-gradient(90deg,var(--gold),var(--gold-l))}
+    .info-card.blu::before{background:linear-gradient(90deg,var(--blue),#93c5fd)}
+    .info-card.red::before{background:linear-gradient(90deg,var(--red),#fca5a5)}
+    .info-card:hover{box-shadow:var(--sh-hover);transform:translateY(-2px)}
+    .info-card .ic-label{font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;display:flex;align-items:center;gap:6px}
+    .info-card .ic-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--g-900);line-height:1;margin-top:2px}
+    .info-card .ic-sub{font-size:12px;color:#6b7280;margin-top:2px}
+    .info-card .ic-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:36px;opacity:0.12}
+
+    /* ── KPI GRID ── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;animation:fadeInUp .6s ease-out .10s both}
+    .kpi-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);padding:20px 22px;box-shadow:var(--sh-card);transition:var(--tr);position:relative;overflow:hidden;cursor:default}
+    .kpi-card:hover{box-shadow:var(--sh-hover);transform:translateY(-3px)}
+    .kpi-card .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .kpi-card .kpi-label{font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#9ca3af}
+    .kpi-card .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+    .kpi-card .kpi-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--g-900);line-height:1;margin-bottom:8px}
+    .kpi-card .kpi-trend{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px}
+    .trend-up{background:#dcfce7;color:#16a34a}
+    .trend-down{background:#fee2e2;color:#dc2626}
+    .trend-flat{background:#f3f4f6;color:#6b7280}
+    .kpi-card .kpi-bar{height:3px;border-radius:99px;margin-top:14px;background:rgba(5,150,105,0.10);overflow:hidden}
+    .kpi-card .kpi-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--g-500),var(--g-300));transition:width 1.2s cubic-bezier(0.34,1.1,0.64,1)}
+    .ki-green{background:rgba(5,150,105,0.12);color:var(--g-600)}
+    .ki-gold{background:rgba(212,168,67,0.14);color:#b45309}
+    .ki-blue{background:rgba(59,130,246,0.12);color:#2563eb}
+    .ki-red{background:rgba(239,68,68,0.12);color:#dc2626}
+
+    /* ── BOTTOM GRID ── */
+    .bottom-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;animation:fadeInUp .65s ease-out .15s both}
+    .chart-card,.activity-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);padding:22px 24px;box-shadow:var(--sh-card)}
+    .card-title{font-family:'Syne','Inter',sans-serif;font-size:15px;font-weight:800;color:var(--g-900);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    .card-title .dot{width:8px;height:8px;border-radius:50%;background:var(--g-400);box-shadow:0 0 8px rgba(52,211,153,0.5)}
+    .card-sub{font-size:12px;color:#9ca3af;margin-bottom:18px}
+    .chart-wrap{position:relative;height:220px}
+    .activity-list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+    .act-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:#f8fffe;border:1px solid rgba(5,150,105,0.08);transition:var(--tr)}
+    .act-item:hover{background:var(--g-25);border-color:rgba(5,150,105,0.18)}
+    .act-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .act-info{flex:1;min-width:0}
+    .act-info .act-name{font-size:13px;font-weight:600;color:var(--g-900)}
+    .act-info .act-desc{font-size:11px;color:#9ca3af;margin-top:1px}
+    .act-time{font-size:11px;color:#9ca3af;white-space:nowrap}
+
+    /* ── BOTTOM GRID 2 ── */
+    .bottom-grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:18px;animation:fadeInUp .70s ease-out .20s both}
+    .mini-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);padding:20px 22px;box-shadow:var(--sh-card)}
+    .progress-item{margin-bottom:14px}
+    .prog-header{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--g-800);margin-bottom:6px}
+    .prog-bar{height:8px;border-radius:99px;background:rgba(5,150,105,0.10);overflow:hidden}
+    .prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--g-500),var(--g-300));transition:width 1.3s cubic-bezier(0.34,1.1,0.64,1)}
+    .prog-fill.gold{background:linear-gradient(90deg,var(--gold),var(--gold-l))}
+    .prog-fill.blue{background:linear-gradient(90deg,var(--blue),#93c5fd)}
+    .rate-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(5,150,105,0.08)}
+    .rate-item:last-child{border-bottom:none}
+    .rate-name{font-size:13px;font-weight:500;color:var(--g-800)}
+    .rate-val{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--g-700)}
+    .rate-chg{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+    .chg-up{background:#dcfce7;color:#16a34a}
+    .chg-dn{background:#fee2e2;color:#dc2626}
+    .loading-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g-400);animation:pulse 1s ease infinite}
+
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimBar{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:var(--g-25)}
+    ::-webkit-scrollbar-thumb{background:var(--g-300);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--g-500)}
+    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:900px){.bottom-grid{grid-template-columns:1fr}.bottom-grid2{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+{% load static %}
+<div class="db-wrapper">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="db-sidebar">
+    <div class="sidebar-logo">
+      <img src="{% static 'img/logo_f.png' %}" alt="logo" onerror="this.style.display='none'">
+      <span class="brand">Finca Cafetera</span>
+    </div>
+
+    <div class="sidebar-section">Navegación</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="{% url 'dashboard' %}">
+        <span class="icon">⊞</span> Panel de Control
+      </a>
+      <a class="nav-item" href="{% url 'chatbot' %}">
+        <span class="icon">🤖</span> Asistente IA
+      </a>
+      <a class="nav-item" href="/persona/">
+        <span class="icon">👥</span> Trabajadores
+        <span class="nav-badge" id="sb-trabajadores">—</span>
+      </a>
+      <a class="nav-item" href="/recolector/">
+        <span class="icon">🌱</span> Recolectores
+      </a>
+      <a class="nav-item" href="/recoleccion/">
+        <span class="icon">☕</span> Recolecciones
+        <span class="nav-badge" id="sb-recolecciones">—</span>
+      </a>
+      <a class="nav-item" href="/insumo/">
+        <span class="icon">📦</span> Insumos
+      </a>
+      <a class="nav-item" href="/finca/">
+        <span class="icon">🏡</span> Fincas
+      </a>
+      <a class="nav-item" href="/lote/">
+        <span class="icon">🗺️</span> Lotes
+      </a>
+      <a class="nav-item" href="/pago/">
+        <span class="icon">💳</span> Pagos
+      </a>
+      <a class="nav-item" href="/propietario/">
+        <span class="icon">🧑‍💼</span> Propietarios
+      </a>
+      <a class="nav-item" href="/vista_admin/">
+        <span class="icon">⚙️</span> Panel Admin
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="btn-salir" onclick="window.location.href='/logout/'">
+        <span>⬅</span> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ CONTENIDO ══ -->
+  <div class="db-main">
+
+    <header class="db-topbar">
+      <div class="topbar-left">
+        <h1>Panel de Control</h1>
+        <p id="fecha-larga">Cargando fecha...</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-time" id="reloj">--:--:--</div>
+        <div class="topbar-notif">🔔<span class="notif-dot"></span></div>
+        <div class="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="db-scroll">
+
+      <!-- Banner bienvenida -->
+      <div class="welcome-banner">
+        <div class="banner-text" style="position:relative;z-index:1;">
+          <h2>¡Buen día, Administrador! 👋</h2>
+          <p>Resumen en tiempo real de la operación de tu finca.</p>
+        </div>
+        <div class="banner-stats">
+          <div class="banner-stat">
+            <span class="val" id="ban-recolecciones"><span class="loading-dot"></span></span>
+            <div class="lbl">Recolecciones</div>
+          </div>
+          <div class="banner-stat">
+            <span class="val" id="ban-trabajadores"><span class="loading-dot"></span></span>
+            <div class="lbl">Trabajadores</div>
+          </div>
+          <div class="banner-stat">
+            <span class="val" id="ban-fincas"><span class="loading-dot"></span></span>
+            <div class="lbl">Fincas activas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info strip clima/dolar -->
+      <div class="info-strip">
+        <div class="info-card em">
+          <div class="ic-label" id="clima-ciudad">📍 Detectando...</div>
+          <div class="ic-value" id="clima-temp"><span class="loading-dot"></span></div>
+          <div class="ic-sub" id="clima-desc">Obteniendo clima...</div>
+          <span class="ic-icon" id="clima-icon">🌤️</span>
+        </div>
+        <div class="info-card blu">
+          <div class="ic-label">💧 Humedad relativa</div>
+          <div class="ic-value" id="clima-hum"><span class="loading-dot"></span></div>
+          <div class="ic-sub" id="clima-viento">Viento: —</div>
+          <div style="margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-bottom:3px;">
+              <span>Sensación</span><span id="clima-sens">—</span>
+            </div>
+            <div style="height:5px;border-radius:99px;background:rgba(59,130,246,0.15);overflow:hidden;">
+              <div id="hum-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#93c5fd);width:0%;transition:width 1.2s ease;"></div>
+            </div>
+          </div>
+          <span class="ic-icon">💧</span>
+        </div>
+        <div class="info-card gld">
+          <div class="ic-label">💵 USD → COP</div>
+          <div class="ic-value" id="dolar-val">$—</div>
+          <div class="ic-sub" id="dolar-sub">Actualizando...</div>
+          <span class="ic-icon">💱</span>
+        </div>
+        <div class="info-card red">
+          <div class="ic-label">☕ Precio café / kg</div>
+          <div class="ic-value" id="cafe-precio">$4.200</div>
+          <div class="ic-sub">Referencia mercado</div>
+          <span class="ic-icon">☕</span>
+        </div>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Total Recolecciones</span><span class="kpi-icon ki-green">🌱</span></div>
+          <div class="kpi-val" id="kpi-recolecciones">—</div>
+          <span class="kpi-trend trend-up">↑ +12% este mes</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="72%"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Trabajadores activos</span><span class="kpi-icon ki-blue">👷</span></div>
+          <div class="kpi-val" id="kpi-trabajadores">—</div>
+          <span class="kpi-trend trend-flat">→ Sin cambios</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="60%"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Insumos registrados</span><span class="kpi-icon ki-gold">📦</span></div>
+          <div class="kpi-val" id="kpi-insumos">—</div>
+          <span class="kpi-trend trend-up">↑ +3 esta semana</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="45%"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Pagos del mes</span><span class="kpi-icon ki-green">💰</span></div>
+          <div class="kpi-val" id="kpi-pagos">—</div>
+          <span class="kpi-trend trend-up" id="kpi-pagos-trend">↑ En curso</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="65%"></div></div>
+        </div>
+      </div>
+
+      <!-- Gráfico + Actividad -->
+      <div class="bottom-grid">
+        <div class="chart-card">
+          <div class="card-title"><span class="dot"></span>Recolecciones por mes</div>
+          <div class="card-sub">Histórico de producción — últimos 7 meses</div>
+          <div class="chart-wrap"><canvas id="chartRecolecciones"></canvas></div>
+        </div>
+        <div class="activity-card">
+          <div class="card-title"><span class="dot" style="background:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.5);"></span>Actividad reciente</div>
+          <div class="card-sub">Últimas operaciones del sistema</div>
+          <div class="activity-list" id="actividadList"></div>
+        </div>
+      </div>
+
+      <!-- Segunda fila -->
+      <div class="bottom-grid2">
+        <div class="mini-card">
+          <div class="card-title"><span class="dot"></span>Avance operativo</div>
+          <div class="card-sub">Meta mensual por área</div>
+          <div class="progress-item">
+            <div class="prog-header"><span>Recolección</span><span id="prog-rec">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:0%" data-w="72%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="prog-header"><span>Mantenimiento</span><span id="prog-mant">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill gold" style="width:0%" data-w="55%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="prog-header"><span>Insumos aplicados</span><span id="prog-ins">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill blue" style="width:0%" data-w="88%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="prog-header"><span>Pagos procesados</span><span id="prog-pag">0%</span></div>
+            <div class="prog-bar"><div class="prog-fill gold" style="width:0%" data-w="40%"></div></div>
+          </div>
+        </div>
+
+        <div class="mini-card">
+          <div class="card-title"><span class="dot" style="background:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.5);"></span>Tasas &amp; Precios</div>
+          <div class="card-sub">Referencia mercado hoy</div>
+          <div class="rate-item"><span class="rate-name">💵 USD/COP</span><span class="rate-val" id="r-usd">—</span><span class="rate-chg chg-up" id="r-usd-chg">—</span></div>
+          <div class="rate-item"><span class="rate-name">☕ Café / kg</span><span class="rate-val">$4.200</span><span class="rate-chg chg-up">+1.2%</span></div>
+          <div class="rate-item"><span class="rate-name">⛽ Diésel / gal</span><span class="rate-val">$9.800</span><span class="rate-chg chg-dn">-0.5%</span></div>
+          <div class="rate-item"><span class="rate-name">🌽 Fertilizante</span><span class="rate-val">$85.000</span><span class="rate-chg chg-up">+2.1%</span></div>
+        </div>
+
+        <div class="mini-card">
+          <div class="card-title"><span class="dot" style="background:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.5);"></span>Precios de insumos</div>
+          <div class="card-sub">Últimos 3 insumos registrados</div>
+          <table id="tabla-insumos" style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">
+            <thead>
+              <tr style="border-bottom:2px solid rgba(5,150,105,0.12);">
+                <th style="text-align:left;padding:6px 4px;color:#9ca3af;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-size:10px;">Insumo</th>
+                <th style="text-align:right;padding:6px 4px;color:#9ca3af;font-weight:700;font-size:10px;">Precio</th>
+                <th style="text-align:right;padding:6px 4px;color:#9ca3af;font-weight:700;font-size:10px;">Und.</th>
+              </tr>
+            </thead>
+            <tbody id="insumos-tbody">
+              <tr><td colspan="3" style="text-align:center;padding:12px;color:#9ca3af;"><span class="loading-dot"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Reloj y fecha ── */
+const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function tickClock() {
+  const now = new Date();
+  document.getElementById('reloj').textContent = now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('fecha-larga').textContent = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+/* ── Clima ── */
+async function obtenerCiudad(lat,lon){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=es`);
+    const d=await r.json(); const a=d.address;
+    const c=a.city||a.town||a.village||a.county||'Mi ubicación';
+    return a.state?`${c}, ${a.state}`:c;
+  }catch(e){return 'Mi ubicación';}
+}
+async function cargarClima(lat,lon,ciudad){
+  try{
+    const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Bogota';
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature&wind_speed_unit=kmh&timezone=${encodeURIComponent(tz)}`);
+    const d=await r.json(); const c=d.current;
+    const wm={0:{e:'☀️',d:'Despejado'},1:{e:'🌤️',d:'Poco nublado'},2:{e:'🌤️',d:'Nublado'},3:{e:'☁️',d:'Nublado'},45:{e:'🌫️',d:'Niebla'},61:{e:'🌧️',d:'Lluvia'},80:{e:'🌦️',d:'Chubascos'},95:{e:'⛈️',d:'Tormenta'}};
+    const code=c.weather_code; let emoji='🌤️',desc='Variable';
+    if(code===0){emoji='☀️';desc='Despejado';}else if(code<=2){emoji='🌤️';desc='Poco nublado';}else if(code===3){emoji='☁️';desc='Nublado';}else if(code<=48){emoji='🌫️';desc='Niebla';}else if(code<=67){emoji='🌧️';desc='Lluvia';}else if(code<=77){emoji='❄️';desc='Nieve';}else if(code<=82){emoji='🌦️';desc='Chubascos';}else{emoji='⛈️';desc='Tormenta';}
+    document.getElementById('clima-ciudad').innerHTML='📍 '+ciudad;
+    document.getElementById('clima-temp').textContent=Math.round(c.temperature_2m)+'°C';
+    document.getElementById('clima-desc').textContent=emoji+' '+desc;
+    document.getElementById('clima-icon').textContent=emoji;
+    document.getElementById('clima-hum').textContent=c.relative_humidity_2m+'%';
+    document.getElementById('clima-viento').textContent='💨 Viento: '+Math.round(c.wind_speed_10m)+' km/h';
+    document.getElementById('clima-sens').textContent=Math.round(c.apparent_temperature)+'°C';
+    const bar=document.getElementById('hum-bar');
+    if(bar) bar.style.width=c.relative_humidity_2m+'%';
+  }catch(e){document.getElementById('clima-temp').textContent='—';}
+}
+function iniciarClima(){
+  if(!navigator.geolocation){cargarClima(4.142,-73.626,'Villavicencio, Meta');return;}
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{const c=await obtenerCiudad(pos.coords.latitude,pos.coords.longitude);cargarClima(pos.coords.latitude,pos.coords.longitude,c);setInterval(()=>cargarClima(pos.coords.latitude,pos.coords.longitude,c),60000);},
+    ()=>{cargarClima(4.142,-73.626,'Villavicencio, Meta');setInterval(()=>cargarClima(4.142,-73.626,'Villavicencio, Meta'),60000);},
+    {timeout:8000}
+  );
+}
+iniciarClima();
+
+/* ── Dólar ── */
+async function fetchDolar(){
+  try{
+    const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d=await r.json(); const cop=d.rates.COP;
+    const fmt=new Intl.NumberFormat('es-CO').format(Math.round(cop));
+    document.getElementById('dolar-val').textContent='$'+fmt;
+    document.getElementById('dolar-sub').textContent='ExchangeRate-API';
+    document.getElementById('r-usd').textContent='$'+fmt;
+    document.getElementById('r-usd-chg').textContent='↑ actualizado';
+  }catch(e){document.getElementById('dolar-val').textContent='—';}
+}
+fetchDolar(); setInterval(fetchDolar,1800000);
+
+/* ── KPIs desde Zunga API ── */
+function setVal(id,val){const el=document.getElementById(id);if(el){el.textContent=val;el.style.animation='countUp .4s ease-out';}}
+async function fetchKPIs(){
+  try{const r=await fetch('/api/recoleccion');const d=await r.json();const n=Array.isArray(d)?d.length:(d.count||0);setVal('kpi-recolecciones',n);setVal('ban-recolecciones',n);setVal('sb-recolecciones',n);}catch(e){setVal('kpi-recolecciones','—');setVal('ban-recolecciones','—');}
+  try{const r=await fetch('/get_todos/Persona/');const d=await r.json();const n=Array.isArray(d)?d.length:(d.count||0);setVal('kpi-trabajadores',n);setVal('ban-trabajadores',n);setVal('sb-trabajadores',n);}catch(e){setVal('kpi-trabajadores','—');setVal('ban-trabajadores','—');}
+  try{const r=await fetch('/api/insumos');const d=await r.json();const n=Array.isArray(d)?d.length:(d.count||0);setVal('kpi-insumos',n);renderTablaInsumos(Array.isArray(d)?d.slice(0,3):[]);}catch(e){setVal('kpi-insumos','—');renderTablaInsumosDemo();}
+  try{const r=await fetch('/api/pago');const d=await r.json();const lista=Array.isArray(d)?d:[];const now=new Date();const delMes=lista.filter(p=>{const f=new Date(p.fecha_pago||p.fecha||p.created_at||0);return f.getMonth()===now.getMonth()&&f.getFullYear()===now.getFullYear();});const n=delMes.length||lista.length;setVal('kpi-pagos',n);document.getElementById('kpi-pagos-trend').textContent=n>0?`↑ ${n} registrado${n>1?'s':''}`:'→ Sin pagos aún';}catch(e){setVal('kpi-pagos','—');}
+  try{const r=await fetch('/api/productosfinca');const d=await r.json();const n=Array.isArray(d)?d.length:(d.count||0);setVal('ban-fincas',n);}catch(e){setVal('ban-fincas','—');}
+}
+
+function renderTablaInsumos(insumos){
+  const tbody=document.getElementById('insumos-tbody');
+  if(!insumos||!insumos.length){return renderTablaInsumosDemo();}
+  const fmt=v=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
+  tbody.innerHTML=insumos.map(ins=>`<tr style="border-bottom:1px solid rgba(5,150,105,0.08);">
+    <td style="padding:7px 4px;font-weight:600;color:var(--g-900);">${ins.nombre||ins.name||ins.nombre_insumo||'Insumo'}</td>
+    <td style="padding:7px 4px;text-align:right;font-family:'Syne',sans-serif;font-weight:700;color:var(--g-700);">${fmt(ins.precio||ins.price||ins.valor||0)}</td>
+    <td style="padding:7px 4px;text-align:right;color:#9ca3af;">${ins.unidad||ins.unidad_medida||'und'}</td>
+  </tr>`).join('');
+}
+function renderTablaInsumosDemo(){
+  renderTablaInsumos([{nombre:'Fertilizante NPK',precio:85000,unidad:'50 kg'},{nombre:'Herbicida Glifosato',precio:42500,unidad:'1 L'},{nombre:'Fungicida Cobre',precio:31000,unidad:'500 g'}]);
+}
+
+fetchKPIs(); setInterval(fetchKPIs,30000);
+
+/* ── Gráfico ── */
+const ctx=document.getElementById('chartRecolecciones').getContext('2d');
+const gradFill=ctx.createLinearGradient(0,0,0,220);
+gradFill.addColorStop(0,'rgba(16,185,129,0.25)');
+gradFill.addColorStop(1,'rgba(16,185,129,0.01)');
+new Chart(ctx,{type:'line',data:{labels:['Oct','Nov','Dic','Ene','Feb','Mar','Abr'],datasets:[{label:'Recolecciones',data:[18,24,30,22,35,28,40],fill:true,backgroundColor:gradFill,borderColor:'#10b981',borderWidth:2.5,tension:0.45,pointBackgroundColor:'#10b981',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#022c22',titleColor:'#a7f3d0',bodyColor:'#d1fae5',padding:12,cornerRadius:10,callbacks:{label:ctx=>` ${ctx.parsed.y} recolecciones`}}},scales:{x:{grid:{color:'rgba(5,150,105,0.06)'},ticks:{color:'#9ca3af',font:{size:12}}},y:{grid:{color:'rgba(5,150,105,0.06)'},ticks:{color:'#9ca3af',font:{size:12}},beginAtZero:true}}}});
+
+/* ── Actividad reciente ── */
+const actividadDemo=[
+  {color:'#10b981',name:'Recolección registrada',desc:'Lote A-1 · Recolector #003',time:'hace 5 min'},
+  {color:'#f59e0b',name:'Insumo agregado',desc:'Fertilizante NPK · 50kg',time:'hace 18 min'},
+  {color:'#3b82f6',name:'Nuevo trabajador',desc:'Persona #021 registrada',time:'hace 45 min'},
+  {color:'#ef4444',name:'Mantenimiento abierto',desc:'Lote C-3 · Revisión sistema',time:'hace 1 h'},
+  {color:'#10b981',name:'Pago procesado',desc:'Nómina semana 16',time:'hace 2 h'},
+];
+document.getElementById('actividadList').innerHTML=actividadDemo.map(a=>`
+  <div class="act-item">
+    <span class="act-dot" style="background:${a.color}"></span>
+    <div class="act-info"><div class="act-name">${a.name}</div><div class="act-desc">${a.desc}</div></div>
+    <span class="act-time">${a.time}</span>
+  </div>`).join('');
+
+/* ── Animación barras ── */
+setTimeout(()=>{
+  document.querySelectorAll('[data-w]').forEach(el=>{el.style.width=el.dataset.w;});
+  [['prog-rec','72%'],['prog-mant','55%'],['prog-ins','88%'],['prog-pag','40%']].forEach(([id,w])=>{
+    const el=document.getElementById(id); if(el) el.textContent=w;
+    const bar=el?.closest('.progress-item')?.querySelector('.prog-fill');
+    if(bar) bar.style.width=w;
+  });
+},400);
+</script>
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+  <title>Administrador — SIGIC</title>
+  <style>
+    /* ── variables compartidas ── */
+    :root {
+      --g-950:#011a12;--g-900:#022c22;--g-800:#064e3b;--g-700:#065f46;
+      --g-600:#047857;--g-500:#059669;--g-400:#10b981;--g-300:#34d399;
+      --g-200:#6ee7b7;--g-100:#a7f3d0;--g-50:#d1fae5;--g-25:#ecfdf5;
+      --gold:#d4a843;--gold-l:#f0c96a;
+      --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+      --page:#f0fdf4;--card:#ffffff;
+      --sh-card:0 2px 12px rgba(2,44,34,0.08);
+      --sh-hover:0 8px 28px rgba(2,44,34,0.13);
+      --sh-em:0 4px 18px rgba(5,150,105,0.22);
+      --radius:14px;--tr:all 0.28s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;
+      background:var(--page);color:#022c22;-webkit-font-smoothing:antialiased;overflow:hidden;}
+
+    /* ── LAYOUT PRINCIPAL ── */
+    .shell{display:flex;height:100vh;overflow:hidden}
+
+    /* ── SIDEBAR ── */
+    .sidebar{
+      width:240px;min-width:240px;
+      background:linear-gradient(180deg,var(--g-950) 0%,#010f09 100%);
+      display:flex;flex-direction:column;
+      border-right:1px solid rgba(52,211,153,0.10);
+      box-shadow:4px 0 20px rgba(1,26,18,0.25);
+      position:relative;z-index:10;overflow-y:auto;
+    }
+    .sidebar::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,transparent,var(--g-400),var(--gold),var(--g-300),transparent);
+      background-size:200% 100%;animation:shimBar 3s linear infinite;
+    }
+    .sidebar::after{
+      content:'';position:absolute;inset:0;
+      background-image:radial-gradient(circle,rgba(52,211,153,0.03) 1px,transparent 1px);
+      background-size:22px 22px;pointer-events:none;z-index:0;
+    }
+
+    /* Logo */
+    .sb-logo{
+      display:flex;align-items:center;gap:10px;
+      padding:26px 20px 16px;position:relative;z-index:2;
+    }
+    .sb-logo img{
+      width:38px;height:38px;
+      filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(52,211,153,0.3));
+    }
+    .sb-logo .brand{
+      font-family:'Syne','Inter',sans-serif;font-size:11px;font-weight:800;
+      color:var(--g-200);letter-spacing:0.18em;text-transform:uppercase;
+    }
+
+    /* Sección label */
+    .sb-section{
+      font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;
+      color:rgba(110,231,183,0.40);padding:14px 20px 8px;
+      position:relative;z-index:2;
+    }
+
+    /* Nav items */
+    .sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px;position:relative;z-index:2;}
+    .nav-btn{
+      display:flex;align-items:center;gap:10px;width:100%;
+      padding:10px 12px;border-radius:10px;
+      font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+      color:rgba(167,243,208,0.65);cursor:pointer;
+      transition:var(--tr);border:none;background:transparent;
+      text-align:left;text-decoration:none;position:relative;overflow:hidden;
+      min-height:44px;
+    }
+    .nav-btn::before{
+      content:'';position:absolute;left:0;top:20%;bottom:20%;
+      width:3px;background:linear-gradient(180deg,var(--g-400),var(--gold));
+      border-radius:0 3px 3px 0;
+      transform:scaleY(0);transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    .nav-btn:hover,.nav-btn.active{
+      background:rgba(16,185,129,0.10);color:var(--g-100);transform:translateX(3px);
+    }
+    .nav-btn:hover::before,.nav-btn.active::before{transform:scaleY(1);}
+    .nav-btn .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+    .nav-badge{
+      margin-left:auto;background:var(--g-500);color:#fff;
+      font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;
+    }
+
+    /* Sub-grupo colapsable */
+    .nav-group{overflow:hidden;transition:max-height .3s ease;}
+    .nav-group.closed{max-height:0;}
+    .nav-group.open{max-height:500px;}
+    .nav-group-inner{padding-left:12px;display:flex;flex-direction:column;gap:2px;padding-top:2px;}
+    .nav-sub{
+      display:flex;align-items:center;gap:8px;width:100%;
+      padding:8px 10px;border-radius:8px;
+      font-size:12px;font-weight:500;color:rgba(110,231,183,0.55);
+      cursor:pointer;border:none;background:transparent;text-align:left;
+      text-decoration:none;transition:var(--tr);min-height:36px;
+    }
+    .nav-sub:hover{background:rgba(16,185,129,0.08);color:var(--g-100);}
+    .nav-sub .icon{font-size:13px;width:18px;text-align:center;}
+    .nav-arrow{margin-left:auto;font-size:10px;transition:transform .25s ease;color:rgba(110,231,183,0.4);}
+    .nav-btn.group-trigger .nav-arrow{display:inline-block;}
+
+    /* Salir */
+    .sb-bottom{margin-top:auto;padding:16px 10px 20px;position:relative;z-index:2;}
+    .btn-salir{
+      display:flex;align-items:center;gap:10px;width:100%;
+      padding:10px 14px;border-radius:10px;
+      background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.22);
+      color:rgba(252,165,165,0.85);font-size:12px;font-weight:600;
+      letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;
+      transition:var(--tr);
+    }
+    .btn-salir:hover{background:rgba(239,68,68,0.22);transform:translateX(2px);}
+
+    /* ── ÁREA PRINCIPAL ── */
+    .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+    /* Topbar */
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 28px;height:56px;min-height:56px;
+      background:#fff;border-bottom:1px solid rgba(5,150,105,0.10);
+      box-shadow:0 1px 8px rgba(2,44,34,0.06);
+    }
+    .topbar-title{font-family:'Syne','Inter',sans-serif;font-size:16px;font-weight:800;color:#022c22;}
+    .topbar-right{display:flex;align-items:center;gap:14px;}
+    .topbar-time{
+      font-size:13px;font-weight:600;color:var(--g-700);
+      background:var(--g-25);padding:5px 14px;
+      border-radius:99px;border:1px solid rgba(5,150,105,0.15);
+    }
+    .topbar-avatar{
+      width:34px;height:34px;border-radius:50%;
+      background:linear-gradient(135deg,var(--g-500),var(--g-800));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:13px;font-weight:700;box-shadow:var(--sh-em);
+    }
+
+    /* Área de contenido (scrollable) */
+    .content-area{flex:1;overflow-y:auto;overflow-x:hidden;}
+
+    /* ── PANEL MENÚ (cuadrícula de botones) ── */
+    .menu-panel{
+      display:none;flex-direction:column;align-items:center;
+      justify-content:center;padding:40px 32px;min-height:100%;
+      gap:0;
+    }
+    .menu-panel.visible{display:flex;}
+    .menu-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+      gap:14px;width:100%;max-width:720px;
+    }
+    .menu-card{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:10px;padding:22px 16px;
+      background:#fff;border:1px solid rgba(5,150,105,0.12);
+      border-radius:var(--radius);box-shadow:var(--sh-card);
+      cursor:pointer;transition:var(--tr);text-align:center;
+      color:#065f46;font-size:13px;font-weight:600;
+      position:relative;overflow:hidden;min-height:90px;
+    }
+    .menu-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--g-500),var(--g-300));
+      opacity:0;transition:var(--tr);
+    }
+    .menu-card:hover{
+      transform:translateY(-4px);
+      box-shadow:var(--sh-hover);
+      border-color:rgba(5,150,105,0.25);
+      color:#022c22;
+    }
+    .menu-card:hover::before{opacity:1;}
+    .menu-card .mc-icon{font-size:28px;line-height:1;}
+    .menu-card .mc-label{font-size:12px;font-weight:700;letter-spacing:0.03em;}
+    .section-label{
+      font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+      color:#022c22;margin-bottom:20px;
+      display:flex;align-items:center;gap:10px;
+    }
+    .section-label::after{
+      content:'';flex:1;height:1px;
+      background:linear-gradient(90deg,rgba(5,150,105,0.2),transparent);
+    }
+
+    /* ── DASHBOARD EMBED ── */
+    #db-embed{
+      display:none;width:100%;height:100%;overflow-y:auto;
+    }
+    #db-embed.visible{display:block;}
+
+    @keyframes shimBar{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:var(--g-25)}
+    ::-webkit-scrollbar-thumb{background:var(--g-300);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--g-500)}
+    @media(max-width:900px){
+      .sidebar{width:200px;min-width:200px}
+      .menu-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+    }
+    @media(max-width:640px){
+      html,body{overflow:auto}
+      .shell{flex-direction:column}
+      .sidebar{width:100%;min-width:unset;height:auto}
+      .content-area{overflow:auto}
+    }
+  </style>
+</head>
+<body>
+{% load static %}
+<div class="shell">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="{% static 'img/logo_f.png' %}" alt="logo" onerror="this.style.display='none'">
+      <span class="brand">Finca Cafetera</span>
+    </div>
+
+    <div class="sb-section">Navegación</div>
+    <nav class="sb-nav">
+
+      <!-- Dashboard -->
+      <button class="nav-btn active" id="btn-dashboard" onclick="showDashboard()">
+        <span class="icon">⊞</span> Panel de Control
+      </button>
+
+      <!-- Chatbot -->
+      <a class="nav-btn" href="{% url 'chatbot' %}" style="text-decoration: none;">
+        <span class="icon">🤖</span> Asistente IA
+      </a>
+
+      <!-- Personas (grupo) -->
+      <button class="nav-btn group-trigger" onclick="toggleGroup('g-personas', this)">
+        <span class="icon">👥</span> Personas
+        <span class="nav-arrow">▾</span>
+      </button>
+      <div class="nav-group closed" id="g-personas">
+        <div class="nav-group-inner">
+          <a class="nav-sub" href="/persona/"><span class="icon">👤</span> Personas</a>
+          <a class="nav-sub" href="/propietario/"><span class="icon">🧑‍💼</span> Propietarios</a>
+          <a class="nav-sub" href="/recolector/"><span class="icon">🌱</span> Recolectores</a>
+          <a class="nav-sub" href="/tipo_doc/"><span class="icon">📄</span> Tipo Documento</a>
+        </div>
+      </div>
+
+      <!-- Finanzas (grupo) -->
+      <button class="nav-btn group-trigger" onclick="toggleGroup('g-finanzas', this)">
+        <span class="icon">💰</span> Finanzas
+        <span class="nav-arrow">▾</span>
+      </button>
+      <div class="nav-group closed" id="g-finanzas">
+        <div class="nav-group-inner">
+          <a class="nav-sub" href="/finca/"><span class="icon">🏡</span> Fincas</a>
+          <a class="nav-sub" href="/recoleccion/"><span class="icon">☕</span> Recolecciones</a>
+          <a class="nav-sub" href="/pago/"><span class="icon">💳</span> Pagos</a>
+          <a class="nav-sub" href="/reporte/"><span class="icon">📊</span> Reportes</a>
+          <a class="nav-sub" href="/lote/"><span class="icon">🗺️</span> Lotes</a>
+          <a class="nav-sub" href="/compra/"><span class="icon">🛒</span> Compras</a>
+        </div>
+      </div>
+
+      <!-- Insumos (grupo) -->
+      <button class="nav-btn group-trigger" onclick="toggleGroup('g-insumos', this)">
+        <span class="icon">📦</span> Insumos
+        <span class="nav-arrow">▾</span>
+      </button>
+      <div class="nav-group closed" id="g-insumos">
+        <div class="nav-group-inner">
+          <a class="nav-sub" href="/insumo/"><span class="icon">📦</span> Insumos</a>
+          <a class="nav-sub" href="/tipo_insumo/"><span class="icon">🏷️</span> Tipo Insumo</a>
+          <a class="nav-sub" href="/unidad_medida/"><span class="icon">📏</span> Unidad Medida</a>
+          <a class="nav-sub" href="/metodo_aplicacion/"><span class="icon">🧪</span> Método Aplicación</a>
+          <a class="nav-sub" href="/inventario/"><span class="icon">📋</span> Inventario</a>
+          <a class="nav-sub" href="/suministro/"><span class="icon">🪣</span> Suministros</a>
+        </div>
+      </div>
+
+      <!-- Auditoría (grupo) -->
+      <button class="nav-btn group-trigger" onclick="toggleGroup('g-auditoria', this)">
+        <span class="icon">🔍</span> Auditoría
+        <span class="nav-arrow">▾</span>
+      </button>
+      <div class="nav-group closed" id="g-auditoria">
+        <div class="nav-group-inner">
+          <a class="nav-sub" href="/audi_recolector/"><span class="icon">🔎</span> Auditoría Recolector</a>
+          <a class="nav-sub" href="/audi_reporte/"><span class="icon">🔎</span> Auditoría Reporte</a>
+        </div>
+      </div>
+
+    </nav>
+
+    <div class="sb-bottom">
+      <button class="btn-salir" onclick="window.location.href='/logout/'">
+        <span>⬅</span> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ ÁREA PRINCIPAL ══ -->
+  <div class="main-area">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-title" id="topbar-title">Panel de Control</span>
+      <div class="topbar-right">
+        <div class="topbar-time" id="reloj">--:--:--</div>
+        <div class="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <!-- Área de contenido -->
+    <div class="content-area" id="content-area">
+
+      <!-- Dashboard embebido directamente (sin iframe) -->
+      <div id="db-embed" class="visible"></div>
+
+      <!-- Panel Personas -->
+      <div class="menu-panel" id="panel-personas">
+        <div class="section-label">👥 Personas</div>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="location.href='/persona/'"><div class="mc-icon">👤</div><div class="mc-label">Personas</div></div>
+          <div class="menu-card" onclick="location.href='/propietario/'"><div class="mc-icon">🧑‍💼</div><div class="mc-label">Propietarios</div></div>
+          <div class="menu-card" onclick="location.href='/recolector/'"><div class="mc-icon">🌱</div><div class="mc-label">Recolectores</div></div>
+          <div class="menu-card" onclick="location.href='/tipo_doc/'"><div class="mc-icon">📄</div><div class="mc-label">Tipo Documento</div></div>
+        </div>
+      </div>
+
+      <!-- Panel Finanzas -->
+      <div class="menu-panel" id="panel-finanzas">
+        <div class="section-label">💰 Finanzas</div>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="location.href='/finca/'"><div class="mc-icon">🏡</div><div class="mc-label">Fincas</div></div>
+          <div class="menu-card" onclick="location.href='/recoleccion/'"><div class="mc-icon">☕</div><div class="mc-label">Recolecciones</div></div>
+          <div class="menu-card" onclick="location.href='/pago/'"><div class="mc-icon">💳</div><div class="mc-label">Pagos</div></div>
+          <div class="menu-card" onclick="location.href='/reporte/'"><div class="mc-icon">📊</div><div class="mc-label">Reportes</div></div>
+          <div class="menu-card" onclick="location.href='/lote/'"><div class="mc-icon">🗺️</div><div class="mc-label">Lotes</div></div>
+          <div class="menu-card" onclick="location.href='/compra/'"><div class="mc-icon">🛒</div><div class="mc-label">Compras</div></div>
+        </div>
+      </div>
+
+      <!-- Panel Insumos -->
+      <div class="menu-panel" id="panel-insumos">
+        <div class="section-label">📦 Insumos</div>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="location.href='/insumo/'"><div class="mc-icon">📦</div><div class="mc-label">Insumos</div></div>
+          <div class="menu-card" onclick="location.href='/tipo_insumo/'"><div class="mc-icon">🏷️</div><div class="mc-label">Tipo Insumo</div></div>
+          <div class="menu-card" onclick="location.href='/unidad_medida/'"><div class="mc-icon">📏</div><div class="mc-label">Unidad Medida</div></div>
+          <div class="menu-card" onclick="location.href='/metodo_aplicacion/'"><div class="mc-icon">🧪</div><div class="mc-label">Método Aplicación</div></div>
+          <div class="menu-card" onclick="location.href='/inventario/'"><div class="mc-icon">📋</div><div class="mc-label">Inventario</div></div>
+          <div class="menu-card" onclick="location.href='/suministro/'"><div class="mc-icon">🪣</div><div class="mc-label">Suministros</div></div>
+        </div>
+      </div>
+
+      <!-- Panel Auditoría -->
+      <div class="menu-panel" id="panel-auditoria">
+        <div class="section-label">🔍 Auditoría</div>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="location.href='/audi_recolector/'"><div class="mc-icon">🔎</div><div class="mc-label">Auditoría Recolector</div></div>
+          <div class="menu-card" onclick="location.href='/audi_reporte/'"><div class="mc-icon">🔎</div><div class="mc-label">Auditoría Reporte</div></div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /main-area -->
+</div><!-- /shell -->
+
+<!-- ══ DASHBOARD INLINE (se inyecta aquí) ══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ── Reloj ── */
+setInterval(()=>{
+  document.getElementById('reloj').textContent =
+    new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+document.getElementById('reloj').textContent =
+  new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+/* ── Grupos colapsables ── */
+function toggleGroup(id, btn){
+  const g = document.getElementById(id);
+  const open = g.classList.contains('open');
+  // cerrar todos
+  document.querySelectorAll('.nav-group').forEach(x=>{x.classList.remove('open');x.classList.add('closed');});
+  document.querySelectorAll('.nav-arrow').forEach(x=>x.style.transform='');
+  if(!open){
+    g.classList.remove('closed'); g.classList.add('open');
+    btn.querySelector('.nav-arrow').style.transform='rotate(180deg)';
+  }
+}
+
+/* ── Mostrar panel ── */
+const panels = ['db-embed','panel-personas','panel-finanzas','panel-insumos','panel-auditoria'];
+function showPanel(id){
+  panels.forEach(p=>{
+    const el=document.getElementById(p);
+    if(!el) return;
+    if(p==='db-embed'){el.classList.remove('visible');el.style.display='none';}
+    else{el.classList.remove('visible');el.style.display='none';}
+  });
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const target=document.getElementById(id);
+  if(target){
+    if(id==='db-embed'){target.style.display='block';target.classList.add('visible');}
+    else{target.style.display='flex';target.classList.add('visible');}
+  }
+}
+function showDashboard(){
+  showPanel('db-embed');
+  document.getElementById('btn-dashboard').classList.add('active');
+  document.getElementById('topbar-title').textContent='Panel de Control';
+  // renderizar si aún no se hizo
+  if(!window._dbRendered){ renderDashboard(); window._dbRendered=true; }
+}
+
+/* ── Iniciar con dashboard ── */
+window.addEventListener('DOMContentLoaded',()=>{ showDashboard(); });
+
+/* ════════════════════════════════════════════
+   DASHBOARD INLINE
+════════════════════════════════════════════ */
+function renderDashboard(){
+  const cont = document.getElementById('db-embed');
+  cont.innerHTML = `
+  <style>
+    #db-inner{padding:24px 28px 36px;font-family:'DM Sans','Inter',system-ui,sans-serif;}
+    .db-banner{background:linear-gradient(135deg,#065f46 0%,#011a12 100%);border-radius:14px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;position:relative;overflow:hidden;}
+    .db-banner::before{content:'';position:absolute;top:-60px;right:60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.12) 0%,transparent 65%);}
+    .db-banner::after{content:'';position:absolute;bottom:-40px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,0.10) 0%,transparent 65%);}
+    .banner-text h2{font-family:'Syne','Inter',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:3px;}
+    .banner-text p{font-size:12px;color:rgba(255,255,255,0.55);}
+    .banner-stats{display:flex;gap:14px;position:relative;z-index:1;}
+    .b-stat{text-align:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px 18px;backdrop-filter:blur(10px);}
+    .b-stat .val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;display:block;line-height:1;}
+    .b-stat .lbl{font-size:9px;color:rgba(255,255,255,0.50);letter-spacing:0.14em;text-transform:uppercase;margin-top:3px;}
+    .info-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+    .i-card{background:#fff;border-radius:12px;border:1px solid rgba(5,150,105,0.12);padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(2,44,34,0.07);}
+    .i-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+    .i-card.em::before{background:linear-gradient(90deg,#059669,#34d399);}
+    .i-card.blu::before{background:linear-gradient(90deg,#3b82f6,#93c5fd);}
+    .i-card.gld::before{background:linear-gradient(90deg,#d4a843,#f0c96a);}
+    .i-card.red::before{background:linear-gradient(90deg,#ef4444,#fca5a5);}
+    .i-card .ic-label{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;margin-bottom:4px;}
+    .i-card .ic-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#022c22;line-height:1;}
+    .i-card .ic-sub{font-size:11px;color:#6b7280;margin-top:4px;}
+    .i-card .ic-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:32px;opacity:0.10;}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+    .kpi-c{background:#fff;border-radius:12px;border:1px solid rgba(5,150,105,0.10);padding:18px 20px;box-shadow:0 2px 8px rgba(2,44,34,0.07);transition:all .28s ease;}
+    .kpi-c:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(2,44,34,0.11);}
+    .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .kpi-lbl{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#9ca3af;}
+    .kpi-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+    .ki-g{background:rgba(5,150,105,0.12);}.ki-b{background:rgba(59,130,246,0.12);}.ki-d{background:rgba(212,168,67,0.14);}.ki-r{background:rgba(239,68,68,0.12);}
+    .kpi-val{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#022c22;line-height:1;margin-bottom:8px;}
+    .kpi-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;}
+    .t-up{background:#dcfce7;color:#16a34a;}.t-flat{background:#f3f4f6;color:#6b7280;}
+    .kpi-bar{height:3px;border-radius:99px;background:rgba(5,150,105,0.10);overflow:hidden;margin-top:12px;}
+    .kpi-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#059669,#34d399);transition:width 1.2s cubic-bezier(.34,1.1,.64,1);}
+    .bottom-g{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:18px;}
+    .ch-card,.act-card{background:#fff;border-radius:14px;border:1px solid rgba(5,150,105,0.10);padding:20px 22px;box-shadow:0 2px 8px rgba(2,44,34,0.07);}
+    .c-title{font-family:'Syne','Inter',sans-serif;font-size:14px;font-weight:800;color:#022c22;margin-bottom:2px;display:flex;align-items:center;gap:7px;}
+    .c-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 7px rgba(16,185,129,.5);}
+    .c-sub{font-size:11px;color:#9ca3af;margin-bottom:16px;}
+    .ch-wrap{position:relative;height:200px;}
+    .act-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+    .act-i{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;background:#f8fffe;border:1px solid rgba(5,150,105,0.08);}
+    .act-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+    .act-nm{font-size:12px;font-weight:600;color:#022c22;}
+    .act-ds{font-size:10px;color:#9ca3af;margin-top:1px;}
+    .act-t{font-size:10px;color:#9ca3af;white-space:nowrap;margin-left:auto;}
+    .bottom-g2{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+    .mini-c{background:#fff;border-radius:14px;border:1px solid rgba(5,150,105,0.10);padding:18px 20px;box-shadow:0 2px 8px rgba(2,44,34,0.07);}
+    .prog-h{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#065f46;margin-bottom:5px;}
+    .prog-b{height:7px;border-radius:99px;background:rgba(5,150,105,0.10);overflow:hidden;margin-bottom:12px;}
+    .prog-f{height:100%;border-radius:99px;background:linear-gradient(90deg,#059669,#34d399);transition:width 1.3s ease;}
+    .prog-f.gld{background:linear-gradient(90deg,#d4a843,#f0c96a);}
+    .prog-f.blu{background:linear-gradient(90deg,#3b82f6,#93c5fd);}
+    .r-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(5,150,105,0.08);}
+    .r-item:last-child{border-bottom:none;}
+    .r-nm{font-size:12px;font-weight:500;color:#065f46;}
+    .r-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#047857;}
+    .r-chg{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;}
+    .chg-up{background:#dcfce7;color:#16a34a;}.chg-dn{background:#fee2e2;color:#dc2626;}
+    .ld{display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1s ease infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:900px){.bottom-g{grid-template-columns:1fr}.bottom-g2{grid-template-columns:1fr 1fr}}
+  </style>
+  <div id="db-inner">
+
+    <!-- Banner -->
+    <div class="db-banner">
+      <div class="banner-text" style="position:relative;z-index:1;">
+        <h2>¡Buen día, Administrador! 👋</h2>
+        <p id="db-fecha">Cargando fecha...</p>
+      </div>
+      <div class="banner-stats">
+        <div class="b-stat"><span class="val" id="ban-rec"><span class="ld"></span></span><div class="lbl">Recolecciones</div></div>
+        <div class="b-stat"><span class="val" id="ban-trab"><span class="ld"></span></span><div class="lbl">Trabajadores</div></div>
+        <div class="b-stat"><span class="val" id="ban-finca"><span class="ld"></span></span><div class="lbl">Fincas activas</div></div>
+      </div>
+    </div>
+
+    <!-- Info strip -->
+    <div class="info-strip">
+      <div class="i-card em">
+        <div class="ic-label" id="cl-ciudad">📍 Detectando...</div>
+        <div class="ic-value" id="cl-temp"><span class="ld"></span></div>
+        <div class="ic-sub" id="cl-desc">Obteniendo clima...</div>
+        <span class="ic-icon" id="cl-icon">🌤️</span>
+      </div>
+      <div class="i-card blu">
+        <div class="ic-label">💧 Humedad relativa</div>
+        <div class="ic-value" id="cl-hum"><span class="ld"></span></div>
+        <div class="ic-sub" id="cl-viento">Viento: —</div>
+        <div style="margin-top:7px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-bottom:3px;">
+            <span>Sensación</span><span id="cl-sens">—</span>
+          </div>
+          <div style="height:5px;border-radius:99px;background:rgba(59,130,246,0.15);overflow:hidden;">
+            <div id="hum-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#93c5fd);width:0%;transition:width 1.2s ease;"></div>
+          </div>
+        </div>
+        <span class="ic-icon">💧</span>
+      </div>
+      <div class="i-card gld">
+        <div class="ic-label">💵 USD → COP</div>
+        <div class="ic-value" id="dolar-val">$—</div>
+        <div class="ic-sub" id="dolar-sub">Actualizando...</div>
+        <span class="ic-icon">💱</span>
+      </div>
+      <div class="i-card red">
+        <div class="ic-label">☕ Precio café / kg</div>
+        <div class="ic-value">$4.200</div>
+        <div class="ic-sub">Referencia mercado</div>
+        <span class="ic-icon">☕</span>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-c">
+        <div class="kpi-top"><span class="kpi-lbl">Total Recolecciones</span><span class="kpi-ico ki-g">🌱</span></div>
+        <div class="kpi-val" id="kpi-rec">—</div>
+        <span class="kpi-trend t-up">↑ +12% este mes</span>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="72%"></div></div>
+      </div>
+      <div class="kpi-c">
+        <div class="kpi-top"><span class="kpi-lbl">Trabajadores activos</span><span class="kpi-ico ki-b">👷</span></div>
+        <div class="kpi-val" id="kpi-trab">—</div>
+        <span class="kpi-trend t-flat">→ Sin cambios</span>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="60%"></div></div>
+      </div>
+      <div class="kpi-c">
+        <div class="kpi-top"><span class="kpi-lbl">Insumos registrados</span><span class="kpi-ico ki-d">📦</span></div>
+        <div class="kpi-val" id="kpi-ins">—</div>
+        <span class="kpi-trend t-up">↑ +3 esta semana</span>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="45%"></div></div>
+      </div>
+      <div class="kpi-c">
+        <div class="kpi-top"><span class="kpi-lbl">Pagos del mes</span><span class="kpi-ico ki-g">💰</span></div>
+        <div class="kpi-val" id="kpi-pago">—</div>
+        <span class="kpi-trend t-up" id="kpi-pago-trend">↑ En curso</span>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:0%" data-w="65%"></div></div>
+      </div>
+    </div>
+
+    <!-- Gráfico + Actividad -->
+    <div class="bottom-g">
+      <div class="ch-card">
+        <div class="c-title"><span class="c-dot"></span>Recolecciones por mes</div>
+        <div class="c-sub">Histórico de producción — últimos 7 meses</div>
+        <div class="ch-wrap"><canvas id="db-chart"></canvas></div>
+      </div>
+      <div class="act-card">
+        <div class="c-title"><span class="c-dot" style="background:#d4a843;box-shadow:0 0 7px rgba(212,168,67,.5);"></span>Actividad reciente</div>
+        <div class="c-sub">Últimas operaciones del sistema</div>
+        <div class="act-list" id="db-actividad"></div>
+      </div>
+    </div>
+
+    <!-- Progreso + Tasas + Insumos -->
+    <div class="bottom-g2">
+      <div class="mini-c">
+        <div class="c-title" style="margin-bottom:14px;"><span class="c-dot"></span>Avance operativo</div>
+        <div class="prog-h"><span>Recolección</span><span id="p-rec">72%</span></div>
+        <div class="prog-b"><div class="prog-f" style="width:0%" data-w="72%"></div></div>
+        <div class="prog-h"><span>Mantenimiento</span><span id="p-mant">55%</span></div>
+        <div class="prog-b"><div class="prog-f gld" style="width:0%" data-w="55%"></div></div>
+        <div class="prog-h"><span>Insumos aplicados</span><span id="p-ins">88%</span></div>
+        <div class="prog-b"><div class="prog-f blu" style="width:0%" data-w="88%"></div></div>
+        <div class="prog-h"><span>Pagos procesados</span><span id="p-pag">40%</span></div>
+        <div class="prog-b"><div class="prog-f gld" style="width:0%" data-w="40%"></div></div>
+      </div>
+      <div class="mini-c">
+        <div class="c-title" style="margin-bottom:14px;"><span class="c-dot" style="background:#d4a843;box-shadow:0 0 7px rgba(212,168,67,.5);"></span>Tasas &amp; Precios</div>
+        <div class="r-item"><span class="r-nm">💵 USD/COP</span><span class="r-val" id="r-usd">—</span><span class="r-chg chg-up">↑ actualizado</span></div>
+        <div class="r-item"><span class="r-nm">☕ Café / kg</span><span class="r-val">$4.200</span><span class="r-chg chg-up">+1.2%</span></div>
+        <div class="r-item"><span class="r-nm">⛽ Diésel / gal</span><span class="r-val">$9.800</span><span class="r-chg chg-dn">-0.5%</span></div>
+        <div class="r-item"><span class="r-nm">🌽 Fertilizante</span><span class="r-val">$85.000</span><span class="r-chg chg-up">+2.1%</span></div>
+      </div>
+      <div class="mini-c">
+        <div class="c-title" style="margin-bottom:14px;"><span class="c-dot" style="background:#d4a843;box-shadow:0 0 7px rgba(212,168,67,.5);"></span>Últimos insumos</div>
+        <table id="db-insumos-t" style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="border-bottom:2px solid rgba(5,150,105,0.12);">
+            <th style="text-align:left;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;text-transform:uppercase;">Insumo</th>
+            <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Precio</th>
+            <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Und.</th>
+          </tr></thead>
+          <tbody id="db-insumos-body"><tr><td colspan="3" style="text-align:center;padding:10px;color:#9ca3af;"><span class="ld"></span></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /db-inner -->
+  `;
+
+  /* fecha */
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const now=new Date();
+  document.getElementById('db-fecha').textContent=
+    `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+
+  /* gráfico */
+  const ctx=document.getElementById('db-chart').getContext('2d');
+  const gf=ctx.createLinearGradient(0,0,0,200);
+  gf.addColorStop(0,'rgba(16,185,129,0.22)');gf.addColorStop(1,'rgba(16,185,129,0.01)');
+  new Chart(ctx,{type:'line',data:{
+    labels:['Oct','Nov','Dic','Ene','Feb','Mar','Abr'],
+    datasets:[{label:'Recolecciones',data:[18,24,30,22,35,28,40],fill:true,
+      backgroundColor:gf,borderColor:'#10b981',borderWidth:2.5,tension:0.45,
+      pointBackgroundColor:'#10b981',pointBorderColor:'#fff',pointBorderWidth:2,
+      pointRadius:4,pointHoverRadius:6}]
+  },options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#022c22',
+      titleColor:'#a7f3d0',bodyColor:'#d1fae5',padding:10,cornerRadius:8,
+      callbacks:{label:c=>` ${c.parsed.y} recolecciones`}}},
+    scales:{x:{grid:{color:'rgba(5,150,105,0.05)'},ticks:{color:'#9ca3af',font:{size:11}}},
+      y:{grid:{color:'rgba(5,150,105,0.05)'},ticks:{color:'#9ca3af',font:{size:11}},beginAtZero:true}}}});
+
+  /* actividad demo */
+  document.getElementById('db-actividad').innerHTML=[
+    {c:'#10b981',n:'Recolección registrada',d:'Lote A-1 · Recolector #003',t:'hace 5 min'},
+    {c:'#f59e0b',n:'Insumo agregado',d:'Fertilizante NPK · 50kg',t:'hace 18 min'},
+    {c:'#3b82f6',n:'Nuevo trabajador',d:'Persona registrada',t:'hace 45 min'},
+    {c:'#ef4444',n:'Mantenimiento abierto',d:'Lote C-3 · Revisión',t:'hace 1 h'},
+    {c:'#10b981',n:'Pago procesado',d:'Nómina semana 16',t:'hace 2 h'},
+  ].map(a=>`<div class="act-i"><span class="act-dot" style="background:${a.c}"></span>
+    <div><div class="act-nm">${a.n}</div><div class="act-ds">${a.d}</div></div>
+    <span class="act-t">${a.t}</span></div>`).join('');
+
+  /* KPIs */
+  function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+  async function loadKPIs(){
+    try{const r=await fetch('/api/recoleccion');const d=await r.json();const n=Array.isArray(d)?d.length:0;sv('kpi-rec',n);sv('ban-rec',n);}catch(e){sv('kpi-rec','—');sv('ban-rec','—');}
+    try{const r=await fetch('/get_todos/Persona/');const d=await r.json();const n=Array.isArray(d)?d.length:0;sv('kpi-trab',n);sv('ban-trab',n);}catch(e){sv('kpi-trab','—');sv('ban-trab','—');}
+    try{const r=await fetch('/api/insumos');const d=await r.json();const n=Array.isArray(d)?d.length:0;sv('kpi-ins',n);renderInsumos(Array.isArray(d)?d.slice(0,3):[]);}catch(e){sv('kpi-ins','—');}
+    try{const r=await fetch('/api/pago');const d=await r.json();sv('kpi-pago',Array.isArray(d)?d.length:0);}catch(e){sv('kpi-pago','—');}
+    try{const r=await fetch('/api/productosfinca');const d=await r.json();sv('ban-finca',Array.isArray(d)?d.length:0);}catch(e){sv('ban-finca','—');}
+  }
+  function renderInsumos(ins){
+    const fmt=v=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v||0);
+    document.getElementById('db-insumos-body').innerHTML=ins.length
+      ?ins.map(i=>`<tr style="border-bottom:1px solid rgba(5,150,105,0.07);">
+          <td style="padding:6px 3px;font-weight:600;color:#022c22;">${i.nombre||i.nombre_insumo||'Insumo'}</td>
+          <td style="padding:6px 3px;text-align:right;font-family:'Syne',sans-serif;font-weight:700;color:#047857;">${fmt(i.precio||i.preciounidad_insumo)}</td>
+          <td style="padding:6px 3px;text-align:right;color:#9ca3af;">${i.unidad||i.unidad_medida||'und'}</td>
+        </tr>`).join('')
+      :`<tr><td colspan="3" style="padding:10px;text-align:center;color:#9ca3af;">Sin datos</td></tr>`;
+  }
+  loadKPIs(); setInterval(loadKPIs,30000);
+
+  /* Clima */
+  async function ciudad(lat,lon){
+    try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=es`);
+      const d=await r.json();const a=d.address;return (a.city||a.town||a.village||a.county||'Mi ubicación')+(a.state?', '+a.state:'');}
+    catch(e){return 'Mi ubicación';}
+  }
+  async function clima(lat,lon,cname){
+    try{
+      const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Bogota';
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature&wind_speed_unit=kmh&timezone=${encodeURIComponent(tz)}`);
+      const d=await r.json();const c=d.current;
+      let em='🌤️',desc='Variable';
+      const co=c.weather_code;
+      if(co===0){em='☀️';desc='Despejado';}else if(co<=2){em='🌤️';desc='Poco nublado';}
+      else if(co===3){em='☁️';desc='Nublado';}else if(co<=48){em='🌫️';desc='Niebla';}
+      else if(co<=67){em='🌧️';desc='Lluvia';}else if(co<=77){em='❄️';desc='Nieve';}
+      else if(co<=82){em='🌦️';desc='Chubascos';}else{em='⛈️';desc='Tormenta';}
+      document.getElementById('cl-ciudad').innerHTML='📍 '+cname;
+      document.getElementById('cl-temp').textContent=Math.round(c.temperature_2m)+'°C';
+      document.getElementById('cl-desc').textContent=em+' '+desc;
+      document.getElementById('cl-icon').textContent=em;
+      document.getElementById('cl-hum').textContent=c.relative_humidity_2m+'%';
+      document.getElementById('cl-viento').textContent='💨 Viento: '+Math.round(c.wind_speed_10m)+' km/h';
+      document.getElementById('cl-sens').textContent=Math.round(c.apparent_temperature)+'°C';
+      const hb=document.getElementById('hum-bar');if(hb)hb.style.width=c.relative_humidity_2m+'%';
+    }catch(e){document.getElementById('cl-temp').textContent='—';}
+  }
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      async p=>{const cn=await ciudad(p.coords.latitude,p.coords.longitude);clima(p.coords.latitude,p.coords.longitude,cn);},
+      ()=>clima(4.142,-73.626,'Villavicencio, Meta'),{timeout:8000});
+  } else { clima(4.142,-73.626,'Villavicencio, Meta'); }
+
+  /* Dólar */
+  async function dolar(){
+    try{const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const d=await r.json();const cop=d.rates.COP;
+      const fmt=new Intl.NumberFormat('es-CO').format(Math.round(cop));
+      document.getElementById('dolar-val').textContent='$'+fmt;
+      document.getElementById('dolar-sub').textContent='ExchangeRate-API';
+      document.getElementById('r-usd').textContent='$'+fmt;
+    }catch(e){document.getElementById('dolar-val').textContent='—';}
+  }
+  dolar(); setInterval(dolar,1800000);
+
+  /* Barras animadas */
+  setTimeout(()=>{
+    document.querySelectorAll('[data-w]').forEach(el=>el.style.width=el.dataset.w);
+  },500);
+}
+</script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/chatbot_widget.js' %}"></script>
+</body>
+</html>
