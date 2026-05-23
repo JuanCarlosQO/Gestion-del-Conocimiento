@@ -1,0 +1,19 @@
+CORRER LA API
+cd "C:\Users\froml\Downloads\Zunga (2) (1)\Zunga\cafeAPI"
+python -m venv .venv-nuevo
+.\.venv-nuevo\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8001
+
+
+
+CORRER EL DJANGO
+
+cd "C:\Users\froml\Downloads\Zunga (2) (1)\Zunga\proyectoCafe\proyectoCafe"
+python -m venv .venv-nuevo
+.\.venv-nuevo\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 8000

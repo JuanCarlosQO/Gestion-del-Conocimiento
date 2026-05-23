@@ -1,0 +1,28 @@
+# Ignore environment files
+.env
+cafeAPI/.env
+
+# Virtual environments
+.venv/
+.venv-nuevo/
+cafefastapi-env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Editor files
+.vscode/
+.idea/
+.DS_Store
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Build
+dist/
+build/
+
+# OS files
+Thumbs.db

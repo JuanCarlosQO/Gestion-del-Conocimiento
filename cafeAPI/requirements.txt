@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+rdflib
+python-multipart
+google-genai>=0.6.0
+python-dotenv
