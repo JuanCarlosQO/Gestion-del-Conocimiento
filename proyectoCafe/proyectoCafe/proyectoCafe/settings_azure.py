@@ -106,3 +106,11 @@ SESSION_SAVE_EVERY_REQUEST = True
 # ── URL de la API FastAPI (configurable por entorno) ─────────────────────────
 FASTAPI_URL = os.environ.get('FASTAPI_URL', 'http://cafeapi:8001')
 CAFE_API_URL = FASTAPI_URL  # alias de compatibilidad
+
+# ── CSRF Trusted Origins ──────────────────────────────────────────────────────
+CSRF_TRUSTED_ORIGINS = [
+    'https://sigic.redhub.online',
+    'http://sigic.redhub.online',
+    'http://20.109.106.76:8000',
+    'http://localhost:8000',
+]
