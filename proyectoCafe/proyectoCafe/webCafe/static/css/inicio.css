@@ -34,7 +34,7 @@ body {
     radial-gradient(ellipse 55% 65% at 88% 100%, rgba(16,185,129,0.10) 0%, transparent 55%);
   display:flex; align-items:center; justify-content:center;
   min-height:100vh; padding:24px;
-  overflow:hidden; position:relative;
+  overflow:auto; position:relative;
 }
 
 body::before {
@@ -241,8 +241,53 @@ body::after {
 ::-webkit-scrollbar-thumb:hover { background:var(--g-500); }
 
 @media (max-width:680px) {
-  body { padding:0; align-items:stretch; }
-  .contenedor_padre { flex-direction:column; border-radius:0; max-width:100%; min-height:100vh; }
-  #carrusel { width:100%; min-height:220px; }
-  .login { padding:32px 22px; }
+  body {
+    padding:0;
+    align-items:flex-start;
+    overflow-y:auto;
+    min-height:100vh;
+    height:auto;
+  }
+  .contenedor_padre {
+    flex-direction:column;
+    border-radius:0;
+    max-width:100%;
+    min-height:100vh;
+    height:auto;
+    box-shadow:none;
+  }
+  /* Carrusel reducido — solo de fondo decorativo */
+  #carrusel {
+    width:100%;
+    min-height:200px;
+    max-height:200px;
+    flex-shrink:0;
+  }
+  .left-title { font-size:20px; }
+  .left-bottom { padding-bottom:10px; }
+
+  /* Panel login ocupa el resto de la pantalla */
+  .login {
+    flex:1;
+    padding:28px 20px 36px;
+    overflow-y:auto;
+    justify-content:flex-start;
+  }
+  .login-welcome { font-size:20px; margin-bottom:4px; }
+  .login-sub { font-size:12px; margin-bottom:20px; }
+
+  /* Inputs más fáciles de tocar */
+  .formulario input {
+    padding:15px;
+    font-size:16px; /* evita zoom automático en iOS */
+  }
+  .formulario label { font-size:13px; }
+  #ingresoBoton, .formulario button {
+    padding:16px;
+    font-size:15px;
+  }
+
+  /* Logo pequeño */
+  #imglogo { width:30px; height:30px; }
+  .letras { font-size:11px; }
 }
