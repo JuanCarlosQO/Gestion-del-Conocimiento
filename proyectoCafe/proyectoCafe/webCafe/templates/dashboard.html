@@ -146,14 +146,59 @@
     ::-webkit-scrollbar-thumb:hover{background:var(--g-500)}
     @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:900px){.bottom-grid{grid-template-columns:1fr}.bottom-grid2{grid-template-columns:1fr 1fr}}
+
+    /* ── RESPONSIVE MÓVIL ── */
+    #db-ham-btn{
+      display:none;position:fixed;top:12px;left:14px;z-index:1200;
+      background:linear-gradient(135deg,#059669,#064e3b);border:none;
+      border-radius:10px;width:42px;height:42px;
+      align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,0.4);
+      transition:transform .2s ease;flex-shrink:0;
+    }
+    #db-ham-btn svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round}
+    #db-sidebar-overlay{
+      display:none;position:fixed;inset:0;
+      background:rgba(1,26,18,0.6);z-index:1100;
+      backdrop-filter:blur(2px);opacity:0;
+      transition:opacity .28s ease;
+    }
+    #db-sidebar-overlay.active{opacity:1}
+    @media(max-width:1024px){
+      html,body{overflow:auto!important;height:auto!important}
+      .db-wrapper{height:auto!important;overflow:visible!important;min-height:100vh}
+      .db-sidebar{
+        position:fixed!important;top:0;left:0;bottom:0;
+        width:270px!important;min-width:270px!important;
+        z-index:1150;transform:translateX(-100%);
+        transition:transform .3s cubic-bezier(.25,.46,.45,.94);
+        overflow-y:auto;
+      }
+      .db-sidebar.open{transform:translateX(0);box-shadow:6px 0 40px rgba(1,26,18,0.4)}
+      #db-sidebar-overlay{display:block}
+      .db-main{width:100%!important;overflow:visible!important}
+      .db-scroll{overflow-y:visible!important;height:auto!important}
+      .db-topbar{padding-left:68px!important}
+      #db-ham-btn{display:flex}
+    }
+    @media(max-width:640px){
+      .db-scroll{padding:14px 12px 40px!important}
+    }
   </style>
 </head>
 <body>
 {% load static %}
+<!-- Botón hamburguesa móvil -->
+<button id="db-ham-btn" aria-label="Abrir menú">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<!-- Overlay oscuro -->
+<div id="db-sidebar-overlay"></div>
+
 <div class="db-wrapper">
 
   <!-- ══ SIDEBAR ══ -->
-  <aside class="db-sidebar">
+  <aside class="db-sidebar" id="db-sidebar">
     <div class="sidebar-logo">
       <img src="{% static 'img/logo_f.png' %}" alt="logo" onerror="this.style.display='none'">
       <span class="brand">Finca Cafetera</span>
@@ -488,6 +533,29 @@ setTimeout(()=>{
     if(bar) bar.style.width=w;
   });
 },400);
+
+/* ── SIDEBAR MÓVIL ── */
+(function(){
+  var btn      = document.getElementById('db-ham-btn');
+  var sidebar  = document.getElementById('db-sidebar');
+  var overlay  = document.getElementById('db-sidebar-overlay');
+  if(!btn || !sidebar || !overlay) return;
+  function openSidebar(){
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  btn.addEventListener('click', openSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeSidebar();
+  });
+})();
 </script>
 </body>
 </html>
