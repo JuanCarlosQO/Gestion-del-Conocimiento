@@ -120,22 +120,22 @@ def admin_required(view_func):
     return _wrapped_view
 
 
+# propietario_required ahora equivale a admin_required
 def propietario_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        rol = request.session.get('rol')
-        if rol not in ['admin', 'propietario']:
+        if request.session.get('rol') != 'admin':
             messages.error(request, "Acceso denegado.")
             return redirect("/")
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
 
+# admin_or_propietario_required ahora equivale a admin_required
 def admin_or_propietario_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        rol = request.session.get('rol')
-        if rol not in ['admin', 'propietario']:
+        if request.session.get('rol') != 'admin':
             messages.error(request, "Acceso denegado.")
             return redirect("/")
         return view_func(request, *args, **kwargs)
@@ -191,7 +191,7 @@ def inicio(request):
                 if rol == 'admin':
                     return redirect("/vista_admin/")
                 elif rol == 'propietario':
-                    return redirect("/vista_propietario/")
+                    return redirect("/vista_admin/")  # propietario ahora usa panel admin
                 elif rol == 'recolector':
                     return redirect("/vista_recolector/")
             else:
@@ -575,15 +575,10 @@ def insert_recolector(request):
             }
             rol = (request.session.get("rol") or "").strip().lower()
             fk_fin = (request.POST.get("fk_id_finca") or "").strip()
-            if rol == "propietario":
-                datos["fk_id_propietario"] = request.session.get("fk_persona")
-                if not fk_fin:
-                    return JsonResponse({"success": False, "message": "Debe seleccionar una finca"}, status=400)
-                datos["fk_id_finca"] = fk_fin
-            elif rol == "admin":
-                fp = (request.POST.get("fk_id_propietario") or "").strip()
-                if fp:
-                    datos["fk_id_propietario"] = fp
+            if rol in ["propietario", "admin"]:
+                if rol == "propietario":
+                    datos["fk_id_propietario"] = request.session.get("fk_persona")
+                # admin no requiere fk_id_propietario
                 if fk_fin:
                     datos["fk_id_finca"] = fk_fin
             response = requests.post(f"{_api_base()}/recolectores", json=datos, timeout=10)
@@ -935,6 +930,9 @@ def audi_reporte(request):
 
 @admin_required
 def vista_admin(request):
+    # Tanto 'admin' como 'propietario' usan este panel
+    if request.session.get('rol') not in ['admin', 'propietario']:
+        return redirect('/')
     return render(request, 'vista_admin.html')
 
 

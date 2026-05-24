@@ -84,20 +84,10 @@
         </select>
         
         {% if is_admin %}
-        <div class="form-section">3) Asignación (Administrador)</div>
-        <label class="labels">Propietario del recolector</label>
-        <select class="selector" id="select_propietario_admin" name="fk_id_propietario" required>
-          <option value="">— Cargando propietarios —</option>
-        </select>
-        
-       
-        {% endif %}
-        
-        {% if is_propietario %}
         <div class="form-section">3) Asignación (Finca)</div>
-        <label class="labels">Finca Asignada</label>
-        <select class="selector" id="select_finca_propietario" name="fk_id_finca" required>
-          <option value="">— Cargando fincas —</option>
+        <label class="labels">Finca Asignada (opcional)</label>
+        <select class="selector" id="select_finca_propietario" name="fk_id_finca">
+          <option value="">— Seleccione finca (opcional) —</option>
         </select>
         {% endif %}
 
@@ -388,15 +378,10 @@ async function cargarFincasDePropietarioAdmin(propDoc) {
 
 /* DOM LOAD */
 document.addEventListener("DOMContentLoaded", () => {
-  if (IS_PROPIETARIO) cargarFincasPropietario();
   if (IS_ADMIN) {
-    cargarPropietariosAdmin().then(() => {
-      const selP = document.getElementById("select_propietario_admin");
-      if (selP) cargarFincasDePropietarioAdmin(selP.value);
-    });
-    const selP = document.getElementById("select_propietario_admin");
-    if (selP) selP.addEventListener("change", (e) => cargarFincasDePropietarioAdmin(e.target.value));
+    cargarFincasPropietario();
   }
+  if (IS_PROPIETARIO) cargarFincasPropietario();
   obtenerRecolectores();
   setInterval(obtenerRecolectores, 5000);
   
@@ -475,13 +460,8 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
       formData.append("diastrabajados_recolector", "0");
 
       if (IS_ADMIN) {
-        const pid = document.getElementById("select_propietario_admin")?.value || "";
-        if (!pid) {
-          alert("Seleccione el propietario del recolector.");
-          return;
-        }
-        formData.append("fk_id_propietario", pid);
-        const fid = document.getElementById("select_finca_admin")?.value || "";
+        // Admin no necesita asignar propietario, finca es opcional
+        const fid = document.getElementById("select_finca_propietario")?.value || "";
         if (fid) formData.append("fk_id_finca", fid);
       }
 

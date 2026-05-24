@@ -263,11 +263,15 @@
       <div class="nav-group closed" id="g-personas">
         <div class="nav-group-inner">
           <a class="nav-sub" href="/persona/"><span class="icon">👤</span> Personas</a>
-          <a class="nav-sub" href="/propietario/"><span class="icon">🧑‍💼</span> Propietarios</a>
           <a class="nav-sub" href="/recolector/"><span class="icon">🌱</span> Recolectores</a>
           <a class="nav-sub" href="/tipo_doc/"><span class="icon">📄</span> Tipo Documento</a>
         </div>
       </div>
+
+      <!-- Liquidación -->
+      <button class="nav-btn" id="btn-liquidacion" onclick="showLiquidacion()">
+        <span class="icon">💰</span> Liquidar Pagos
+      </button>
 
       <!-- Finanzas (grupo) -->
       <button class="nav-btn group-trigger" onclick="toggleGroup('g-finanzas', this)">
@@ -335,7 +339,6 @@
         <div class="section-label">👥 Personas</div>
         <div class="menu-grid">
           <div class="menu-card" onclick="location.href='/persona/'"><div class="mc-icon">👤</div><div class="mc-label">Personas</div></div>
-          <div class="menu-card" onclick="location.href='/propietario/'"><div class="mc-icon">🧑‍💼</div><div class="mc-label">Propietarios</div></div>
           <div class="menu-card" onclick="location.href='/recolector/'"><div class="mc-icon">🌱</div><div class="mc-label">Recolectores</div></div>
           <div class="menu-card" onclick="location.href='/tipo_doc/'"><div class="mc-icon">📄</div><div class="mc-label">Tipo Documento</div></div>
         </div>
@@ -373,6 +376,21 @@
   </div><!-- /main-area -->
 </div><!-- /shell -->
 
+<!-- ══ PANEL LIQUIDACIÓN (oculto por defecto) ══ -->
+<div id="panel-liquidacion" style="display:none;flex-direction:column;padding:28px 32px;min-height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;">
+  <div style="margin-bottom:24px;">
+    <h2 style="font-family:'Syne','Inter',sans-serif;font-size:20px;font-weight:800;color:#022c22;">💰 Liquidar pagos a recolectores</h2>
+    <p style="font-size:13px;color:#6b7280;margin-top:4px;">Complete cada día del contrato con kilos y precio por kilo. Si no hubo jornada, marque <strong>No trabajó</strong>.</p>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+    <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;margin-right:4px;">Consultar</span>
+    <button onclick="location.href='/reporte/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">📊 Tabla de reportes</button>
+    <button onclick="location.href='/pago/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">💳 Tabla de pagos</button>
+  </div>
+  <hr style="border:none;border-top:1px solid rgba(5,150,105,0.10);margin-bottom:20px;">
+  <div id="liq-recolectoresWrap"><p style="font-size:13px;color:#9ca3af;font-style:italic;">Cargando recolectores…</p></div>
+</div>
+
 <!-- ══ DASHBOARD INLINE (se inyecta aquí) ══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
@@ -406,6 +424,10 @@ function showPanel(id){
     if(p==='db-embed'){el.classList.remove('visible');el.style.display='none';}
     else{el.classList.remove('visible');el.style.display='none';}
   });
+  // ocultar panel liquidacion
+  const liq=document.getElementById('panel-liquidacion');
+  if(liq){liq.style.display='none';}
+  // mover panel-liquidacion fuera del shell si no está dentro del content-area
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const target=document.getElementById(id);
   if(target){
@@ -417,8 +439,26 @@ function showDashboard(){
   showPanel('db-embed');
   document.getElementById('btn-dashboard').classList.add('active');
   document.getElementById('topbar-title').textContent='Panel de Control';
-  // renderizar si aún no se hizo
   if(!window._dbRendered){ renderDashboard(); window._dbRendered=true; }
+}
+
+let __liqCargado = false;
+function showLiquidacion(){
+  // ocultar todos los paneles normales
+  panels.forEach(p=>{
+    const el=document.getElementById(p);
+    if(!el) return;
+    el.classList.remove('visible');el.style.display='none';
+  });
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-liquidacion').classList.add('active');
+  document.getElementById('topbar-title').textContent='Liquidar Pagos a Recolectores';
+  // Mover el panel-liquidacion dentro del content-area
+  const ca=document.getElementById('content-area');
+  const liq=document.getElementById('panel-liquidacion');
+  if(ca&&liq&&!ca.contains(liq)){ca.appendChild(liq);}
+  liq.style.display='flex';
+  if(!__liqCargado){__liqCargado=true;liqCargarRecolectores();}
 }
 
 /* ── Iniciar con dashboard ── */
@@ -730,7 +770,188 @@ function renderDashboard(){
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/chatbot_widget.js' %}"></script>
 <script>
-/* ── Sidebar responsivo ── */
+/* ══ LÓGICA DE LIQUIDACIÓN (admin) ══ */
+function liqFmt(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString("es-CO",{maximumFractionDigits:3}):"—";}
+function liqMoney(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}):"—";}
+function liqEsc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function liqSlice(v){if(v==null||v==="")return"";const t=String(v);return t.length>=10?t.slice(0,10):t;}
+function liqParseDay(iso){const t=String(iso).slice(0,10);const p=t.split("-").map(Number);if(p.length<3||!p[0])return null;return new Date(p[0],p[1]-1,p[2]);}
+function liqFmtDay(d){const y=d.getFullYear();const mo=String(d.getMonth()+1).padStart(2,"0");const da=String(d.getDate()).padStart(2,"0");return `${y}-${mo}-${da}`;}
+function liqToday(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate());}
+function liqDays(fi,ff){const s=liqParseDay(fi);if(!s)return[];let e=ff?liqParseDay(ff):liqToday();if(!e)e=liqToday();if(e<s)return[];const out=[];const c=new Date(s);while(c<=e){out.push(liqFmtDay(c));c.setDate(c.getDate()+1);}return out;}
+
+function liqRowSub(tr){const aus=tr.querySelector(".liq-aus");const cell=tr.querySelector(".liq-sub");if(!aus||!cell)return;if(aus.checked){cell.textContent="No trabajó";return;}const kg=parseFloat((tr.querySelector(".liq-kg")||{}).value||"0");const pk=parseFloat((tr.querySelector(".liq-pk")||{}).value||"0");const m=(Number.isFinite(kg)?kg:0)*(Number.isFinite(pk)?pk:0);cell.textContent=liqMoney(m);}
+function liqTotales(cardEl){const span=cardEl.querySelector(".liq-totals");if(!span)return;let kg=0,mo=0;cardEl.querySelectorAll("tbody tr").forEach(tr=>{const aus=tr.querySelector(".liq-aus");if(aus&&aus.checked)return;const k=parseFloat((tr.querySelector(".liq-kg")||{}).value||"0");const p=parseFloat((tr.querySelector(".liq-pk")||{}).value||"0");const kv=Number.isFinite(k)?k:0,pv=Number.isFinite(p)?p:0;kg+=kv;mo+=kv*pv;});span.innerHTML=`<span><strong>Total kg</strong> · ${liqFmt(kg)}</span><span><strong>Total estimado</strong> · ${liqMoney(mo)}</span>`;}
+
+function liqWire(cardEl,doc){
+  cardEl.dataset.recDoc=doc;
+  cardEl.querySelectorAll("tbody tr").forEach(tr=>{
+    const aus=tr.querySelector(".liq-aus");const kg=tr.querySelector(".liq-kg");const pk=tr.querySelector(".liq-pk");const met=tr.querySelector(".liq-met");if(!aus||!kg||!pk)return;
+    aus.addEventListener("change",()=>{const on=aus.checked;kg.disabled=on;pk.disabled=on;if(met)met.disabled=on;if(on){kg.value="";pk.value="";}liqRowSub(tr);liqTotales(cardEl);});
+    kg.addEventListener("input",()=>{liqRowSub(tr);liqTotales(cardEl);});
+    pk.addEventListener("input",()=>{liqRowSub(tr);liqTotales(cardEl);});
+  });
+  cardEl.querySelector(".liq-btn-sug").addEventListener("click",()=>liqSugerir(cardEl));
+  cardEl.querySelector(".liq-btn-pago").addEventListener("click",()=>liqGenerar(cardEl));
+}
+
+async function liqNombre(doc){try{const r=await fetch(`/consultar_registro/persona/${encodeURIComponent(doc)}/`);if(!r.ok)return"";const j=await r.json();return(j.nombre_persona||"").trim();}catch(e){return"";}}
+
+async function liqSugerir(cardEl){
+  const doc=cardEl.dataset.recDoc||"";const msg=cardEl.querySelector(".liq-msg");if(!doc)return;
+  msg.innerHTML=`<p style="color:#9ca3af;font-style:italic;">Consultando kilos…</p>`;
+  const rows=Array.from(cardEl.querySelectorAll("tbody tr"));
+  try{
+    for(const tr of rows){
+      const aus=tr.querySelector(".liq-aus");const fecha=(tr.dataset.fecha||"").trim();const inpKg=tr.querySelector(".liq-kg");
+      if(!fecha||!inpKg||(aus&&aus.checked))continue;
+      const r=await fetch(`/api/finanzas_kg_sugerido?id_recolector=${encodeURIComponent(doc)}&fecha=${encodeURIComponent(fecha)}`);
+      const j=await r.json();if(!r.ok){msg.innerHTML=`<div style="color:#dc2626;">${liqEsc(j.message||"Error al leer kilos.")}</div>`;return;}
+      const kg=j.data&&j.data.kg_sugerido!=null?j.data.kg_sugerido:0;inpKg.value=kg;liqRowSub(tr);
+    }
+    liqTotales(cardEl);
+    msg.innerHTML=`<div style="color:#047857;font-weight:600;">✅ Kilos copiados. Revise precio/kg y pulse «Registrar liquidación».</div>`;
+  }catch(e){msg.innerHTML=`<div style="color:#dc2626;">Error de conexión.</div>`;}
+}
+
+async function liqGenerar(cardEl){
+  const doc=cardEl.dataset.recDoc||"";const msg=cardEl.querySelector(".liq-msg");if(!doc)return;
+  const dias=[];
+  cardEl.querySelectorAll("tbody tr").forEach(tr=>{
+    const fecha=(tr.dataset.fecha||"").trim();if(!fecha)return;
+    const aus=tr.querySelector(".liq-aus").checked;
+    const kg=parseFloat((tr.querySelector(".liq-kg")||{}).value||"0");
+    const pk=parseFloat((tr.querySelector(".liq-pk")||{}).value||"0");
+    const metodo=((tr.querySelector(".liq-met")||{}).value||"Efectivo").trim();
+    const tieneValores=(Number.isFinite(kg)&&kg>0)||(Number.isFinite(pk)&&pk>0);
+    if(!aus&&!tieneValores)return;
+    dias.push({fecha,ausente:aus,kg_dia:aus?0:(Number.isFinite(kg)?kg:0),precio_kilo:aus?0:(Number.isFinite(pk)?pk:0),metodo_pago:aus?"":metodo});
+  });
+  if(!dias.length){msg.innerHTML=`<div style="color:#dc2626;border-left:3px solid #ef4444;padding:10px 14px;background:#fef2f2;border-radius:8px;">Ingrese datos de al menos un día.</div>`;return;}
+  dias.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  msg.innerHTML=`<p style="color:#9ca3af;font-style:italic;">Guardando liquidación…</p>`;
+  try{
+    const r=await fetch("/api/finanzas_generar_pago",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id_recolector:doc,dias})});
+    const j=await r.json();
+    if(!r.ok){msg.innerHTML=`<div style="color:#dc2626;border-left:3px solid #ef4444;padding:10px 14px;background:#fef2f2;border-radius:8px;">${liqEsc(j.message||"No se pudo guardar.")}</div>`;return;}
+    const d=j.data||{};const det=Array.isArray(d.detalle)?d.detalle:[];const omit=Array.isArray(d.dias_omitidos)?d.dias_omitidos:[];
+    const omitHtml=omit.length?`<div style="margin-top:6px;font-size:12px;"><strong>Días ya reportados omitidos:</strong> ${liqEsc(omit.map(x=>x.fecha).join(", "))}</div>`:""; 
+    const tb=det.map(x=>`<tr><td>${liqEsc(x.fecha)}</td><td>${x.ausente?"No trabajó":liqFmt(x.kg_dia)}</td><td>${x.ausente?"—":liqMoney(x.precio_kilo)}</td><td>${x.ausente?"—":liqEsc(x.metodo_pago||"—")}</td><td style="font-weight:700;">${x.ausente?"—":liqMoney(x.monto_dia)}</td></tr>`).join("");
+    msg.innerHTML=`
+      <div style="background:#ecfdf5;border:1px solid rgba(5,150,105,0.25);border-left:4px solid #059669;border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:8px;">✅ ${liqEsc(d.mensaje||"Liquidación registrada")}</div>
+        <div><strong>Total kg:</strong> ${liqFmt(d.total_kg)}</div>
+        <div><strong>Total pagado:</strong> ${liqMoney(d.total_monto)}</div>
+        <div><strong>Días con pago:</strong> ${d.pagos_registrados!=null?d.pagos_registrados:"—"}</div>
+        ${omitHtml}
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr style="background:#065f46;color:#fff;"><th style="padding:8px;">Fecha</th><th>Kg</th><th>$/kg</th><th>Método</th><th>Monto</th></tr></thead>
+          <tbody>${tb}</tbody>
+        </table>
+      </div>`;
+  }catch(e){msg.innerHTML=`<div style="color:#dc2626;">Error de conexión al guardar.</div>`;}
+}
+
+function liqSetActive(doc){
+  document.querySelectorAll("[data-liq-card='1']").forEach(c=>{c.style.display=c.dataset.recDoc===doc?"block":"none";});
+}
+
+async function liqCargarRecolectores(){
+  const wrap=document.getElementById("liq-recolectoresWrap");
+  wrap.innerHTML=`<p style="color:#9ca3af;font-style:italic;">Cargando recolectores…</p>`;
+  try{
+    const r=await fetch("/get_todos/Recolector/");
+    const rows=await r.json();
+    if(!Array.isArray(rows)||!rows.length){
+      wrap.innerHTML=`<p style="color:#9ca3af;font-style:italic;">No hay recolectores registrados.</p>`;return;
+    }
+    const list=rows.map(rec=>({doc:String(rec.id_recolector||"").trim(),fi:liqSlice(rec.fechainicio_recolector),ff:liqSlice(rec.fechafin_recolector)})).filter(x=>x.doc);
+    const names=new Map();
+    await Promise.all(list.map(async x=>{const n=await liqNombre(x.doc);if(n)names.set(x.doc,n);}));
+
+    wrap.innerHTML=`
+      <div style="background:#fff;border:1px solid rgba(5,150,105,0.12);border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 2px 8px rgba(2,44,34,0.07);">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:180px;">
+            <label style="font-size:11px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:#047857;">Recolector</label>
+            <select id="liqSelect" style="padding:10px 14px;font-size:14px;border:1.5px solid rgba(5,150,105,0.18);border-radius:9px;background:#fff;color:#022c22;outline:none;">
+              <option value="">— Seleccione —</option>
+            </select>
+          </div>
+          <button type="button" onclick="__liqCargado=false;liqCargarRecolectores();" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:9px;background:transparent;border:1.5px solid #059669;color:#047857;font-size:12px;font-weight:600;cursor:pointer;">🔄 Recargar</button>
+        </div>
+      </div>
+      <div id="liqCards"></div>`;
+
+    const sel=document.getElementById("liqSelect");
+    sel.addEventListener("change",e=>liqSetActive(e.target.value));
+
+    list.forEach(x=>{
+      const opt=document.createElement("option");
+      const nom=names.get(x.doc)||"";
+      opt.value=x.doc;opt.textContent=nom?`${x.doc} · ${nom}`:x.doc;
+      sel.appendChild(opt);
+    });
+
+    const cardsWrap=document.getElementById("liqCards");
+    cardsWrap.innerHTML="";
+    list.forEach(rec=>{
+      const doc=rec.doc,fi=rec.fi,ff=rec.ff;
+      const days=liqDays(fi,ff);
+      const card=document.createElement("div");
+      card.dataset.liqCard="1";
+      card.style.cssText="display:none;background:#fff;border:1px solid rgba(5,150,105,0.12);border-radius:14px;margin-bottom:18px;box-shadow:0 2px 8px rgba(2,44,34,0.07);overflow:hidden;";
+      let bodyRows="";
+      days.forEach(fecha=>{
+        bodyRows+=`<tr data-fecha="${liqEsc(fecha)}">
+          <td style="white-space:nowrap;font-weight:600;padding:8px 10px;">${liqEsc(fecha)}</td>
+          <td style="padding:8px 6px;"><input class="liq-kg" type="number" step="0.001" min="0" style="width:80px;padding:6px 8px;font-size:12px;border:1.5px solid rgba(5,150,105,0.15);border-radius:7px;"></td>
+          <td style="padding:8px 6px;"><input class="liq-pk" type="number" step="0.01" min="0" style="width:90px;padding:6px 8px;font-size:12px;border:1.5px solid rgba(5,150,105,0.15);border-radius:7px;"></td>
+          <td style="padding:8px 6px;"><select class="liq-met" style="padding:6px 8px;font-size:12px;border:1.5px solid rgba(5,150,105,0.15);border-radius:7px;"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></td>
+          <td style="text-align:center;padding:8px 6px;"><input type="checkbox" class="liq-aus" style="width:16px;height:16px;accent-color:#059669;"></td>
+          <td class="liq-sub" style="font-weight:700;color:#047857;white-space:nowrap;padding:8px 10px;">—</td>
+        </tr>`;
+      });
+      if(!bodyRows)bodyRows=`<tr><td colspan="6" style="text-align:center;padding:16px;color:#9ca3af;font-style:italic;">Sin fechas de contrato válidas.</td></tr>`;
+      const nom=names.get(doc)||"";
+      card.innerHTML=`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:linear-gradient(135deg,#065f46,#011a12);flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;">${liqEsc(doc)}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.60);margin-top:2px;">${liqEsc(nom||"(sin nombre)")}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;">Contrato · ${liqEsc(fi||"—")} → ${ff?liqEsc(ff):"hoy"}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="liq-btn-sug" ${days.length?"":"disabled"} style="padding:8px 16px;border-radius:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">📥 Traer kg</button>
+            <button class="liq-btn-pago" ${days.length?"":"disabled"} style="padding:8px 16px;border-radius:8px;background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">💾 Registrar liquidación</button>
+          </div>
+        </div>
+        <div class="liq-totals" style="display:flex;gap:24px;flex-wrap:wrap;padding:10px 20px;background:#ecfdf5;border-bottom:1px solid rgba(5,150,105,0.10);font-size:12px;font-weight:600;color:#065f46;"></div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="background:linear-gradient(135deg,#065f46,#011a12);">
+              <th style="color:#fff;font-size:11px;padding:10px 12px;text-align:center;">Fecha</th>
+              <th style="color:#fff;font-size:11px;padding:10px 6px;text-align:center;">Kg recolectados</th>
+              <th style="color:#fff;font-size:11px;padding:10px 6px;text-align:center;">Precio/kg</th>
+              <th style="color:#fff;font-size:11px;padding:10px 6px;text-align:center;">Método pago</th>
+              <th style="color:#fff;font-size:11px;padding:10px 6px;text-align:center;">No trabajó</th>
+              <th style="color:#fff;font-size:11px;padding:10px 12px;text-align:center;">Subtotal</th>
+            </tr></thead>
+            <tbody>${bodyRows}</tbody>
+          </table>
+        </div>
+        <div class="liq-msg" style="padding:14px 20px;"></div>`;
+      cardsWrap.appendChild(card);
+      if(days.length)liqWire(card,doc);
+    });
+    const first=list[0]?.doc||"";
+    if(first){sel.value=first;liqSetActive(first);}
+  }catch(e){
+    document.getElementById("liq-recolectoresWrap").innerHTML=`<div style="color:#dc2626;">Error de conexión.</div>`;
+  }
+}
 function toggleSidebar(){
   const sb = document.querySelector('.sidebar');
   const ov = document.getElementById('sidebar-overlay');

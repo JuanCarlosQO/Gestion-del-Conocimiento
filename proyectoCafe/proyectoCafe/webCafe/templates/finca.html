@@ -183,7 +183,7 @@ async function cargarPropietarios() {
   }
 }
 
-document.getElementById('botonVolver').addEventListener('click', () => { window.location.href = '/vista_admin/'; });
+document.getElementById('botonVolver').addEventListener('click', () => { window.location.href = '{{ volver_url }}'; });
 document.getElementById('botonvolvered').addEventListener('click', () => {
   showPanel('panel2');
   document.getElementById('botondesbloquear').disabled = false;
