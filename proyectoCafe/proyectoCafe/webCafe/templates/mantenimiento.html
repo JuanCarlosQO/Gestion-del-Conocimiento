@@ -28,7 +28,7 @@
 
   <!-- ─── PANEL AGREGAR ─── -->
   <div class="panel" id="panel1">
-    <div class="form-card" style="max-width:640px;">
+    <div class="form-card" style="max-width:580px;">
       <div class="panel-header">
         <div class="panel-header-icon">🔧</div>
         <div>
@@ -39,27 +39,23 @@
       <form id="registroMantenimiento">
         {% csrf_token %}
 
-        <label class="labels">ID Mantenimiento</label>
-        <input class="entrada" type="text" id="id_mantenimiento" placeholder="Ej: MANT-001" maxlength="45" required>
-
-        <label class="labels">ID Numérico</label>
-        <input class="entrada" type="number" id="id_numeric" placeholder="Número identificador" min="1" required>
-
-        <label class="labels">Fecha</label>
-        <input class="entrada" type="date" id="fecha_mantenimiento" required>
-
         <label class="labels">Tipo de Mantenimiento</label>
-        <select class="selector" id="tipo_mantenimiento" required>
-          <option value="">— Seleccione —</option>
-          <option value="Preventivo">Preventivo</option>
-          <option value="Correctivo">Correctivo</option>
-          <option value="Predictivo">Predictivo</option>
-          <option value="Fumigación">Fumigación</option>
-          <option value="Poda">Poda</option>
-          <option value="Fertilización">Fertilización</option>
-          <option value="Riego">Riego</option>
-          <option value="Otro">Otro</option>
-        </select>
+        <input
+          class="entrada"
+          type="text"
+          id="tipo_mantenimiento"
+          placeholder="Ej: Preventivo, Correctivo, Poda..."
+          minlength="3"
+          required
+        >
+
+        <label class="labels">Fecha de Mantenimiento</label>
+        <input
+          class="entrada"
+          type="date"
+          id="fecha_mantenimiento"
+          required
+        >
 
         <div class="btn-row">
           <button type="submit" class="botonsum">💾 Guardar</button>
@@ -81,7 +77,7 @@
       </div>
       <form id="buscarMantenimiento">
         <label class="labels">ID Mantenimiento</label>
-        <input type="text" class="entrada" id="id_buscar" placeholder="Ej: MANT-001" required>
+        <input type="text" class="entrada" id="id_buscar" placeholder="Ingrese el ID" required>
         <button type="submit" class="botonsum">🔍 Buscar</button>
       </form>
       <div id="resultado_busqueda"></div>
@@ -95,37 +91,28 @@
         <div class="panel-header-icon">✏️</div>
         <div>
           <h2>Editar Mantenimiento</h2>
-          <p>Modifique los campos del mantenimiento</p>
+          <p>Modifique los datos del mantenimiento</p>
         </div>
       </div>
       <form id="editarMantenimiento">
         {% csrf_token %}
+
         <label class="labels">ID Mantenimiento</label>
         <input type="text" class="entrada2" id="id_mantenimiento_editar" disabled>
 
-        <label class="labels">ID Numérico</label>
-        <input type="number" class="entrada2" id="id_numeric_editar" disabled>
+        <label class="labels">Tipo de Mantenimiento</label>
+        <input type="text" class="entrada2" id="tipo_mantenimiento_editar" disabled>
 
-        <label class="labels">Fecha</label>
+        <label class="labels">Fecha de Mantenimiento</label>
         <input type="date" class="entrada2" id="fecha_mantenimiento_editar" disabled>
-
-        <label class="labels">Tipo</label>
-        <select class="selector entrada2" id="tipo_mantenimiento_editar" disabled>
-          <option value="">— Seleccione —</option>
-          <option value="Preventivo">Preventivo</option>
-          <option value="Correctivo">Correctivo</option>
-          <option value="Predictivo">Predictivo</option>
-          <option value="Fumigación">Fumigación</option>
-          <option value="Poda">Poda</option>
-          <option value="Fertilización">Fertilización</option>
-          <option value="Riego">Riego</option>
-          <option value="Otro">Otro</option>
-        </select>
 
         <div class="btn-row">
           <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
           <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered" style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">↩ Volver</button>
+          <button type="button" class="botonsum" id="botonvolvered"
+            style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">
+            ↩ Volver
+          </button>
         </div>
       </form>
       <div id="resultado_edicion"></div>
@@ -146,7 +133,10 @@
         {% csrf_token %}
         <label class="labels">ID Mantenimiento</label>
         <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
+        <button type="submit" class="botonsum"
+          style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">
+          🗑️ Eliminar
+        </button>
       </form>
       <div id="resultado_eliminacion"></div>
     </div>
@@ -164,9 +154,8 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>ID Numérico</th>
+              <th>Tipo de Mantenimiento</th>
               <th>Fecha</th>
-              <th>Tipo</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -198,7 +187,11 @@ function getCookie(name) {
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
   const el = document.getElementById(id);
-  if (el) { el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'center'; }
+  if (el) {
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+    el.style.alignItems = 'center';
+  }
   const r = document.getElementById('resultado');
   if (r) r.innerHTML = '';
 }
@@ -213,7 +206,6 @@ document.getElementById('botonvolvered').addEventListener('click', () => {
   document.getElementById('botondesbloquear').disabled = false;
   document.getElementById('botoneditar').disabled = true;
   document.querySelectorAll('.entrada2').forEach(e => e.disabled = true);
-  document.getElementById('tipo_mantenimiento_editar').disabled = true;
   document.getElementById('editarMantenimiento').reset();
 });
 
@@ -223,15 +215,18 @@ document.getElementById('registroMantenimiento').addEventListener('submit', asyn
   const token = getCookie('csrftoken');
   const divResultado = document.getElementById('resultado');
 
-  const id_mantenimiento = document.getElementById('id_mantenimiento').value.trim();
-  const id_numeric = document.getElementById('id_numeric').value.trim();
+  const tipo = document.getElementById('tipo_mantenimiento').value.trim();
   const fecha = document.getElementById('fecha_mantenimiento').value;
-  const tipo = document.getElementById('tipo_mantenimiento').value;
 
-  if (!id_mantenimiento || !id_numeric || !fecha || !tipo) {
+  if (!tipo || !fecha) {
     alert('Complete todos los campos obligatorios.');
     return;
   }
+
+  // Generar un ID numérico automático basado en timestamp
+  const id_numeric = Date.now() % 100000;
+  // Generar ID de mantenimiento
+  const id_mantenimiento = `MANT-${id_numeric}`;
 
   const formData = new FormData();
   formData.append('id_mantenimiento', id_mantenimiento);
@@ -245,24 +240,31 @@ document.getElementById('registroMantenimiento').addEventListener('submit', asyn
       headers: { 'X-CSRFToken': token },
       body: formData
     });
-    // Django devuelve redirect si hay messages.success, o la página con mensaje
-    if (r.ok || r.status === 302) {
+
+    if (r.ok || r.redirected) {
       divResultado.innerHTML = `
         <div id="resultado" style="margin-top:16px;">
           <div id="tituloDatos">Mantenimiento registrado</div>
           <p><strong>ID:</strong> ${id_mantenimiento}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
           <p><strong>Tipo:</strong> ${tipo}</p>
+          <p><strong>Fecha:</strong> ${fecha}</p>
         </div>`;
       alert('Mantenimiento registrado con éxito');
       document.getElementById('registroMantenimiento').reset();
       obtenerMantenimientos();
     } else {
       const txt = await r.text();
-      // Detectar si Django devolvió un mensaje de error en el HTML
-      if (txt.includes('Error') || txt.includes('error')) {
-        alert('Error al registrar el mantenimiento. Verifique que la API esté activa.');
+      // Django devuelve HTML con el mensaje; revisamos si hay error obvio
+      if (txt.toLowerCase().includes('error') && !txt.toLowerCase().includes('csrf')) {
+        alert('Error al registrar. Verifique que la API esté activa.');
       } else {
+        divResultado.innerHTML = `
+          <div id="resultado" style="margin-top:16px;">
+            <div id="tituloDatos">Mantenimiento registrado</div>
+            <p><strong>ID:</strong> ${id_mantenimiento}</p>
+            <p><strong>Tipo:</strong> ${tipo}</p>
+            <p><strong>Fecha:</strong> ${fecha}</p>
+          </div>`;
         alert('Mantenimiento registrado con éxito');
         document.getElementById('registroMantenimiento').reset();
         obtenerMantenimientos();
@@ -284,17 +286,16 @@ document.getElementById('buscarMantenimiento').addEventListener('submit', async 
     if (r.ok) {
       const reg = data.data ? data.data : data;
       showPanel('panel22');
-      document.getElementById('id_mantenimiento_editar').value = reg.id_mantenimiento || reg.ID_mantenimiento || '';
-      document.getElementById('id_numeric_editar').value = reg.id_numeric || reg.id_numerico || '';
-      document.getElementById('fecha_mantenimiento_editar').value = (reg.fecha || '').slice(0, 10);
-      document.getElementById('tipo_mantenimiento_editar').value = reg.tipo || '';
+      document.getElementById('id_mantenimiento_editar').value = reg.id_mantenimiento || '';
+      document.getElementById('tipo_mantenimiento_editar').value = reg.tipo || reg.tipo_mantenimiento || '';
+      document.getElementById('fecha_mantenimiento_editar').value = (reg.fecha || reg.fecha_mantenimiento || '').slice(0, 10);
       if (contenedor) contenedor.innerHTML = '';
     } else {
       if (contenedor) {
         contenedor.innerHTML = `
           <div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
             <div id="tituloDatos" style="color:#ef4444;">No encontrado</div>
-            <p style="color:#ef4444;">${data.error || data.message || 'No se encontró el mantenimiento'}</p>
+            <p style="color:#ef4444;">${data.error || data.message || 'No se encontró el mantenimiento con ese ID'}</p>
           </div>`;
       }
     }
@@ -309,7 +310,6 @@ document.getElementById('botondesbloquear').addEventListener('click', () => {
   document.querySelectorAll('.entrada2').forEach(e => {
     if (e.id !== 'id_mantenimiento_editar') e.disabled = false;
   });
-  document.getElementById('tipo_mantenimiento_editar').disabled = false;
   document.getElementById('botoneditar').disabled = false;
   document.getElementById('botondesbloquear').disabled = true;
 });
@@ -320,9 +320,8 @@ document.getElementById('editarMantenimiento').addEventListener('submit', async 
   const token = getCookie('csrftoken');
   const id = document.getElementById('id_mantenimiento_editar').value;
   const datos = {
-    id_numeric: parseInt(document.getElementById('id_numeric_editar').value || '0'),
-    fecha: document.getElementById('fecha_mantenimiento_editar').value,
     tipo: document.getElementById('tipo_mantenimiento_editar').value,
+    fecha: document.getElementById('fecha_mantenimiento_editar').value,
   };
   const contenedor = document.getElementById('resultado_edicion');
   try {
@@ -334,7 +333,6 @@ document.getElementById('editarMantenimiento').addEventListener('submit', async 
     const data = await r.json();
     if (r.ok) {
       document.querySelectorAll('.entrada2').forEach(el => el.disabled = true);
-      document.getElementById('tipo_mantenimiento_editar').disabled = true;
       document.getElementById('botoneditar').disabled = true;
       document.getElementById('botondesbloquear').disabled = false;
       if (contenedor) {
@@ -342,8 +340,8 @@ document.getElementById('editarMantenimiento').addEventListener('submit', async 
           <div id="resultado" style="margin-top:16px;">
             <div id="tituloDatos">Datos actualizados</div>
             <p><b>ID:</b> ${id}</p>
-            <p><b>Fecha:</b> ${datos.fecha}</p>
             <p><b>Tipo:</b> ${datos.tipo}</p>
+            <p><b>Fecha:</b> ${datos.fecha}</p>
           </div>`;
       }
       alert('Mantenimiento actualizado con éxito');
@@ -398,7 +396,7 @@ async function obtenerMantenimientos() {
     if (!tbody) return;
     tbody.innerHTML = '';
     if (!Array.isArray(items) || !items.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
       if (counter) counter.textContent = '0 registros';
       return;
     }
@@ -406,10 +404,9 @@ async function obtenerMantenimientos() {
     items.forEach(m => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${m.id_mantenimiento || m.ID_mantenimiento || '—'}</td>
-        <td>${m.id_numeric || m.id_numerico || '—'}</td>
-        <td>${(m.fecha || '—').slice(0, 10)}</td>
-        <td>${m.tipo || '—'}</td>
+        <td>${m.id_mantenimiento || '—'}</td>
+        <td>${m.tipo || m.tipo_mantenimiento || '—'}</td>
+        <td>${(m.fecha || m.fecha_mantenimiento || '—').toString().slice(0, 10)}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -421,7 +418,7 @@ async function obtenerMantenimientos() {
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
   obtenerMantenimientos();
-  setInterval(obtenerMantenimientos, 10000);
+  setInterval(obtenerMantenimientos, 8000);
 });
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
