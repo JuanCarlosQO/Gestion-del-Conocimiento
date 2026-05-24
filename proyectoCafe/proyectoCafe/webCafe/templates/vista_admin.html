@@ -298,20 +298,11 @@
           <a class="nav-sub" href="/metodo_aplicacion/"><span class="icon">🧪</span> Método Aplicación</a>
           <a class="nav-sub" href="/inventario/"><span class="icon">📋</span> Inventario</a>
           <a class="nav-sub" href="/suministro/"><span class="icon">🪣</span> Suministros</a>
+          <a class="nav-sub" href="/mantenimiento/"><span class="icon">🔧</span> Mantenimiento</a>
         </div>
       </div>
 
-      <!-- Auditoría (grupo) -->
-      <button class="nav-btn group-trigger" onclick="toggleGroup('g-auditoria', this)">
-        <span class="icon">🔍</span> Auditoría
-        <span class="nav-arrow">▾</span>
-      </button>
-      <div class="nav-group closed" id="g-auditoria">
-        <div class="nav-group-inner">
-          <a class="nav-sub" href="/audi_recolector/"><span class="icon">🔎</span> Auditoría Recolector</a>
-          <a class="nav-sub" href="/audi_reporte/"><span class="icon">🔎</span> Auditoría Reporte</a>
-        </div>
-      </div>
+
 
     </nav>
 
@@ -374,17 +365,11 @@
           <div class="menu-card" onclick="location.href='/metodo_aplicacion/'"><div class="mc-icon">🧪</div><div class="mc-label">Método Aplicación</div></div>
           <div class="menu-card" onclick="location.href='/inventario/'"><div class="mc-icon">📋</div><div class="mc-label">Inventario</div></div>
           <div class="menu-card" onclick="location.href='/suministro/'"><div class="mc-icon">🪣</div><div class="mc-label">Suministros</div></div>
+          <div class="menu-card" onclick="location.href='/mantenimiento/'"><div class="mc-icon">🔧</div><div class="mc-label">Mantenimiento</div></div>
         </div>
       </div>
 
-      <!-- Panel Auditoría -->
-      <div class="menu-panel" id="panel-auditoria">
-        <div class="section-label">🔍 Auditoría</div>
-        <div class="menu-grid">
-          <div class="menu-card" onclick="location.href='/audi_recolector/'"><div class="mc-icon">🔎</div><div class="mc-label">Auditoría Recolector</div></div>
-          <div class="menu-card" onclick="location.href='/audi_reporte/'"><div class="mc-icon">🔎</div><div class="mc-label">Auditoría Reporte</div></div>
-        </div>
-      </div>
+
 
     </div><!-- /content-area -->
   </div><!-- /main-area -->
@@ -415,7 +400,7 @@ function toggleGroup(id, btn){
 }
 
 /* ── Mostrar panel ── */
-const panels = ['db-embed','panel-personas','panel-finanzas','panel-insumos','panel-auditoria'];
+const panels = ['db-embed','panel-personas','panel-finanzas','panel-insumos'];
 function showPanel(id){
   panels.forEach(p=>{
     const el=document.getElementById(p);

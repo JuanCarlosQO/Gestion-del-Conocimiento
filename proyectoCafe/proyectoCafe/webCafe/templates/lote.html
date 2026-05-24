@@ -42,7 +42,11 @@
         <label class="labels">Tamaño (ha)</label>
         <input type="text" class="entrada" id="tamanio_finca" placeholder="Ej: 3.5" required>
         <label class="labels">Estado</label>
-        <input type="text" class="entrada" id="estado_insumo" placeholder="Activo / Inactivo" required>
+        <select class="selector" id="estado_insumo" required>
+          <option value="">— Seleccione —</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
         <label class="labels">ID Mantenimiento</label>
         <input type="text" class="entrada" id="id_mantenimiento" placeholder="ID del mantenimiento" required>
         <button type="submit" class="botonsum">💾 Guardar</button>

@@ -270,19 +270,43 @@ const PROPIETARIO_DOC = "{{ propietario_doc|escapejs }}";
 async function cargarFincasPropietario() {
   const sel = document.getElementById("select_finca_propietario");
   if (!sel || !IS_PROPIETARIO) return;
+  sel.innerHTML = '<option value="">— Cargando fincas —</option>';
   try {
-    const r = await fetch("/api/productosfinca");
+    // Intenta primero con el endpoint node_compat que devuelve todas las fincas
+    const r = await fetch("/api/fincas");
     const rows = await r.json();
     sel.innerHTML = '<option value="">— Seleccione finca —</option>';
-    if (!Array.isArray(rows)) return;
-    rows.filter((f) => String(f.id_propietario || "") === String(PROPIETARIO_DOC)).forEach((f) => {
+    if (!Array.isArray(rows) || !rows.length) {
+      sel.innerHTML = '<option value="">No hay fincas disponibles</option>';
+      return;
+    }
+    // Filtra por propietario si PROPIETARIO_DOC está disponible
+    const fincasFiltradas = PROPIETARIO_DOC
+      ? rows.filter(f => String(f.FK_idPropietario || f.id_propietario || f.fk_idPropietario || "") === String(PROPIETARIO_DOC))
+      : rows;
+    const fincasAMostrar = fincasFiltradas.length > 0 ? fincasFiltradas : rows;
+    fincasAMostrar.forEach(f => {
       const opt = document.createElement("option");
-      opt.value = String(f.id_finca || "");
-      opt.textContent = `${f.nombre_finca || f.id_finca} (${f.id_finca})`;
+      opt.value = String(f.id_finca || f.ID_finca || "");
+      opt.textContent = `${f.nombre || f.nombre_finca || f.id_finca} (${f.id_finca || f.ID_finca})`;
       sel.appendChild(opt);
     });
   } catch (e) {
-    sel.innerHTML = '<option value="">Error cargando fincas</option>';
+    // Fallback al endpoint anterior
+    try {
+      const r2 = await fetch("/api/productosfinca");
+      const rows2 = await r2.json();
+      sel.innerHTML = '<option value="">— Seleccione finca —</option>';
+      if (!Array.isArray(rows2)) { sel.innerHTML = '<option value="">Error cargando fincas</option>'; return; }
+      rows2.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = String(f.id_finca || "");
+        opt.textContent = `${f.nombre_finca || f.id_finca} (${f.id_finca})`;
+        sel.appendChild(opt);
+      });
+    } catch (e2) {
+      sel.innerHTML = '<option value="">Error cargando fincas</option>';
+    }
   }
 }
 
@@ -318,20 +342,35 @@ async function cargarFincasDePropietarioAdmin(propDoc) {
   }
   sel.innerHTML = '<option value="">— Cargando fincas —</option>';
   try {
-    const r = await fetch("/api/productosfinca");
+    const r = await fetch("/api/fincas");
     const rows = await r.json();
     sel.innerHTML = '<option value="">(Sin finca)</option>';
     if (!Array.isArray(rows)) return;
-    rows
-      .filter((f) => String(f.id_propietario || "") === pd)
-      .forEach((f) => {
+    const filtradas = rows.filter(f => String(f.FK_idPropietario || f.id_propietario || f.fk_idPropietario || "") === pd);
+    const aRenderizar = filtradas.length > 0 ? filtradas : rows.filter(f => String(f.FK_idPropietario || "") === pd);
+    aRenderizar.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = String(f.id_finca || f.ID_finca || "");
+      opt.textContent = `${f.nombre || f.nombre_finca || f.id_finca} (${f.id_finca || f.ID_finca})`;
+      sel.appendChild(opt);
+    });
+    if (aRenderizar.length === 0) {
+      sel.innerHTML = '<option value="">(Sin fincas para este propietario)</option>';
+    }
+  } catch (e) {
+    // Fallback
+    try {
+      const r2 = await fetch("/api/productosfinca");
+      const rows2 = await r2.json();
+      sel.innerHTML = '<option value="">(Sin finca)</option>';
+      if (!Array.isArray(rows2)) return;
+      rows2.filter(f => String(f.id_propietario || "") === pd).forEach(f => {
         const opt = document.createElement("option");
         opt.value = String(f.id_finca || "");
         opt.textContent = `${f.nombre_finca || f.id_finca} (${f.id_finca})`;
         sel.appendChild(opt);
       });
-  } catch (e) {
-    sel.innerHTML = '<option value="">Error cargando fincas</option>';
+    } catch { sel.innerHTML = '<option value="">Error cargando fincas</option>'; }
   }
 }
 
