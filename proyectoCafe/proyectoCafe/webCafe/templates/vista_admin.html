@@ -289,7 +289,7 @@
       </button>
       <div class="nav-group closed" id="g-finanzas">
         <div class="nav-group-inner">
-          <button class="nav-sub" onclick="showLiquidacion()"><span class="icon">💰</span> Liquidar Pagos</button>
+          <button id="btn-liquidacion" class="nav-sub" onclick="showLiquidacion()"><span class="icon">💰</span> Liquidar Pagos</button>
           <a class="nav-sub" href="/finca/"><span class="icon">🏡</span> Fincas</a>
           <a class="nav-sub" href="/pago/"><span class="icon">💳</span> Pagos</a>
           <a class="nav-sub" href="/reporte/"><span class="icon">📊</span> Reportes</a>
@@ -380,24 +380,22 @@
 
 
 
+      <div id="panel-liquidacion" style="display:none;flex-direction:column;padding:28px 32px;min-height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-family:'Syne','Inter',sans-serif;font-size:20px;font-weight:800;color:#022c22;">💰 Liquidar pagos a recolectores</h2>
+          <p style="font-size:13px;color:#6b7280;margin-top:4px;">Complete cada día del contrato con kilos y precio por kilo. Si no hubo jornada, marque <strong>No trabajó</strong>.</p>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+          <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;margin-right:4px;">Consultar</span>
+          <button onclick="location.href='/reporte/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">📊 Tabla de reportes</button>
+          <button onclick="location.href='/pago/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">💳 Tabla de pagos</button>
+        </div>
+        <hr style="border:none;border-top:1px solid rgba(5,150,105,0.10);margin-bottom:20px;">
+        <div id="liq-recolectoresWrap"><p style="font-size:13px;color:#9ca3af;font-style:italic;">Cargando recolectores…</p></div>
+      </div>
     </div><!-- /content-area -->
   </div><!-- /main-area -->
 </div><!-- /shell -->
-
-<!-- ══ PANEL LIQUIDACIÓN (oculto por defecto) ══ -->
-<div id="panel-liquidacion" style="display:none;flex-direction:column;padding:28px 32px;min-height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;">
-  <div style="margin-bottom:24px;">
-    <h2 style="font-family:'Syne','Inter',sans-serif;font-size:20px;font-weight:800;color:#022c22;">💰 Liquidar pagos a recolectores</h2>
-    <p style="font-size:13px;color:#6b7280;margin-top:4px;">Complete cada día del contrato con kilos y precio por kilo. Si no hubo jornada, marque <strong>No trabajó</strong>.</p>
-  </div>
-  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
-    <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;margin-right:4px;">Consultar</span>
-    <button onclick="location.href='/reporte/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">📊 Tabla de reportes</button>
-    <button onclick="location.href='/pago/'" style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:#fff;border:1px solid rgba(5,150,105,0.18);color:#047857;font-size:12px;font-weight:600;cursor:pointer;">💳 Tabla de pagos</button>
-  </div>
-  <hr style="border:none;border-top:1px solid rgba(5,150,105,0.10);margin-bottom:20px;">
-  <div id="liq-recolectoresWrap"><p style="font-size:13px;color:#9ca3af;font-style:italic;">Cargando recolectores…</p></div>
-</div>
 
 <!-- ══ DASHBOARD INLINE (se inyecta aquí) ══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -452,20 +450,17 @@ function showDashboard(){
 
 let __liqCargado = false;
 function showLiquidacion(){
-  // ocultar todos los paneles normales
   panels.forEach(p=>{
     const el=document.getElementById(p);
     if(!el) return;
     el.classList.remove('visible');el.style.display='none';
   });
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('btn-liquidacion').classList.add('active');
+  const btnLiq=document.getElementById('btn-liquidacion');
+  if(btnLiq) btnLiq.classList.add('active');
   document.getElementById('topbar-title').textContent='Liquidar Pagos a Recolectores';
-  // Mover el panel-liquidacion dentro del content-area
-  const ca=document.getElementById('content-area');
   const liq=document.getElementById('panel-liquidacion');
-  if(ca&&liq&&!ca.contains(liq)){ca.appendChild(liq);}
-  liq.style.display='flex';
+  if(liq){ liq.style.display='flex'; }
   if(!__liqCargado){__liqCargado=true;liqCargarRecolectores();}
 }
 
