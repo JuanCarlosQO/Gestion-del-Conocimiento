@@ -47,8 +47,6 @@
           <option value="Activo">Activo</option>
           <option value="Inactivo">Inactivo</option>
         </select>
-        <label class="labels">ID Mantenimiento</label>
-        <input type="text" class="entrada" id="id_mantenimiento" placeholder="ID del mantenimiento" required>
         <button type="submit" class="botonsum">💾 Guardar</button>
       </form>
       <div id="resultado"></div>
@@ -88,8 +86,6 @@
         <input type="text" class="entrada2" id="tamanio_finca2" disabled>
         <label class="labels">Estado</label>
         <input type="text" class="entrada2" id="altitud_finca2" disabled>
-        <label class="labels">Mantenimiento</label>
-        <input type="text" class="entrada2" id="id_mantenimiento2" disabled>
         <div class="btn-row">
           <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
           <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
@@ -125,7 +121,7 @@
         <table id="mostrarfincas">
           <thead>
             <tr>
-              <th>ID Lote</th><th>Nombre</th><th>Cantidad Café</th><th>Tamaño</th><th>Estado</th><th>Mantenimiento</th>
+              <th>ID Lote</th><th>Nombre</th><th>Cantidad Café</th><th>Tamaño</th><th>Estado</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -158,7 +154,6 @@ document.getElementById('registrofinca').addEventListener('submit',async e=>{
       cantidadCafe:document.getElementById('cantidadCafe').value,
       tamanio_finca:document.getElementById('tamanio_finca').value,
       estado_insumo:document.getElementById('estado_insumo').value,
-      id_mantenimiento:document.getElementById('id_mantenimiento').value,
     })});
     const d=await r.json();
     if(r.ok){document.getElementById('resultado').innerHTML=`<div id="resultado"><div id="tituloDatos">Lote registrado</div><p><strong>Nombre:</strong> ${d.data.nombre_lote_finca||d.data.nombre_lote||'—'}</p></div>`;document.getElementById('registrofinca').reset();}
@@ -178,7 +173,6 @@ document.getElementById('buscarfinca').addEventListener('submit',async e=>{
       document.getElementById('cantidadCafe_finca2').value=d.data.cantidadCafe_finca;
       document.getElementById('tamanio_finca2').value=d.data.tamanio_finca;
       document.getElementById('altitud_finca2').value=d.data.altitud_finca;
-      document.getElementById('id_mantenimiento2').value=d.data.id_mantenimiento;
     }else alert(d.message||'No encontrado');
   }catch{alert('Error al buscar.');}
   document.getElementById('buscarfinca').reset();
@@ -197,7 +191,6 @@ document.getElementById('editarfinca').addEventListener('submit',async e=>{
       cantidadCafe_finca:document.getElementById('cantidadCafe_finca2').value,
       tamanio_finca:document.getElementById('tamanio_finca2').value,
       altitud_finca:document.getElementById('altitud_finca2').value,
-      id_mantenimiento:document.getElementById('id_mantenimiento2').value,
     })});
     const d=await r.json();
     if(r.ok){alert('Actualizado con éxito');showPanel('panel2');document.getElementById('editarfinca').reset();}
@@ -229,7 +222,7 @@ async function obtenerLotes(){
     if(counter) counter.textContent=lotes.length+' registros';
     lotes.forEach(l=>{
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${l.id_finca||'—'}</td><td>${l.nombre_lote_finca||'—'}</td><td>${l.cantidadCafe_finca||'—'}</td><td>${l.tamanio_finca||'—'}</td><td>${l.altitud_finca||'—'}</td><td>${l.id_mantenimiento||'—'}</td>`;
+      tr.innerHTML=`<td>${l.id_finca||'—'}</td><td>${l.nombre_lote_finca||'—'}</td><td>${l.cantidadCafe_finca||'—'}</td><td>${l.tamanio_finca||'—'}</td><td>${l.altitud_finca||'—'}</td>`;
       tbody.appendChild(tr);
     });
   }catch(err){console.error(err);}

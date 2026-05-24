@@ -21,7 +21,6 @@ class loteModel (BaseModel):
     area: int              
     cantidad: int          
     estado: bool          
-    mantenimientos: List[str] = [] 
     suministros: List[str] = []    
     eventosRecoleccion: List[str] = []
 
@@ -61,13 +60,6 @@ class suministraInsumoModel(BaseModel):
     estado: bool           
     id_insumo: str         
     id_lote: str
-
-class mantenimientoModel (BaseModel):
-    id_mantenimiento: str  
-    id_numeric: int        
-    fecha: str             
-    tipo: str             
-   
 
 class eventoRecoleccionModel(BaseModel):
     id_evento: str      

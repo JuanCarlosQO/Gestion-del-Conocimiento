@@ -733,29 +733,7 @@ def insert_pago(request):
     return render(request, 'pago.html')
 
 
-@admin_or_propietario_required
-def mantenimiento_page(request):
-    return render(request, 'mantenimiento.html', {"volver_url": _volver_url(request)})
 
-
-@propietario_required
-def insert_mantenimiento(request):
-    if request.method == 'POST':
-        datos = {
-            "id_mantenimiento": request.POST.get('id_mantenimiento'),
-            "id_numeric": int(request.POST.get('id_numeric')),
-            "fecha": request.POST.get('fecha'),
-            "tipo": request.POST.get('tipo')
-        }
-        try:
-            response = requests.post(f"{_api_base()}/mantenimientos", json=datos, timeout=10)
-            if response.status_code == 200:
-                messages.success(request, "Mantenimiento registrado")
-                return render(request, 'mantenimiento.html', {'mantenimiento': datos, 'respuesta_api': response.json()})
-            messages.error(request, "Error en la API")
-        except Exception:
-            messages.error(request, "La API no está encendida")
-    return render(request, 'mantenimiento.html')
 
 
 @propietario_required
@@ -1027,14 +1005,12 @@ def _chatbot_contexto():
     compras       = fetch("compra")
     inventarios   = fetch("inventario")
     suministros   = fetch("suministro")
-    mantenimientos= fetch("mantenimiento")
 
     datos_tecnicos = {
         "persona": personas, "propietario": propietarios, "recolector": recolectores,
         "finca": fincas, "lote": lotes, "insumo": insumos,
         "recoleccion": recolecciones, "reporte": reportes, "pago": pagos,
         "compra": compras, "inventario": inventarios, "suministro": suministros,
-        "mantenimiento": mantenimientos,
     }
 
     # ── Construir texto de contexto legible para la IA ─────────────────────────────
@@ -1146,11 +1122,6 @@ def _chatbot_contexto():
         lines.append(f"  ID: {s.get('id_suministro')} | Insumo: {s.get('id_insumo')} | "
                      f"Lote: {s.get('id_lote')} | Cantidad: {s.get('cantidad')} | "
                      f"Fecha: {s.get('fecha')} | Estado: {'Aplicado' if s.get('estado') else 'Pendiente'}")
-
-    # Mantenimientos
-    lines.append(f"\n--- MANTENIMIENTOS ({len(mantenimientos)}) ---")
-    for m in mantenimientos:
-        lines.append(f"  ID: {m.get('id_mantenimiento')} | Tipo: {m.get('tipo')} | Fecha: {m.get('fecha')}")
 
     context_str = "\n".join(lines) if lines else "Sin datos disponibles."
     return context_str, datos_tecnicos

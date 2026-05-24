@@ -298,7 +298,6 @@
           <a class="nav-sub" href="/metodo_aplicacion/"><span class="icon">🧪</span> Método Aplicación</a>
           <a class="nav-sub" href="/inventario/"><span class="icon">📋</span> Inventario</a>
           <a class="nav-sub" href="/suministro/"><span class="icon">🪣</span> Suministros</a>
-          <a class="nav-sub" href="/mantenimiento/"><span class="icon">🔧</span> Mantenimiento</a>
         </div>
       </div>
 
@@ -365,7 +364,6 @@
           <div class="menu-card" onclick="location.href='/metodo_aplicacion/'"><div class="mc-icon">🧪</div><div class="mc-label">Método Aplicación</div></div>
           <div class="menu-card" onclick="location.href='/inventario/'"><div class="mc-icon">📋</div><div class="mc-label">Inventario</div></div>
           <div class="menu-card" onclick="location.href='/suministro/'"><div class="mc-icon">🪣</div><div class="mc-label">Suministros</div></div>
-          <div class="menu-card" onclick="location.href='/mantenimiento/'"><div class="mc-icon">🔧</div><div class="mc-label">Mantenimiento</div></div>
         </div>
       </div>
 
@@ -595,8 +593,6 @@ function renderDashboard(){
         <div class="c-title" style="margin-bottom:14px;"><span class="c-dot"></span>Avance operativo</div>
         <div class="prog-h"><span>Recolección</span><span id="p-rec">72%</span></div>
         <div class="prog-b"><div class="prog-f" style="width:0%" data-w="72%"></div></div>
-        <div class="prog-h"><span>Mantenimiento</span><span id="p-mant">55%</span></div>
-        <div class="prog-b"><div class="prog-f gld" style="width:0%" data-w="55%"></div></div>
         <div class="prog-h"><span>Insumos aplicados</span><span id="p-ins">88%</span></div>
         <div class="prog-b"><div class="prog-f blu" style="width:0%" data-w="88%"></div></div>
         <div class="prog-h"><span>Pagos procesados</span><span id="p-pag">40%</span></div>
@@ -654,7 +650,6 @@ function renderDashboard(){
     {c:'#10b981',n:'Recolección registrada',d:'Lote A-1 · Recolector #003',t:'hace 5 min'},
     {c:'#f59e0b',n:'Insumo agregado',d:'Fertilizante NPK · 50kg',t:'hace 18 min'},
     {c:'#3b82f6',n:'Nuevo trabajador',d:'Persona registrada',t:'hace 45 min'},
-    {c:'#ef4444',n:'Mantenimiento abierto',d:'Lote C-3 · Revisión',t:'hace 1 h'},
     {c:'#10b981',n:'Pago procesado',d:'Nómina semana 16',t:'hace 2 h'},
   ].map(a=>`<div class="act-i"><span class="act-dot" style="background:${a.c}"></span>
     <div><div class="act-nm">${a.n}</div><div class="act-ds">${a.d}</div></div>

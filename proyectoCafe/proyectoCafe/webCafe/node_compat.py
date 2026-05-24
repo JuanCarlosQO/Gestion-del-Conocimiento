@@ -90,7 +90,6 @@ def _rdf_row_lote(ind_id, props):
         "cantidadCafe_finca": props.get("cantidad"),
         "tamanio_finca": props.get("area"),
         "altitud_finca": props.get("estado"),
-        "id_mantenimiento": "—",
     }
 
 
@@ -102,17 +101,6 @@ def _rdf_row_recoleccion(ind_id, props):
         "id_recoleccion": ind_id,
         "fecha_recoleccion": fecha,
         "id_recolector": props.get("fk_idRecolector"),
-    }
-
-
-def _rdf_row_mantenimiento(ind_id, props):
-    fecha = props.get("fecha")
-    if hasattr(fecha, "isoformat"):
-        fecha = str(fecha)[:10]
-    return {
-        "id_tipocafe": ind_id,
-        "tipo_mantenimiento_tipocafe": props.get("tipo"),
-        "fecha_mantenimiento_tipocafe": fecha,
     }
 
 
@@ -142,13 +130,6 @@ def _detalle_payload_recoleccion(ind_id, datos, rels):
     if hasattr(fecha, "isoformat"):
         fecha = fecha.isoformat()
     return {"data": {"id_recoleccion": ind_id, "fecha_recoleccion": fecha, "id_recolector": datos.get("fk_idRecolector")}}
-
-
-def _detalle_payload_mantenimiento(ind_id, datos, rels):
-    fecha = datos.get("fecha")
-    if hasattr(fecha, "isoformat"):
-        fecha = str(fecha)[:10]
-    return {"data": {"id_tipocafe": ind_id, "tipo_mantenimiento_tipocafe": datos.get("tipo"), "fecha_mantenimiento_tipocafe": fecha}}
 
 
 def _detalle_payload_insumo(ind_id, datos, rels):

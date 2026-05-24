@@ -33,7 +33,7 @@ from models import (
     cat_unidad_medida,
     cat_metodo_aplicacion,
 )
-from schemas import fincaModel, loteModel, insumoModel, compraModel, recoleccionModel, suministraInsumoModel, mantenimientoModel,eventoRecoleccionModel, inventarioModel
+from schemas import fincaModel, loteModel, insumoModel, compraModel, recoleccionModel, suministraInsumoModel, eventoRecoleccionModel, inventarioModel
 from schemas import personaModel, propietarioModel, recolectorModel, tipoDocModel, reporteModel, pagoModel, loginModel, usuarioModel
 from schemas import catTipoInsumoModel, catUnidadMedidaCreateModel, catMetodoAplicacionCreateModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -402,8 +402,6 @@ def insert_lote(data: loteModel):
         g.add((uri_lote, CAFE.estableceRecoleccion, URIRef(f"http://www.semanticweb.org/cafe/{e_id}")))
     for s_id in data.suministros:
         g.add((uri_lote, CAFE.seAbastecePor, URIRef(f"http://www.semanticweb.org/cafe/{s_id}")))
-    for m_id in data.mantenimientos:
-         g.add((uri_lote, CAFE.tieneMantenimiento, URIRef(f"http://www.semanticweb.org/cafe/{m_id}")))
     g.serialize(destination="CafeV9_Final.rdf", format="xml")
     return {"status": "Lote registrado"}
 
@@ -464,13 +462,6 @@ def insert_suministro(data: suministraInsumoModel):
     guardar_rdf(data.id_suministro, "suministroInsumo", data.id_numeric, datos, relaciones)
     g.serialize(destination="CafeV9_Final.rdf", format="xml")
     return {"status": "Suministro registrado"}
-
-#Mantenimiento
-@app.post("/mantenimientos", tags=["Estructura"])
-def insert_mantenimiento(data: mantenimientoModel):
-    datos = {"fecha": data.fecha, "tipo": data.tipo}
-    guardar_rdf(data.id_mantenimiento, "mantenimiento", data.id_numeric, datos)
-    return {"status": "Mantenimiento registrado"}
 
 
 #Recoleccion
@@ -1428,7 +1419,7 @@ Responde la pregunta usando los esquemas disponibles.
 
 POSTGRES: persona(documento_persona,nombre_persona,edad_persona,telefono_persona,fk_tipo_documento), propietario(id_propietario,email_propietario,estado_propietario), recolector(id_recolector,fechainicio_recolector,fechafin_recolector,estado_recolector,diastrabajados_recolector,fk_id_propietario,fk_id_finca), reporte(id_reporte,fecha_reporte,totaltecoleccion_reporte,estado_reporte,fk_id_recolector), pago(id_pago,fecha_pago,preciokilo_pago,estado_pago,monto_pago,metodo_pago,fk_id_reporte)
 
-RDF PREFIX cafe: <http://www.semanticweb.org/cafe/> — Clases: cafe:finca(nombre,direccion,area,altitud,fk_idPropietario), cafe:lote(nombre,area,cantidad,estado), cafe:insumo(nombre,precio,tipo,estado,unidadMedida,metodoAplicacion), cafe:recoleccion(fecha,fk_idRecolector), cafe:eventoRecoleccion(cantidad), cafe:mantenimiento(fecha,tipo)
+RDF PREFIX cafe: <http://www.semanticweb.org/cafe/> — Clases: cafe:finca(nombre,direccion,area,altitud,fk_idPropietario), cafe:lote(nombre,area,cantidad,estado), cafe:insumo(nombre,precio,tipo,estado,unidadMedida,metodoAplicacion), cafe:recoleccion(fecha,fk_idRecolector), cafe:eventoRecoleccion(cantidad)
 
 PREGUNTA: "{pregunta}"
 
