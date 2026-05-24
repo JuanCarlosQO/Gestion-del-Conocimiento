@@ -90,10 +90,7 @@
           <option value="">— Cargando propietarios —</option>
         </select>
         
-        <label class="labels">Finca asignada (opcional)</label>
-        <select class="selector" id="select_finca_admin" name="fk_id_finca">
-          <option value="">— Seleccione un propietario para ver fincas —</option>
-        </select>
+       
         {% endif %}
         
         {% if is_propietario %}
@@ -277,9 +274,9 @@ function getCookie(name) {
 }
 
 /* ESTADO ROLES Y DATA DJANGO */
-const IS_PROPIETARIO = {% if is_propietario %}true{% else %}false{% endif %};
-const IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
-const PROPIETARIO_DOC = "{{ propietario_doc|escapejs }}";
+var IS_PROPIETARIO = {% if is_propietario %}true{% else %}false{% endif %};
+var IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
+var PROPIETARIO_DOC = "{{ propietario_doc|escapejs }}";
 
 /* CARGAR DINÁMICOS AL INICIO */
 async function cargarFincasPropietario() {
