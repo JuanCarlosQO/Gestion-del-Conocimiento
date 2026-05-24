@@ -268,10 +268,19 @@
         </div>
       </div>
 
-      <!-- Liquidación -->
-      <button class="nav-btn" id="btn-liquidacion" onclick="showLiquidacion()">
-        <span class="icon">💰</span> Liquidar Pagos
+      <!-- Recolecciones (módulo independiente) -->
+      <button class="nav-btn group-trigger" onclick="toggleGroup('g-recolecciones', this)">
+        <span class="icon">☕</span> Recolecciones
+        <span class="nav-arrow">▾</span>
       </button>
+      <div class="nav-group closed" id="g-recolecciones">
+        <div class="nav-group-inner">
+          <a class="nav-sub" href="/recoleccion/"><span class="icon">☕</span> Gestionar Recolecciones</a>
+        </div>
+      </div>
+
+      <!-- Liquidación -->
+      <!-- (movido dentro de Finanzas) -->
 
       <!-- Finanzas (grupo) -->
       <button class="nav-btn group-trigger" onclick="toggleGroup('g-finanzas', this)">
@@ -280,12 +289,11 @@
       </button>
       <div class="nav-group closed" id="g-finanzas">
         <div class="nav-group-inner">
+          <button class="nav-sub" onclick="showLiquidacion()"><span class="icon">💰</span> Liquidar Pagos</button>
           <a class="nav-sub" href="/finca/"><span class="icon">🏡</span> Fincas</a>
-          <a class="nav-sub" href="/recoleccion/"><span class="icon">☕</span> Recolecciones</a>
           <a class="nav-sub" href="/pago/"><span class="icon">💳</span> Pagos</a>
           <a class="nav-sub" href="/reporte/"><span class="icon">📊</span> Reportes</a>
           <a class="nav-sub" href="/lote/"><span class="icon">🗺️</span> Lotes</a>
-          
         </div>
       </div>
 
@@ -348,8 +356,8 @@
       <div class="menu-panel" id="panel-finanzas">
         <div class="section-label">💰 Finanzas</div>
         <div class="menu-grid">
+          <div class="menu-card" onclick="showLiquidacion()"><div class="mc-icon">💰</div><div class="mc-label">Liquidar Pagos</div></div>
           <div class="menu-card" onclick="location.href='/finca/'"><div class="mc-icon">🏡</div><div class="mc-label">Fincas</div></div>
-          <div class="menu-card" onclick="location.href='/recoleccion/'"><div class="mc-icon">☕</div><div class="mc-label">Recolecciones</div></div>
           <div class="menu-card" onclick="location.href='/pago/'"><div class="mc-icon">💳</div><div class="mc-label">Pagos</div></div>
           <div class="menu-card" onclick="location.href='/reporte/'"><div class="mc-icon">📊</div><div class="mc-label">Reportes</div></div>
           <div class="menu-card" onclick="location.href='/lote/'"><div class="mc-icon">🗺️</div><div class="mc-label">Lotes</div></div>
