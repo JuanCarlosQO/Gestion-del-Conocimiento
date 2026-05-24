@@ -42,8 +42,10 @@
         <input type="text" class="entrada" id="area_finca" placeholder="Ej: 12.5" required>
         <label class="labels">Altitud (m.s.n.m)</label>
         <input type="text" class="entrada" id="altitud_finca" placeholder="Ej: 1800">
-        <label class="labels">ID Propietario</label>
-        <input type="text" class="entrada" id="id_propietario" placeholder="Número de documento" minlength="1" required>
+        <label class="labels">Propietario</label>
+        <select class="selector" id="id_propietario" required>
+          <option value="">— Cargando propietarios—</option>
+        </select>
         <button type="submit" class="botonsum">💾 Guardar</button>
       </form>
       <div id="resultado"></div>
@@ -142,6 +144,43 @@ function showPanel(id) {
   const el = document.getElementById(id);
   if (el) { el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'center'; }
   const r = document.getElementById('resultado'); if (r) r.innerHTML = '';
+}
+
+/* ── CARGAR PROPIETARIOS EN EL SELECT ── */
+async function cargarPropietarios() {
+  const sel = document.getElementById('id_propietario');
+  sel.innerHTML = '<option value="">— Cargando… —</option>';
+  try {
+    const r = await fetch('/get_todos/Propietario/');
+    const rows = await r.json();
+    sel.innerHTML = '<option value="">— Seleccione propietario —</option>';
+    if (!Array.isArray(rows) || !rows.length) {
+      sel.innerHTML = '<option value="">Sin propietarios registrados</option>';
+      return;
+    }
+    // Para cada propietario intentamos obtener su nombre desde /persona
+    for (const p of rows) {
+      const doc = String(p.id_propietario || '').trim();
+      if (!doc) continue;
+      const opt = document.createElement('option');
+      opt.value = doc;
+      // Intentar cargar nombre de la persona
+      try {
+        const rp = await fetch(`/consultar_registro/persona/${doc}/`);
+        if (rp.ok) {
+          const dp = await rp.json();
+          const nombre = dp.nombre_persona || dp.nombre || '';
+          opt.textContent = nombre ? `${nombre} (${doc})` : doc;
+        } else {
+          opt.textContent = doc;
+        }
+      } catch { opt.textContent = doc; }
+      sel.appendChild(opt);
+    }
+  } catch (err) {
+    sel.innerHTML = '<option value="">Error cargando propietarios</option>';
+    console.error('Error cargando propietarios:', err);
+  }
 }
 
 document.getElementById('botonVolver').addEventListener('click', () => { window.location.href = '/vista_admin/'; });
@@ -251,7 +290,11 @@ async function obtenerFincas() {
   } catch(err) { console.error(err); }
 }
 
-document.addEventListener('DOMContentLoaded', () => { obtenerFincas(); setInterval(obtenerFincas, 5000); });
+document.addEventListener('DOMContentLoaded', () => {
+  cargarPropietarios();
+  obtenerFincas();
+  setInterval(obtenerFincas, 5000);
+});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>

@@ -596,6 +596,35 @@ def insert_recolector(request):
                         out["aviso"] = av
                 except Exception:
                     pass
+
+                # ── Crear usuario para el recolector si se enviaron credenciales ──
+                username = (request.POST.get("username_recolector") or "").strip()
+                password = (request.POST.get("password_recolector") or "").strip()
+                if username and password:
+                    id_recolector = str(datos.get("id_recolector") or "").strip()
+                    try:
+                        r_user = requests.post(
+                            f"{_api_base()}/usuarios",
+                            json={
+                                "username": username,
+                                "password": password,
+                                "rol": "recolector",
+                                "fk_persona": id_recolector,
+                            },
+                            timeout=10,
+                        )
+                        if r_user.status_code == 200:
+                            out["usuario_creado"] = True
+                            out["username"] = username
+                        else:
+                            try:
+                                detail = r_user.json().get("detail", r_user.text)
+                            except Exception:
+                                detail = r_user.text or "Error al crear usuario"
+                            out["aviso_usuario"] = f"Recolector guardado, pero no se pudo crear el usuario: {detail}"
+                    except Exception as e_user:
+                        out["aviso_usuario"] = f"Recolector guardado, pero error al crear usuario: {str(e_user)}"
+
                 return JsonResponse(out)
             else:
                 try:

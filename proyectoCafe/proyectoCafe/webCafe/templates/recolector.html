@@ -103,6 +103,21 @@
           <option value="">— Cargando fincas —</option>
         </select>
         {% endif %}
+
+        <div class="form-section">4) Acceso al sistema (opcional)</div>
+        <p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Si desea que el recolector pueda iniciar sesión en SIGIC, complete estos campos. De lo contrario, déjelos en blanco.</p>
+        <label class="labels">Nombre de usuario</label>
+        <input class="entrada" type="text" id="username_recolector" name="username_recolector" placeholder="Ej: juan.perez" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="labels">Contraseña</label>
+            <input class="entrada" type="password" id="password_recolector" name="password_recolector" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="labels">Confirmar contraseña</label>
+            <input class="entrada" type="password" id="password_recolector2" name="password_recolector2" placeholder="Repita la contraseña" autocomplete="new-password">
+          </div>
+        </div>
         
         <div class="btn-row">
           <button type="submit" class="botonsum" id="botonaccion">💾 Guardar Recolector</button>
@@ -482,6 +497,18 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
         formData.append("fk_id_finca", fid);
       }
 
+      // Credenciales opcionales
+      const username = (document.getElementById("username_recolector")?.value || "").trim();
+      const password = (document.getElementById("password_recolector")?.value || "").trim();
+      const password2 = (document.getElementById("password_recolector2")?.value || "").trim();
+      if (username || password || password2) {
+        if (!username) { alert("Ingrese un nombre de usuario."); return; }
+        if (password.length < 6) { alert("La contraseña debe tener al menos 6 caracteres."); return; }
+        if (password !== password2) { alert("Las contraseñas no coinciden."); return; }
+        formData.append("username_recolector", username);
+        formData.append("password_recolector", password);
+      }
+
       const respRec = await fetch("/insert_recolector/", {
         method: "POST",
         headers: { "X-CSRFToken": token },
@@ -490,29 +517,40 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
       const dataRec = await respRec.json();
 
       if (dataRec.success || dataRec.status === "success") {
-        if (dataRec.aviso) {
-          alert(dataRec.aviso);
-        }
-        const estadoTxt = estadoVal === "1" ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Inactivo</span>';
-        let fincaTxt = "";
-        if (IS_PROPIETARIO) {
-          const sel = document.getElementById("select_finca_propietario");
-          const opt = sel?.selectedOptions?.[0];
-          fincaTxt = opt ? `<p><strong>Finca:</strong> ${opt.textContent}</p>` : "";
-        }
-        divResultado.innerHTML = `
-          <div id="tituloDatos">Datos guardados</div>
-          <p><strong>Recolector:</strong> ${dataP.data.nombre_persona}</p>
-          <p><strong>Documento:</strong> ${documento}</p>
-          <p><strong>Teléfono:</strong> ${datosSesion.data.telefono_persona || "—"}</p>
-          <p><strong>Fecha Inicio:</strong> ${fechainicio}</p>
-          <p><strong>Estado:</strong> ${estadoTxt}</p>
-          ${fincaTxt}
-        `;
-        alert("Recolector registrado con éxito");
+      if (dataRec.aviso) {
+      alert(dataRec.aviso);
+      }
+      if (dataRec.aviso_usuario) {
+        alert(dataRec.aviso_usuario);
+      }
+      const estadoTxt = estadoVal === "1" ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Inactivo</span>';
+      const usuarioTxt = dataRec.usuario_creado
+      ? `<p><strong>🔒 Usuario creado:</strong> ${dataRec.username}</p>`
+        : '';
+      let fincaTxt = "";
+      if (IS_PROPIETARIO) {
+      const sel = document.getElementById("select_finca_propietario");
+      const opt = sel?.selectedOptions?.[0];
+      fincaTxt = opt ? `<p><strong>Finca:</strong> ${opt.textContent}</p>` : "";
+      }
+      divResultado.innerHTML = `
+      <div id="tituloDatos">Datos guardados</div>
+        <p><strong>Recolector:</strong> ${dataP.data.nombre_persona}</p>
+        <p><strong>Documento:</strong> ${documento}</p>
+            <p><strong>Teléfono:</strong> ${datosSesion.data.telefono_persona || "—"}</p>
+            <p><strong>Fecha Inicio:</strong> ${fechainicio}</p>
+            <p><strong>Estado:</strong> ${estadoTxt}</p>
+            ${fincaTxt}
+            ${usuarioTxt}
+          `;
+          alert("Recolector registrado con éxito");
         document.getElementById("registroRecolector").reset();
         const est = document.getElementById("estado_recolector_alta");
         if (est) est.value = "1";
+        // Limpiar campos de credenciales
+        const u = document.getElementById("username_recolector"); if(u) u.value = "";
+        const p1 = document.getElementById("password_recolector"); if(p1) p1.value = "";
+        const p2 = document.getElementById("password_recolector2"); if(p2) p2.value = "";
         if (IS_PROPIETARIO) cargarFincasPropietario();
         if (IS_ADMIN) {
           cargarPropietariosAdmin();

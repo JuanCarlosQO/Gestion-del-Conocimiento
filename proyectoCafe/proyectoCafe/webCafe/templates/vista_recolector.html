@@ -1,224 +1,596 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-      {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-<link href="{% static 'css/theme.css' %}" rel="stylesheet">
-<link href="{% static 'css/admin.css' %}?v=bp2" rel="stylesheet">
-<link href="{% static 'css/finanzas.css' %}" rel="stylesheet">
-<link href="{% static 'css/app-shell.css' %}?v=bp2" rel="stylesheet" />
-<link href="{% static 'css/responsive.css' %}" rel="stylesheet">
-<style>
-/* Responsivo extra para vista recolector */
-@media (max-width: 768px) {
-  .contenedor_padre { padding: 10px !important; }
-  #ordena_boton { flex-wrap: wrap !important; gap: 8px !important; }
-  #ordena_boton button { width: 100% !important; }
-  #mostrarR { font-size: 12px !important; }
-  #mostrarR th, #mostrarR td { padding: 8px 6px !important; }
-  #tablaPerson { overflow-x: auto; }
-  #img { max-height: 180px !important; object-fit: cover; }
-  .letras { font-size: 18px !important; }
-  .letragestion { font-size: 13px !important; }
-  .boton_contenedor { flex-wrap: wrap !important; gap: 10px !important; }
-  #carrusel { max-height: 200px !important; overflow: hidden; }
-}
-</style>
-    <title>Recolector</title>
-    
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <title>Vista Recolector — SIGIC</title>
+  <style>
+    :root {
+      --g-950:#011a12;--g-900:#022c22;--g-800:#064e3b;--g-700:#065f46;
+      --g-600:#047857;--g-500:#059669;--g-400:#10b981;--g-300:#34d399;
+      --g-200:#6ee7b7;--g-100:#a7f3d0;--g-25:#ecfdf5;
+      --gold:#d4a843;--gold-l:#f0c96a;--red:#ef4444;
+      --page:#f0fdf4;--card:#ffffff;
+      --sh-card:0 2px 12px rgba(2,44,34,0.08);
+      --sh-hover:0 8px 28px rgba(2,44,34,0.13);
+      --radius:14px;--tr:all 0.28s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;font-family:'DM Sans','Inter',system-ui,sans-serif;
+      background:var(--page);color:#022c22;-webkit-font-smoothing:antialiased;overflow:hidden;}
+
+    /* ── LAYOUT ── */
+    .shell{display:flex;height:100vh;overflow:hidden}
+
+    /* ── SIDEBAR ── */
+    .sidebar{
+      width:230px;min-width:230px;
+      background:linear-gradient(180deg,var(--g-950) 0%,#010f09 100%);
+      display:flex;flex-direction:column;
+      border-right:1px solid rgba(52,211,153,0.10);
+      box-shadow:4px 0 20px rgba(1,26,18,0.25);
+      position:relative;z-index:10;overflow-y:auto;
+    }
+    .sidebar::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,transparent,var(--g-400),var(--gold),var(--g-300),transparent);
+      background-size:200% 100%;animation:shimBar 3s linear infinite;
+    }
+    .sb-logo{display:flex;align-items:center;gap:10px;padding:24px 18px 14px;position:relative;z-index:2;}
+    .sb-logo .coffee{font-size:28px;}
+    .sb-logo .brand{font-family:'Syne','Inter',sans-serif;font-size:11px;font-weight:800;
+      color:var(--g-200);letter-spacing:0.18em;text-transform:uppercase;}
+    .sb-user{padding:0 18px 16px;position:relative;z-index:2;}
+    .sb-user-card{background:rgba(16,185,129,0.10);border:1px solid rgba(52,211,153,0.15);
+      border-radius:10px;padding:12px 14px;}
+    .sb-user-name{font-size:13px;font-weight:700;color:var(--g-100);margin-bottom:2px;}
+    .sb-user-doc{font-size:11px;color:rgba(110,231,183,0.55);}
+    .sb-section{font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;
+      color:rgba(110,231,183,0.40);padding:12px 18px 6px;position:relative;z-index:2;}
+    .sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px;position:relative;z-index:2;}
+    .nav-btn{
+      display:flex;align-items:center;gap:10px;width:100%;
+      padding:10px 12px;border-radius:10px;
+      font-size:13px;font-weight:500;color:rgba(167,243,208,0.65);
+      cursor:pointer;transition:var(--tr);border:none;background:transparent;
+      text-align:left;text-decoration:none;position:relative;overflow:hidden;min-height:42px;
+    }
+    .nav-btn::before{
+      content:'';position:absolute;left:0;top:20%;bottom:20%;
+      width:3px;background:linear-gradient(180deg,var(--g-400),var(--gold));
+      border-radius:0 3px 3px 0;transform:scaleY(0);transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    .nav-btn:hover,.nav-btn.active{background:rgba(16,185,129,0.10);color:var(--g-100);transform:translateX(3px);}
+    .nav-btn:hover::before,.nav-btn.active::before{transform:scaleY(1);}
+    .nav-btn .icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+    .sb-bottom{margin-top:auto;padding:16px 10px 20px;position:relative;z-index:2;}
+    .btn-salir{
+      display:flex;align-items:center;gap:10px;width:100%;
+      padding:10px 14px;border-radius:10px;
+      background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.22);
+      color:rgba(252,165,165,0.85);font-size:12px;font-weight:600;
+      letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:var(--tr);
+    }
+    .btn-salir:hover{background:rgba(239,68,68,0.22);transform:translateX(2px);}
+
+    /* ── ÁREA PRINCIPAL ── */
+    .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 28px;height:54px;min-height:54px;
+      background:#fff;border-bottom:1px solid rgba(5,150,105,0.10);
+      box-shadow:0 1px 8px rgba(2,44,34,0.06);
+    }
+    .topbar-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#022c22;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .topbar-time{font-size:12px;font-weight:600;color:var(--g-700);
+      background:var(--g-25);padding:5px 12px;border-radius:99px;border:1px solid rgba(5,150,105,0.15);}
+    .topbar-avatar{width:32px;height:32px;border-radius:50%;
+      background:linear-gradient(135deg,var(--g-500),var(--g-800));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:13px;font-weight:700;}
+    .content-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:24px 28px 36px;}
+
+    /* ── PANEL ── */
+    .view-panel{display:none;}
+    .view-panel.active{display:block;}
+
+    /* ── DASHBOARD KPIs ── */
+    .db-banner{
+      background:linear-gradient(135deg,#065f46 0%,#011a12 100%);
+      border-radius:var(--radius);padding:20px 24px;
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:20px;position:relative;overflow:hidden;
+    }
+    .db-banner::before{content:'';position:absolute;top:-50px;right:40px;width:200px;height:200px;
+      border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,0.10) 0%,transparent 65%);}
+    .banner-text h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:2px;}
+    .banner-text p{font-size:11px;color:rgba(255,255,255,0.50);}
+    .banner-stats{display:flex;gap:12px;position:relative;z-index:1;}
+    .b-stat{text-align:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+      border-radius:10px;padding:10px 16px;}
+    .b-stat .val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;display:block;line-height:1;}
+    .b-stat .lbl{font-size:9px;color:rgba(255,255,255,0.50);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+
+    /* ── KPI CARDS ── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+    .kpi-c{background:#fff;border-radius:12px;border:1px solid rgba(5,150,105,0.10);
+      padding:18px 20px;box-shadow:var(--sh-card);transition:var(--tr);}
+    .kpi-c:hover{transform:translateY(-2px);box-shadow:var(--sh-hover);}
+    .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .kpi-lbl{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#9ca3af;}
+    .kpi-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .ki-g{background:rgba(5,150,105,0.12);}
+    .ki-b{background:rgba(59,130,246,0.12);}
+    .ki-d{background:rgba(212,168,67,0.14);}
+    .kpi-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#022c22;line-height:1;margin-bottom:4px;}
+    .kpi-sub{font-size:11px;color:#6b7280;}
+
+    /* ── TABLAS ── */
+    .section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#022c22;
+      margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(5,150,105,0.2),transparent);}
+    .table-card{background:#fff;border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);
+      box-shadow:var(--sh-card);overflow:hidden;margin-bottom:22px;}
+    .table-card table{width:100%;border-collapse:collapse;font-size:13px;}
+    .table-card thead th{
+      background:linear-gradient(135deg,var(--g-700),var(--g-950));
+      color:#fff;font-weight:700;font-size:11px;letter-spacing:0.10em;
+      text-transform:uppercase;padding:11px 14px;text-align:left;
+    }
+    .table-card tbody td{padding:10px 14px;border-bottom:1px solid rgba(5,150,105,0.07);color:#065f46;}
+    .table-card tbody tr:last-child td{border-bottom:none;}
+    .table-card tbody tr:hover td{background:rgba(16,185,129,0.05);}
+    .empty-row td{text-align:center;padding:20px;color:#9ca3af;font-style:italic;}
+    .badge-activo{background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;}
+    .badge-inactivo{background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;}
+    .ld{display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1s ease infinite;}
+
+    /* ── PERFIL PANEL ── */
+    .perfil-card{background:#fff;border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);
+      box-shadow:var(--sh-card);padding:28px 32px;max-width:560px;}
+    .perfil-avatar{width:72px;height:72px;border-radius:50%;
+      background:linear-gradient(135deg,var(--g-500),var(--g-800));
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:28px;margin-bottom:20px;
+      box-shadow:0 4px 16px rgba(5,150,105,0.25);}
+    .perfil-field{margin-bottom:16px;}
+    .perfil-label{font-size:11px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;
+      color:var(--g-700);margin-bottom:5px;display:block;}
+    .perfil-input{width:100%;padding:10px 14px;font-size:14px;
+      border:1.5px solid rgba(5,150,105,0.18);border-radius:9px;
+      background:#fff;color:#022c22;outline:none;transition:var(--tr);}
+    .perfil-input:focus{border-color:var(--g-500);box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
+    .perfil-input:disabled{background:#f8fafc;color:#94a3b8;}
+    .perfil-select{width:100%;padding:10px 14px;font-size:14px;
+      border:1.5px solid rgba(5,150,105,0.18);border-radius:9px;
+      background:#fff;color:#022c22;outline:none;transition:var(--tr);}
+    .perfil-select:focus{border-color:var(--g-500);box-shadow:0 0 0 3px rgba(16,185,129,0.12);}
+    .btn-guardar{
+      background:linear-gradient(135deg,var(--g-500),var(--g-700));
+      color:#fff;border:none;padding:11px 28px;border-radius:10px;
+      font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);
+      box-shadow:0 4px 14px rgba(5,150,105,0.25);
+    }
+    .btn-guardar:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(5,150,105,0.35);}
+    .alert-ok{background:#ecfdf5;border:1px solid rgba(5,150,105,0.25);border-left:4px solid var(--g-500);
+      border-radius:10px;padding:12px 16px;font-size:13px;color:var(--g-800);margin-top:14px;}
+    .alert-err{background:#fef2f2;border:1px solid rgba(239,68,68,0.20);border-left:4px solid var(--red);
+      border-radius:10px;padding:12px 16px;font-size:13px;color:#7f1d1d;margin-top:14px;}
+
+    @keyframes shimBar{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--g-25)}
+    ::-webkit-scrollbar-thumb{background:var(--g-300);border-radius:3px}
+    @media(max-width:768px){
+      html,body{overflow:auto}.shell{flex-direction:column}
+      .sidebar{width:100%;min-width:unset;height:auto}
+      .content-area{overflow:auto;padding:16px}
+      .kpi-grid{grid-template-columns:1fr}
+      .banner-stats{display:none}
+    }
+  </style>
 </head>
 <body>
-    <div class="contenedor_padre">
-        <div class="boton_contenedor">
-            <div class="letras" id="vista_title">RECOLECTOR</div>
-            <div id="ordena_boton">
-            <div class="letragestion" id="letra_gestion">Gestionar<img id="cafef" src="https://i.ibb.co/prgscZz/cafef.png" width="50px"></div>
-            <button id="botones" onclick="showPanel('panel1')">Produccion <img class="cafef" src="https://i.ibb.co/ynwJSFB/grano.png" width="30px"></button>
-            <button id="salir">Salir <img class="cafef" src="https://i.ibb.co/ynwJSFB/grano.png" width="30px"></button>
-            </div>
- 
+<div class="shell">
 
-        </div>
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <span class="coffee">☕</span>
+      <span class="brand">SIGIC</span>
+    </div>
 
-        <div id="panel0" class="panel">
-            <div id="carrusel">
-                <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
-                  <div class="carousel-inner">
-                    <div class="carousel-item active">
-                      <img src="{% static 'img/cafe.jpg' %}" class="d-block w-100" id="img" alt="cafe"/>
-                    </div>
-                    <div class="carousel-item">
-                      <img
-                        src="{% static 'img/campo.jpg' %}"
-                        class="d-block w-100"
-                        id="img"
-                        alt="campo-cafe"
-                      />
-                    </div>
-                    <div class="carousel-item">
-                      <img
-                        src="{% static 'img/paisaje.jpg' %}"
-                        class="d-block w-100"
-                        id="img"
-                        alt="paisaje-finca"
-                      />
-                    </div>
-                    <div class="carousel-item">
-                      <img
-                        src="{% static 'img/planta.jpg' %}"
-                        class="d-block w-100"
-                        id="img"
-                        alt="planta-cafe"
-                      />
-                    </div>
-                    <div class="carousel-item">
-                      <img
-                        src="{% static 'img/RECOLECTOR.jpg' %}"
-                        class="d-block w-100"
-                        id="img"
-                        alt="planta-cafe"
-                      />
-                    </div>
-                    <div class="carousel-item">
-                      <img
-                        src="{% static 'img/cafe.jpg' %}"
-                        class="d-block w-100"
-                        id="img"
-                        alt="planta-cafe"
-                      />
-                    </div>
-                  </div>
-                </div>
-            </div>
-        </div>
-        
-         
-         <div id="panel1" class="panel">
-        <div class="p-2">
-          <button class="botonsum" id="btnPerfil" type="button">Mi perfil</button>
-        </div>
-        <form id="buscarR" class="d-none">
-          <div>
-            <label class="labels" id="documento">Documento recolector</label>
-            <input type="text" class="entrada" id="documento_buscar" required />
-          </div>
-          <button type="submit" class="botonsum" id="Buscar">Buscar</button>
-        </form>
+    <div class="sb-user">
+      <div class="sb-user-card">
+        <div class="sb-user-name" id="sb-nombre">Cargando...</div>
+        <div class="sb-user-doc" id="sb-doc">Doc: {{ fk_persona }}</div>
       </div>
-      
-         
-          <!-- ///Mostrar -->
-      <div class="panel" id="panel22">
-        <div id="tablaPerson">
-          <table id="mostrarR" border="1">
+    </div>
+
+    <div class="sb-section">Mi espacio</div>
+    <nav class="sb-nav">
+      <button class="nav-btn active" id="btn-dashboard" onclick="showView('dashboard')">
+        <span class="icon">⊞</span> Mi Dashboard
+      </button>
+      <button class="nav-btn" id="btn-recolecciones" onclick="showView('recolecciones')">
+        <span class="icon">🌱</span> Mis Recolecciones
+      </button>
+      <button class="nav-btn" id="btn-pagos" onclick="showView('pagos')">
+        <span class="icon">💳</span> Mis Pagos
+      </button>
+      <button class="nav-btn" id="btn-perfil" onclick="showView('perfil')">
+        <span class="icon">👤</span> Mi Perfil
+      </button>
+    </nav>
+
+    <div class="sb-bottom">
+      <button class="btn-salir" onclick="window.location.href='/'">
+        <span>⬅</span> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ ÁREA PRINCIPAL ══ -->
+  <div class="main-area">
+    <header class="topbar">
+      <span class="topbar-title" id="topbar-title">Mi Dashboard</span>
+      <div class="topbar-right">
+        <div class="topbar-time" id="reloj">--:--:--</div>
+        <div class="topbar-avatar">R</div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="view-panel active" id="view-dashboard">
+        <div class="db-banner">
+          <div style="position:relative;z-index:1;">
+            <h2 id="banner-saludo">¡Buen día, Recolector! 🌿</h2>
+            <p id="banner-fecha">Cargando fecha...</p>
+          </div>
+          <div class="banner-stats">
+            <div class="b-stat"><span class="val" id="ban-rec"><span class="ld"></span></span><div class="lbl">Recolecciones</div></div>
+            <div class="b-stat"><span class="val" id="ban-kg"><span class="ld"></span></span><div class="lbl">Total kg</div></div>
+            <div class="b-stat"><span class="val" id="ban-pagos"><span class="ld"></span></span><div class="lbl">Pagos</div></div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-c">
+            <div class="kpi-top"><span class="kpi-lbl">Total Recolecciones</span><span class="kpi-ico ki-g">🌱</span></div>
+            <div class="kpi-val" id="kpi-rec">—</div>
+            <div class="kpi-sub">Registradas en el sistema</div>
+          </div>
+          <div class="kpi-c">
+            <div class="kpi-top"><span class="kpi-lbl">Kg recolectados</span><span class="kpi-ico ki-b">⚖️</span></div>
+            <div class="kpi-val" id="kpi-kg">—</div>
+            <div class="kpi-sub">Total acumulado</div>
+          </div>
+          <div class="kpi-c">
+            <div class="kpi-top"><span class="kpi-lbl">Total pagado</span><span class="kpi-ico ki-d">💰</span></div>
+            <div class="kpi-val" id="kpi-pagado">—</div>
+            <div class="kpi-sub">Pagos procesados</div>
+          </div>
+        </div>
+
+        <div class="section-title">🌱 Últimas recolecciones</div>
+        <div class="table-card">
+          <table>
             <thead>
-              <tr>
-                <th>Documento Persona</th>
-                <th>Nombre Persona</th>
-                <th>Cantidad Total</th>
-                <th>Fecha inicio de recolector</th>
-              </tr>
+              <tr><th>Documento</th><th>Nombre</th><th>Kg totales</th><th>Fecha inicio</th></tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="dash-rec-body">
+              <tr class="empty-row"><td colspan="4"><span class="ld"></span> Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-title">💳 Últimos pagos</div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>ID Pago</th><th>Fecha</th><th>Monto</th><th>Precio/kg</th><th>Método</th><th>Estado</th></tr>
+            </thead>
+            <tbody id="dash-pago-body">
+              <tr class="empty-row"><td colspan="6"><span class="ld"></span> Cargando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
 
-    </div>
-    <script>
+      <!-- ── RECOLECCIONES ── -->
+      <div class="view-panel" id="view-recolecciones">
+        <div class="section-title">🌱 Todas mis recolecciones</div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>Documento</th><th>Nombre</th><th>Kg totales</th><th>Fecha inicio contrato</th></tr>
+            </thead>
+            <tbody id="rec-body">
+              <tr class="empty-row"><td colspan="4">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        function showPanel(panelId) {
-            const panels = document.querySelectorAll('.panel');
-            panels.forEach(panel => panel.style.display = 'none');
-            const selectedPanel = document.getElementById(panelId);
-            selectedPanel.style.display = 'flex';
-        }
+      <!-- ── PAGOS ── -->
+      <div class="view-panel" id="view-pagos">
+        <div class="section-title">💳 Todos mis pagos</div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr><th>ID Pago</th><th>Fecha</th><th>Monto</th><th>Precio/kg</th><th>Método</th><th>Estado</th></tr>
+            </thead>
+            <tbody id="pago-body">
+              <tr class="empty-row"><td colspan="6">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        const redirectSalir = document.getElementById('salir');
-        redirectSalir.addEventListener('click', () => {
-            window.location.href = "/";
-        });
+      <!-- ── PERFIL ── -->
+      <div class="view-panel" id="view-perfil">
+        <div class="section-title">👤 Mi información personal</div>
+        <div class="perfil-card">
+          <div class="perfil-avatar">👤</div>
+          <form id="perfilForm">
+            {% csrf_token %}
+            <div class="perfil-field">
+              <label class="perfil-label">Documento (no editable)</label>
+              <input class="perfil-input" type="text" id="pf-documento" value="{{ fk_persona }}" disabled>
+            </div>
+            <div class="perfil-field">
+              <label class="perfil-label">Tipo de documento</label>
+              <select class="perfil-select" id="pf-tipo-doc">
+                <option value="0">— Seleccione —</option>
+                <option value="1">Cédula de ciudadanía</option>
+                <option value="2">Tarjeta de identidad</option>
+                <option value="3">Cédula de extranjería</option>
+              </select>
+            </div>
+            <div class="perfil-field">
+              <label class="perfil-label">Nombre completo</label>
+              <input class="perfil-input" type="text" id="pf-nombre" placeholder="Nombre y apellidos" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="perfil-field">
+                <label class="perfil-label">Edad</label>
+                <input class="perfil-input" type="number" id="pf-edad" placeholder="Edad" min="1" max="120" required>
+              </div>
+              <div class="perfil-field">
+                <label class="perfil-label">Teléfono</label>
+                <input class="perfil-input" type="text" id="pf-telefono" placeholder="10 dígitos" required>
+              </div>
+            </div>
+            <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
+          </form>
+          <div id="perfil-msg"></div>
+        </div>
+      </div>
 
-        // Este botón no existe en esta vista; evitar romper el JS
-        const redirectrecolector= document.getElementById('botonrecolector');
-        if (redirectrecolector) {
-            redirectrecolector.addEventListener('click', () => {
-                window.location.href = "/recolector/";
-            });
-        }
+    </div><!-- /content-area -->
+  </div><!-- /main-area -->
+</div><!-- /shell -->
 
-document.addEventListener('DOMContentLoaded', function() {
-  const btnPerfil = document.getElementById("btnPerfil");
-  if (btnPerfil) btnPerfil.addEventListener("click", () => window.location.href = "/perfil_recolector/");
+<script>
+const DOC = "{{ fk_persona }}";
 
-  const documento_persona = "{{ fk_persona }}";
-  if (!documento_persona) {
-    alert("No hay persona asociada a este usuario.");
-    return;
+/* ── Reloj ── */
+setInterval(() => {
+  document.getElementById('reloj').textContent =
+    new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}, 1000);
+
+/* ── CSRF ── */
+function getCookie(name) {
+  let val = null;
+  if (document.cookie) {
+    document.cookie.split(';').forEach(c => {
+      if (c.trim().startsWith(name + '=')) val = decodeURIComponent(c.trim().split('=')[1]);
+    });
   }
-  (async () => {
-    console.log("Documento Persona enviado:", documento_persona); 
+  return val;
+}
 
-    try {
-      console.log("Solicitud fetch iniciada");
-      const response = await fetch(`/api/recoleccionesvista/${documento_persona}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      console.log("Código de estado de la respuesta:", response.status);
-      console.log(data);
+/* ── Formato moneda ── */
+const fmtMoney = v => {
+  const n = parseFloat(v);
+  return Number.isFinite(n)
+    ? n.toLocaleString('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0})
+    : '—';
+};
+const fmtNum = v => { const n = parseFloat(v); return Number.isFinite(n) ? n.toLocaleString('es-CO') : '—'; };
 
-      if (response.ok) {
-        console.log("Datos recibidos:", data);
-        showPanel("panel22"); 
-        actualizarRecolecciones(data.recolecciones);
-      } else {
-        alert(data.message || "No se encontraron recolecciones para el documento proporcionado.");
-      }
-    } catch (error) {
-      alert("Hubo un error al cargar los datos.");
-      console.error("Error:", error);
+/* ── Paneles ── */
+const VIEWS = ['dashboard', 'recolecciones', 'pagos', 'perfil'];
+const TITLES = {
+  dashboard: 'Mi Dashboard',
+  recolecciones: 'Mis Recolecciones',
+  pagos: 'Mis Pagos',
+  perfil: 'Mi Perfil',
+};
+function showView(id) {
+  VIEWS.forEach(v => {
+    document.getElementById('view-' + v).classList.toggle('active', v === id);
+    document.getElementById('btn-' + v).classList.toggle('active', v === id);
+  });
+  document.getElementById('topbar-title').textContent = TITLES[id] || id;
+  if (id === 'perfil' && !window._perfilCargado) cargarPerfil();
+}
+
+/* ── FECHA BANNER ── */
+const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const now = new Date();
+document.getElementById('banner-fecha').textContent =
+  `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]} de ${now.getFullYear()}`;
+
+/* ══ CARGAR DATOS ══ */
+async function cargarTodo() {
+  if (!DOC) return;
+
+  // Nombre del recolector
+  try {
+    const r = await fetch(`/consultar_registro/persona/${DOC}/`);
+    if (r.ok) {
+      const d = await r.json();
+      const nombre = d.nombre_persona || d.nombre || DOC;
+      document.getElementById('sb-nombre').textContent = nombre;
+      document.getElementById('banner-saludo').textContent = `¡Buen día, ${nombre.split(' ')[0]}! 🌿`;
     }
-  })();
+  } catch {}
+
+  // Recolecciones
+  try {
+    const r = await fetch(`/api/recoleccionesvista/${DOC}`);
+    const d = await r.json();
+    const recs = d.recolecciones || (Array.isArray(d) ? d : []);
+
+    document.getElementById('kpi-rec').textContent = recs.length;
+    document.getElementById('ban-rec').textContent = recs.length;
+
+    const totalKg = recs.reduce((s, x) => s + (parseFloat(x.cantidadtotal) || 0), 0);
+    document.getElementById('kpi-kg').textContent = fmtNum(totalKg);
+    document.getElementById('ban-kg').textContent = fmtNum(totalKg);
+
+    const renderRec = (tbodyId, limit) => {
+      const tbody = document.getElementById(tbodyId);
+      tbody.innerHTML = '';
+      const lista = limit ? recs.slice(0, limit) : recs;
+      if (!lista.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Sin recolecciones registradas</td></tr>';
+        return;
+      }
+      lista.forEach(x => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${x.documento_persona || '—'}</td>
+          <td>${x.nombre_persona || '—'}</td>
+          <td>${fmtNum(x.cantidadtotal)}</td>
+          <td>${(x.fechainicio_recolector || '—').toString().slice(0,10)}</td>`;
+        tbody.appendChild(tr);
+      });
+    };
+    renderRec('dash-rec-body', 5);
+    renderRec('rec-body', 0);
+  } catch {
+    ['dash-rec-body','rec-body'].forEach(id => {
+      document.getElementById(id).innerHTML = '<tr class="empty-row"><td colspan="4">No se pudieron cargar los datos</td></tr>';
+    });
+  }
+
+  // Pagos — cargamos reportes del recolector y desde ahí buscamos pagos
+  try {
+    const rRep = await fetch('/get_todos/Reporte/');
+    let reportes = await rRep.json();
+    if (!Array.isArray(reportes)) reportes = [];
+    // Filtrar reportes del recolector actual
+    const misReportes = reportes.filter(rep =>
+      String(rep.fk_id_recolector || '').trim() === String(DOC).trim()
+    );
+
+    const rPag = await fetch('/api/pagos');
+    let todosPagos = await rPag.json();
+    if (!Array.isArray(todosPagos)) todosPagos = [];
+
+    // Cruzar pagos con reportes del recolector
+    const idsReportes = new Set(misReportes.map(r => String(r.id_reporte || '').trim()));
+    const misPagos = todosPagos.filter(p =>
+      idsReportes.has(String(p.fk_id_reporte || '').trim())
+    );
+
+    const totalPagado = misPagos.reduce((s, p) => s + (parseFloat(p.monto_pago) || 0), 0);
+    document.getElementById('kpi-pagado').textContent = fmtMoney(totalPagado);
+    document.getElementById('ban-pagos').textContent = misPagos.length;
+
+    const renderPagos = (tbodyId, limit) => {
+      const tbody = document.getElementById(tbodyId);
+      tbody.innerHTML = '';
+      const lista = limit ? misPagos.slice(0, limit) : misPagos;
+      if (!lista.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Sin pagos registrados</td></tr>';
+        return;
+      }
+      lista.forEach(p => {
+        const estado = p.estado_pago
+          ? '<span class="badge-activo">Pagado</span>'
+          : '<span class="badge-inactivo">Pendiente</span>';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.id_pago || '—'}</td>
+          <td>${(p.fecha_pago || '—').toString().slice(0,10)}</td>
+          <td>${fmtMoney(p.monto_pago)}</td>
+          <td>${fmtMoney(p.preciokilo_pago)}</td>
+          <td>${p.metodo_pago || '—'}</td>
+          <td>${estado}</td>`;
+        tbody.appendChild(tr);
+      });
+    };
+    renderPagos('dash-pago-body', 5);
+    renderPagos('pago-body', 0);
+  } catch {
+    ['dash-pago-body','pago-body'].forEach(id => {
+      document.getElementById(id).innerHTML = '<tr class="empty-row"><td colspan="6">No se pudieron cargar los pagos</td></tr>';
+    });
+  }
+}
+
+/* ══ PERFIL ══ */
+async function cargarPerfil() {
+  window._perfilCargado = true;
+  if (!DOC) return;
+  try {
+    const r = await fetch(`/consultar_registro/persona/${DOC}/`);
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('pf-nombre').value = d.nombre_persona || '';
+    document.getElementById('pf-edad').value = d.edad_persona || '';
+    document.getElementById('pf-telefono').value = d.telefono_persona || '';
+    const sel = document.getElementById('pf-tipo-doc');
+    if (d.fk_tipo_documento) sel.value = String(d.fk_tipo_documento);
+  } catch {}
+}
+
+document.getElementById('perfilForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('perfil-msg');
+  const tipo = parseInt(document.getElementById('pf-tipo-doc').value, 10);
+  if (!tipo) { msg.innerHTML = '<div class="alert-err">Seleccione un tipo de documento válido.</div>'; return; }
+  const payload = {
+    fk_tipo_documento: tipo,
+    nombre_persona: document.getElementById('pf-nombre').value,
+    edad_persona: parseInt(document.getElementById('pf-edad').value, 10),
+    telefono_persona: document.getElementById('pf-telefono').value,
+  };
+  try {
+    const r = await fetch('/perfil_recolector/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (r.ok && data.status === 'success') {
+      msg.innerHTML = '<div class="alert-ok">✅ Perfil actualizado correctamente.</div>';
+      // Actualizar nombre en sidebar
+      document.getElementById('sb-nombre').textContent = payload.nombre_persona;
+    } else {
+      msg.innerHTML = `<div class="alert-err">${data.message || 'No se pudo actualizar.'}</div>`;
+    }
+  } catch { msg.innerHTML = '<div class="alert-err">Error de conexión.</div>'; }
 });
 
- function actualizarRecolecciones(recolecciones) {
-   console.log("Datos recibidos:", recolecciones); 
-   if (!Array.isArray(recolecciones)) {
-     recolecciones = [];
-   }
- const tablaBody = document.getElementById("mostrarR").getElementsByTagName("tbody")[0];
-  tablaBody.innerHTML = ""; 
-
-  recolecciones.forEach((recoleccion) => {
-    const fila = document.createElement("tr");
-
-    const documento_persona = document.createElement("td");
-     documento_persona.textContent = recoleccion.documento_persona;
-   fila.appendChild(documento_persona);
-
-    const nombre_persona = document.createElement("td");
-     nombre_persona.textContent = recoleccion.nombre_persona;     
-     fila.appendChild(nombre_persona);
-
-     const cantidadtotal = document.createElement("td");
-     cantidadtotal.textContent = recoleccion.cantidadtotal;
-    fila.appendChild(cantidadtotal);
-
-    const fechainicio_recolector= document.createElement("td");
-     fechainicio_recolector.textContent = recoleccion.fechainicio_recolector;
-     fila.appendChild(fechainicio_recolector);
-     tablaBody.appendChild(fila);
-   }); }
-
-    </script>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'js/chatbot_widget.js' %}"></script>
-    <script src="{% static 'js/app-ui.js' %}" defer></script>
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', () => {
+  cargarTodo();
+  setInterval(cargarTodo, 30000);
+});
+</script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
