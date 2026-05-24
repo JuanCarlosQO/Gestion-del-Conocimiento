@@ -334,13 +334,45 @@ tr:last-child td { border-bottom:none; }
 ::-webkit-scrollbar-thumb:hover { background:var(--g-500); }
 
 @media (max-width:900px) {
-  .boton_contenedor { width:200px; min-width:200px; }
-  .panel { padding:24px 20px; }
-  .form-card { padding:24px 20px; }
+  .contenedor_padre { flex-direction:column; }
+  .boton_contenedor {
+    width:100%; min-width:unset; height:auto; flex-direction:row; flex-wrap:wrap;
+    justify-content:flex-start; align-items:flex-start; padding:10px 12px; gap:8px;
+  }
+  #ordena_boton { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+  #botones { width:auto; flex:1 1 150px; padding:10px 12px; font-size:12px; }
+  .panel { padding:22px 18px; }
+  .form-card, .search-card, .panel-tabla { padding:22px 18px; }
+  .panel-header { gap:10px; margin-bottom:22px; }
+  .panel-header h2 { font-size:18px; }
+  .panel-header p { font-size:12px; }
+  .labels { margin:14px 0 6px; font-size:10px; }
+  .entrada, .entrada2, select, .selector, .botonsum { font-size:14px; }
+  .botonsum { padding:11px 20px; min-height:42px; }
+  .tabla-header { flex-direction:column; align-items:flex-start; gap:10px; }
+  .tabla-wrap { max-height:calc(65vh); }
+  .panel-tabla { padding:20px 18px; }
   .form-row { grid-template-columns:1fr; }
 }
 @media (max-width:640px) {
-  .contenedor_padre { flex-direction:column; }
-  .boton_contenedor { width:100%; min-width:unset; height:auto; }
-  html,body { overflow:auto; }
+  html, body { overflow:auto; }
+  .boton_contenedor {
+    width:100%; padding:10px 10px 8px; gap:6px;
+    justify-content:flex-start; overflow-x:auto;
+  }
+  .boton_contenedor::-webkit-scrollbar { height:7px; }
+  .boton_contenedor::-webkit-scrollbar-thumb { background:rgba(5,150,105,0.25); border-radius:3px; }
+  #ordena_boton { justify-content:flex-start; gap:6px; }
+  #botones { flex:0 0 auto; min-width:160px; font-size:12px; padding:10px 12px; }
+  .panel { padding:18px 14px; }
+  .form-card, .search-card, .panel-tabla { padding:18px 14px; }
+  .panel-header { gap:10px; margin-bottom:18px; }
+  .panel-header h2 { font-size:16px; }
+  .panel-header p { font-size:11px; }
+  .labels { margin:12px 0 5px; font-size:9px; }
+  .entrada, .entrada2, select, .selector { padding:11px 14px; }
+  .botonsum { width:100%; justify-content:center; padding:12px 16px; }
+  .panel-tabla { padding:16px 14px; }
+  .tabla-header { margin-bottom:14px; }
+  table { min-width:100%; }
 }
