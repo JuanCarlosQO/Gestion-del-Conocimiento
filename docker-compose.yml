@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bdcafe
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  cafeapi:
+    build: ./cafeAPI
+    container_name: cafeapi
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./cafeAPI/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/bdcafe
+    depends_on:
+      - db
+    restart: always
+
+  django:
+    build: ./proyectoCafe/proyectoCafe
+    container_name: django
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./cafeAPI/.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=proyectoCafe.settings_azure
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,20.109.106.76
+      - FASTAPI_URL=http://cafeapi:8001
+      - DJANGO_SECRET_KEY=cambia-esto-por-una-clave-segura
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/bdcafe
+    depends_on:
+      - cafeapi
+      - db
+    restart: always
+
+volumes:
+  postgres_data:

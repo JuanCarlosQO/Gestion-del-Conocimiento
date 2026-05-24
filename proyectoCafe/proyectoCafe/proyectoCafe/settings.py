@@ -12,12 +12,12 @@ if _env_path.exists():
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
 
-SECRET_KEY = 'django-insecure-)b_c50=@&o!uhsd@l(9-aqn+qklv59j60udl@0rm7fo3tf5j2b'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'clave-local-de-desarrollo')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Permitir localhost y 127.0.0.1 para desarrollo
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 # Permite que /dashboard/ se cargue dentro del iframe del panel admin
 X_FRAME_OPTIONS = 'SAMEORIGIN'

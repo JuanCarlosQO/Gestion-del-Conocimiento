@@ -1,10 +1,13 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
 
-
-URL_POSTGRES = "postgresql://postgres:postgres@localhost:5432/bdcafe"
+URL_POSTGRES = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/bdcafe"
+)
 
 engine = create_engine(
     URL_POSTGRES, 

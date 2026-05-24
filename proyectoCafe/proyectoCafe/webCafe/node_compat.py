@@ -7,6 +7,7 @@ import time
 import uuid
 
 import requests
+from django.conf import settings
 from django.http import JsonResponse
 from pydantic import ValidationError
 
@@ -19,11 +20,14 @@ from .schemas.finanzas import (
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-API = "http://127.0.0.1:8001"
+
+def _api_base():
+    return getattr(settings, 'FASTAPI_URL', 'http://127.0.0.1:8001')
 
 
 def _req(method, path, **kwargs):
-    url = f"{API}{path}" if path.startswith("/") else f"{API}/{path}"
+    api = _api_base()
+    url = f"{api}{path}" if path.startswith("/") else f"{api}/{path}"
     return requests.request(method, url, timeout=60, **kwargs)
 
 

@@ -5,7 +5,12 @@ from django.contrib import messages
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.conf import settings
 from functools import wraps
+
+# URL base de la FastAPI — se lee en cada petición para respetar el settings cargado
+def _api_base():
+    return getattr(settings, 'FASTAPI_URL', 'http://127.0.0.1:8001')
 
 # ──────────────────────────────────────────────
 # CARGA DE VARIABLES DE ENTORNO (.env)
@@ -61,7 +66,7 @@ def _crud_propietario_entidad_solo_admin(request, nombre_tabla):
 def _propietario_posee_recolector(request, id_recolector):
     fk = (request.session.get("fk_persona") or "").strip()
     try:
-        r = requests.get(f"http://127.0.0.1:8001/consultarRegistro/recolector/{id_recolector}", timeout=5)
+        r = requests.get(f"{_api_base()}/consultarRegistro/recolector/{id_recolector}", timeout=5)
         if r.status_code != 200:
             return False
         row = r.json()
@@ -173,7 +178,7 @@ def inicio(request):
         pasw = (request.POST.get("password") or "").strip()
         try:
             response = requests.post(
-                "http://127.0.0.1:8001/login",
+                f"{_api_base()}/login",
                 json={"username": user, "password": pasw},
                 timeout=10,
             )
@@ -223,7 +228,7 @@ def consultar_registro(request, nombre_tabla, id_registro):
     deny = _crud_propietario_entidad_solo_admin(request, nombre_tabla)
     if deny:
         return deny
-    url_api = f"http://127.0.0.1:8001/consultarRegistro/{nombre_tabla}/{id_registro}"
+    url_api = f"{_api_base()}/consultarRegistro/{nombre_tabla}/{id_registro}"
     try:
         response = requests.get(url_api, timeout=10)
         if response.status_code == 200:
@@ -233,9 +238,9 @@ def consultar_registro(request, nombre_tabla, id_registro):
                     return JsonResponse({"error": "Acceso denegado"}, status=403)
             if nombre_tabla.lower() == "persona":
                 roles = []
-                if requests.get(f"http://127.0.0.1:8001/consultarRegistro/propietario/{id_registro}", timeout=5).status_code == 200:
+                if requests.get(f"{_api_base()}/consultarRegistro/propietario/{id_registro}", timeout=5).status_code == 200:
                     roles.append("Propietario")
-                if requests.get(f"http://127.0.0.1:8001/consultarRegistro/recolector/{id_registro}", timeout=5).status_code == 200:
+                if requests.get(f"{_api_base()}/consultarRegistro/recolector/{id_registro}", timeout=5).status_code == 200:
                     roles.append("Recolector")
                 if isinstance(data, dict):
                     data['rol'] = ", ".join(roles) if roles else "Sin Rol"
@@ -264,7 +269,7 @@ def get_todos(request, nombre_tabla):
     t = (nombre_tabla or "").strip().lower()
     if t == "persona" and _session_rol(request) == "recolector":
         return JsonResponse({"error": "Acceso denegado"}, status=403)
-    url_api = f"http://127.0.0.1:8001/detallesT/{nombre_tabla}"
+    url_api = f"{_api_base()}/detallesT/{nombre_tabla}"
     try:
         response = requests.get(url_api, timeout=10)
         if response.status_code == 200:
@@ -294,9 +299,9 @@ def obtener_persona_temporal(request):
 def consulta_rdf(request, tipo_consulta, nombre_tabla, id):
     template = f"{nombre_tabla.lower()}.html"
     if tipo_consulta == 'detalle':
-        url_api = f"http://127.0.0.1:8001/detalle/{id}"
+        url_api = f"{_api_base()}/detalle/{id}"
     else:
-        url_api = f"http://127.0.0.1:8001/detallesClase/{id}"
+        url_api = f"{_api_base()}/detallesClase/{id}"
     try:
         response = requests.get(url_api, timeout=10)
         if response.status_code == 200:
@@ -332,7 +337,7 @@ def corregir_registro(request, nombre_tabla, id_registro):
                 if str(id_registro).strip() != str(request.session.get("fk_persona") or "").strip():
                     return JsonResponse({"status": "error", "message": "Acceso denegado"}, status=403)
             actualiza = json.loads(request.body)
-            url_api = f"http://127.0.0.1:8001/corregirRegistro/{nombre_tabla}/{id_registro}"
+            url_api = f"{_api_base()}/corregirRegistro/{nombre_tabla}/{id_registro}"
             response = requests.patch(url_api, json=actualiza, timeout=10)
             if response.status_code == 200:
                 return JsonResponse({"status": "success", "message": "Registro actualizado correctamente"})
@@ -350,7 +355,7 @@ def corregir_registro(request, nombre_tabla, id_registro):
 def editar_individuo(request, id_recurso, nombre_tabla):
     if request.method == 'POST':
         nuevos_datos = {k: v for k, v in request.POST.items() if k != 'csrfmiddlewaretoken'}
-        url_api = f"http://127.0.0.1:8001/corregirIndividuo/{id_recurso}"
+        url_api = f"{_api_base()}/corregirIndividuo/{id_recurso}"
         try:
             response = requests.put(url_api, json=nuevos_datos, timeout=10)
             if response.status_code == 200:
@@ -389,10 +394,10 @@ def eliminar_registro(request, nombre_tabla, id_registro):
                     fincas = _rdf_list("finca")
                     for fid, props in fincas.items():
                         if str(props.get("fk_idPropietario")) == str(id_registro):
-                            requests.delete(f"http://127.0.0.1:8001/individuos/{fid}", timeout=10)
+                            requests.delete(f"{_api_base()}/individuos/{fid}", timeout=10)
                 except Exception as e_finca:
                     pass
-            url_rol = f"http://127.0.0.1:8001/registros/{nombre_tabla}/{id_registro}"
+            url_rol = f"{_api_base()}/registros/{nombre_tabla}/{id_registro}"
             r_rol = requests.delete(url_rol, timeout=10)
             if r_rol.status_code != 200:
                 try:
@@ -400,10 +405,10 @@ def eliminar_registro(request, nombre_tabla, id_registro):
                 except Exception:
                     msg = r_rol.text or "Error al eliminar el rol"
                 return JsonResponse({"status": "error", "message": str(msg)}, status=400)
-            url_persona = f"http://127.0.0.1:8001/registros/Persona/{id_registro}"
+            url_persona = f"{_api_base()}/registros/Persona/{id_registro}"
             response = requests.delete(url_persona, timeout=10)
         else:
-            url_api = f"http://127.0.0.1:8001/registros/{nombre_tabla}/{id_registro}"
+            url_api = f"{_api_base()}/registros/{nombre_tabla}/{id_registro}"
             response = requests.delete(url_api, timeout=10)
         if response.status_code == 200:
             return JsonResponse({"status": "success", "message": f"Registro {id_registro} eliminado correctamente."})
@@ -418,7 +423,7 @@ def eliminar_registro(request, nombre_tabla, id_registro):
 
 
 def eliminar_individuo(request, id_recurso, nombre_tabla):
-    url_api = f"http://127.0.0.1:8001/individuos/{id_recurso}"
+    url_api = f"{_api_base()}/individuos/{id_recurso}"
     try:
         response = requests.delete(url_api, timeout=10)
         if response.status_code == 200:
@@ -456,7 +461,7 @@ def insert_persona(request):
                 "telefono_persona": request.POST.get('telefono_persona'),
                 "fk_tipo_documento": int(request.POST.get('id_tipodoc'))
             }
-            response = requests.post("http://127.0.0.1:8001/personas", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/personas", json=datos, timeout=10)
             if response.status_code == 200:
                 return JsonResponse({"success": True, "data": datos})
             return JsonResponse({"success": False, "message": "Error en la API"})
@@ -497,16 +502,16 @@ def insert_propietario(request):
             if not id_propietario or not email or not username or not password:
                 return JsonResponse({"success": False, "message": "Campos incompletos"}, status=400)
             datos = {"id_propietario": id_propietario, "email_propietario": email, "estado_propietario": estado_bool}
-            response = requests.post("http://127.0.0.1:8001/propietarios", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/propietarios", json=datos, timeout=10)
             if response.status_code == 200:
-                r_user = requests.post("http://127.0.0.1:8001/usuarios", json={
+                r_user = requests.post(f"{_api_base()}/usuarios", json={
                     "username": username, "password": password,
                     "rol": "propietario", "fk_persona": str(id_propietario),
                 }, timeout=10)
                 if r_user.status_code != 200:
                     try:
-                        requests.delete(f"http://127.0.0.1:8001/registros/propietario/{id_propietario}", timeout=5)
-                        requests.delete(f"http://127.0.0.1:8001/registros/persona/{id_propietario}", timeout=5)
+                        requests.delete(f"{_api_base()}/registros/propietario/{id_propietario}", timeout=5)
+                        requests.delete(f"{_api_base()}/registros/persona/{id_propietario}", timeout=5)
                     except Exception:
                         pass
                     try:
@@ -537,7 +542,7 @@ def insert_recoleccion(request):
             "FK_idRecolector": str(request.POST.get('fk_idRecolector') or ''),
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/recolecciones", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/recolecciones", json=datos, timeout=10)
             if response.status_code == 200:
                 return render(request, 'recoleccion.html', {'recoleccion': datos, 'respuesta_api': response.json()})
         except Exception:
@@ -581,7 +586,7 @@ def insert_recolector(request):
                     datos["fk_id_propietario"] = fp
                 if fk_fin:
                     datos["fk_id_finca"] = fk_fin
-            response = requests.post("http://127.0.0.1:8001/recolectores", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/recolectores", json=datos, timeout=10)
             if response.status_code == 200:
                 request.session.pop('datos_persona_temp', None)
                 out = {"success": True, "data": datos}
@@ -629,7 +634,7 @@ def insert_reporte(request):
                 messages.error(request, "Solo puede registrar reportes de su propio documento.")
                 return render(request, 'reporte.html')
         try:
-            response = requests.post("http://127.0.0.1:8001/reportes", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/reportes", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Reporte registrado")
                 return render(request, 'reporte.html', {'reporte': datos, 'respuesta_api': response.json()})
@@ -662,7 +667,7 @@ def insert_finca(request):
         if _session_rol(request) == "propietario":
             datos["FK_idPropietario"] = str(request.session.get("fk_persona") or "")
         try:
-            response = requests.post("http://127.0.0.1:8001/fincas", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/fincas", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Finca registrada")
                 return render(request, 'finca.html', {'finca': datos, 'respuesta_api': response.json()})
@@ -691,7 +696,7 @@ def insert_insumo(request):
             "suministrosVinculados": request.POST.getlist('suministrosVinculados')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/insumos", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/insumos", json=datos, timeout=10)
             if response.status_code == 200:
                 return render(request, 'insumo.html', {'insumo': datos, 'respuesta_api': response.json()})
         except Exception:
@@ -718,7 +723,7 @@ def insert_pago(request):
             "fk_id_reporte": str(request.POST.get('fk_id_reporte') or ''),
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/pagos", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/pagos", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Pago registrado")
                 return render(request, 'pago.html', {'pago': datos, 'respuesta_api': response.json()})
@@ -743,7 +748,7 @@ def insert_mantenimiento(request):
             "tipo": request.POST.get('tipo')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/mantenimientos", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/mantenimientos", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Mantenimiento registrado")
                 return render(request, 'mantenimiento.html', {'mantenimiento': datos, 'respuesta_api': response.json()})
@@ -764,7 +769,7 @@ def insert_evento_recoleccion(request):
             "id_recoleccion": request.POST.get('id_recoleccion')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/eventosRecoleccion", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/eventosRecoleccion", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Evento registrado")
                 return render(request, 'recoleccion.html', {'evento': datos, 'respuesta_api': response.json()})
@@ -786,7 +791,7 @@ def insert_inventario(request):
             "id_insumo": request.POST.get('id_insumo')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/inventarios", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/inventarios", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Inventario registrado")
                 return render(request, 'inventario.html', {'inventario': datos, 'respuesta_api': response.json()})
@@ -809,7 +814,7 @@ def insert_suministro(request):
             "id_lote": request.POST.get('id_lote')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/suministros", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/suministros", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Suministro registrado")
                 return render(request, 'suministros.html', {'suministro': datos, 'respuesta_api': response.json()})
@@ -829,7 +834,7 @@ def insert_tipodocumento(request):
     if request.method == 'POST':
         datos = {"id_doc": int(request.POST.get('id_doc')), "tipo": request.POST.get('tipo')}
         try:
-            response = requests.post("http://127.0.0.1:8001/tipoDocumento", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/tipoDocumento", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Tipo de documento registrado")
                 return render(request, 'tipo_doc.html', {'tipo_doc': datos, 'respuesta_api': response.json()})
@@ -868,7 +873,7 @@ def insert_compra(request):
             "id_finca": request.POST.get('id_finca')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/compras", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/compras", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Compra registrada")
                 return render(request, 'compra.html', {'compra': datos, 'respuesta_api': response.json()})
@@ -898,7 +903,7 @@ def insert_lote(request):
             "mantenimientos": request.POST.getlist('mantenimientos')
         }
         try:
-            response = requests.post("http://127.0.0.1:8001/lotes", json=datos, timeout=10)
+            response = requests.post(f"{_api_base()}/lotes", json=datos, timeout=10)
             if response.status_code == 200:
                 messages.success(request, "Lote registrado")
                 return render(request, 'lote.html', {'lote': datos, 'respuesta_api': response.json()})
@@ -910,6 +915,16 @@ def insert_lote(request):
 # ──────────────────────────────────────────────
 # VISTAS DE ROL
 # ──────────────────────────────────────────────
+
+@admin_required
+def audi_recolector(request):
+    return render(request, 'audi_recolector.html', {"volver_url": "/vista_admin/"})
+
+
+@admin_required
+def audi_reporte(request):
+    return render(request, 'audi_reporte.html', {"volver_url": "/vista_admin/"})
+
 
 @admin_required
 def vista_admin(request):
@@ -942,14 +957,14 @@ def perfil_recolector(request):
         actualiza.pop("documento_persona", None)
         actualiza.pop("documento", None)
         try:
-            r = requests.patch(f"http://127.0.0.1:8001/corregirRegistro/persona/{doc}", json=actualiza, timeout=10)
+            r = requests.patch(f"{_api_base()}/corregirRegistro/persona/{doc}", json=actualiza, timeout=10)
             if r.status_code == 200:
                 return JsonResponse({"status": "success"})
             return JsonResponse({"status": "error", "message": r.text or "Error API"}, status=400)
         except Exception:
             return JsonResponse({"status": "error", "message": "Error de conexión"}, status=500)
     try:
-        r = requests.get(f"http://127.0.0.1:8001/consultarRegistro/persona/{doc}", timeout=10)
+        r = requests.get(f"{_api_base()}/consultarRegistro/persona/{doc}", timeout=10)
         persona_data = r.json() if r.status_code == 200 else {}
     except Exception:
         persona_data = {}
@@ -994,7 +1009,7 @@ def _chatbot_contexto():
 
     def fetch(tabla):
         try:
-            r = requests.get(f"http://127.0.0.1:8001/detallesT/{tabla}", timeout=6)
+            r = requests.get(f"{_api_base()}/detallesT/{tabla}", timeout=6)
             return r.json() if r.status_code == 200 else []
         except Exception:
             return []

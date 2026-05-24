@@ -1,3 +1,7 @@
 django
 requests
 pydantic>=2.4,<3
+whitenoise
+dj-database-url
+psycopg2-binary
+gunicorn
