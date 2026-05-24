@@ -125,7 +125,7 @@ body::before {
 
 /* ════ PANELES ════ */
 .panel {
-  flex:1; display:none; flex-direction:column; align-items:center;
+  flex:1; min-height:0; display:none; flex-direction:column; align-items:stretch; justify-content:flex-start;
   padding:36px 48px; overflow-y:auto; position:relative; animation:fadeIn .35s ease-out;
 }
 .panel.active { display:flex; }
@@ -145,7 +145,8 @@ body::before {
 .form-card {
   width:100%; max-width:620px; background:var(--card);
   border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:32px 36px; box-shadow:var(--sh-md); position:relative; overflow:hidden;
+  padding:32px 36px; box-shadow:var(--sh-md); position:relative; overflow:auto;
+  max-height:calc(100vh - 120px);
 }
 .form-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:4px;

@@ -1,4 +1,3 @@
-@'
 name: Deploy to Azure VM
 
 on:
@@ -11,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v3
 
-      - name: Copiar código a la VM
+      - name: Copiar codigo a la VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USER }}
           password: ${{ secrets.AZURE_VM_PASSWORD }}
           source: "."
-          target: "/home/azureuser/zunga"
+          target: "/home/AzureCafe/sigic/Zunga"
           overwrite: true
 
       - name: Reconstruir y reiniciar contenedores
@@ -31,9 +30,8 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           password: ${{ secrets.AZURE_VM_PASSWORD }}
           script: |
-            cd /home/azureuser/zunga
+            cd /home/AzureCafe/sigic/Zunga
             docker compose build django cafeapi
             docker compose up -d
             docker compose exec -T django python manage.py migrate
             echo "Despliegue completado"
-'@ | Out-File -FilePath "C:\Users\USER\Documents\ProyectoCafe\Zunga\Zunga\.github\workflows\deploy.yml" -Encoding utf8
