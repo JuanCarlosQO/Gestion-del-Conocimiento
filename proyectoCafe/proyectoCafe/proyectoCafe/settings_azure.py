@@ -114,3 +114,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://20.109.106.76:8000',
     'http://localhost:8000',
 ]
+
+# ── Proxy headers (Nginx → Django) ───────────────────────────────────────────
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
