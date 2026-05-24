@@ -1,0 +1,358 @@
+/* ================================================
+   SIGIC — RESPONSIVE GLOBAL
+   Parche responsivo para todos los templates
+   ================================================ */
+
+/* ── Variables breakpoints ── */
+/* mobile:  < 640px  */
+/* tablet:  640–1024px */
+/* desktop: > 1024px */
+
+/* ══════════════════════════════════════════════
+   1. VISTA ADMIN — Sidebar + Shell
+══════════════════════════════════════════════ */
+
+/* Botón hamburguesa (oculto en desktop) */
+#hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 14px;
+  z-index: 1100;
+  background: linear-gradient(135deg, #059669, #064e3b);
+  border: none;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(5,150,105,0.40);
+  transition: all 0.22s ease;
+  flex-shrink: 0;
+}
+#hamburger-btn:hover { transform: scale(1.07); }
+#hamburger-btn svg { width: 20px; height: 20px; stroke: #fff; }
+
+/* Overlay oscuro al abrir sidebar en móvil */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(1,26,18,0.55);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+#sidebar-overlay.active { opacity: 1; }
+
+@media (max-width: 1024px) {
+  /* Shell: sin overflow hidden para que el scroll funcione */
+  .shell {
+    overflow: visible !important;
+  }
+
+  /* Sidebar se convierte en drawer lateral */
+  .sidebar {
+    position: fixed !important;
+    top: 0; left: 0; bottom: 0;
+    width: 270px !important;
+    min-width: 270px !important;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.30s cubic-bezier(0.25,0.46,0.45,0.94);
+    overflow-y: auto;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 6px 0 40px rgba(1,26,18,0.35);
+  }
+  #sidebar-overlay { display: block; }
+
+  /* Main area ocupa todo el ancho */
+  .main-area {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Topbar: deja espacio para hamburguesa */
+  .topbar {
+    padding-left: 68px !important;
+  }
+
+  /* Hamburguesa visible */
+  #hamburger-btn {
+    display: flex;
+  }
+
+  /* html/body con scroll normal */
+  html, body {
+    overflow: auto !important;
+    height: auto !important;
+  }
+
+  /* content-area scrollable */
+  .content-area {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: calc(100vh - 56px);
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar-time { display: none; }
+  .topbar-title { font-size: 13px !important; }
+
+  /* Dashboard banner en columna */
+  .db-banner {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .banner-stats {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    width: 100%;
+  }
+  .b-stat { flex: 1; min-width: 80px; }
+
+  /* KPIs 2 columnas en móvil */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .kpi-val { font-size: 22px !important; }
+
+  /* Info strip 2 columnas */
+  .info-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Bottom grids en 1 columna */
+  .bottom-g, .bottom-g2 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Dashboard padding reducido */
+  #db-inner {
+    padding: 14px 12px 28px !important;
+  }
+
+  /* Chart más pequeño */
+  .ch-wrap { height: 160px !important; }
+
+  /* Menú grid 2 columnas */
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .menu-panel {
+    padding: 20px 14px !important;
+  }
+  .section-label { font-size: 15px !important; }
+}
+
+/* ══════════════════════════════════════════════
+   2. TABLAS — responsivas en todos los módulos
+══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Wrapper con scroll horizontal para tablas grandes */
+  .table-responsive, .tabla-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+
+  /* Si no hay wrapper, aplicar directo */
+  table {
+    min-width: 520px;
+  }
+
+  th, td {
+    padding: 10px 10px !important;
+    font-size: 12px !important;
+  }
+
+  /* Ocultar columnas menos importantes en móvil */
+  .col-hide-mobile { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════
+   3. FORMULARIOS — responsivos
+══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .form-grid-2, .grid-2col, .row.g-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modales a pantalla completa en móvil */
+  .modal-dialog {
+    margin: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  .modal-content {
+    border-radius: 14px !important;
+  }
+  .modal-body {
+    padding: 16px !important;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+
+  /* Botones de acción apilados */
+  .action-buttons, .btn-group-form {
+    flex-direction: column !important;
+    width: 100%;
+  }
+  .action-buttons .btn,
+  .btn-group-form .btn {
+    width: 100% !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   4. VISTA PROPIETARIO — Sidebar y paneles
+══════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  /* Paneles de la vista propietario */
+  .vp-shell, .vr-shell {
+    flex-direction: column !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .vp-sidebar, .vr-sidebar {
+    position: fixed !important;
+    top: 0; left: 0; bottom: 0;
+    width: 270px !important;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.30s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+  .vp-sidebar.open, .vr-sidebar.open {
+    transform: translateX(0);
+  }
+  .vp-main, .vr-main {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   5. INICIO / LOGIN
+══════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  .login-card, .inicio-card {
+    margin: 16px !important;
+    padding: 24px 20px !important;
+    border-radius: 16px !important;
+  }
+  .login-logo { width: 60px !important; }
+}
+
+/* ══════════════════════════════════════════════
+   6. CHATBOT WIDGET — ajuste móvil
+══════════════════════════════════════════════ */
+
+@media (max-width: 440px) {
+  #sigic-panel {
+    width: calc(100vw - 16px) !important;
+    right: 8px !important;
+    bottom: 84px !important;
+    max-height: 70vh !important;
+  }
+  #sigic-bubble {
+    right: 12px !important;
+    bottom: 12px !important;
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   7. PÁGINAS DE MÓDULOS (persona, reporte, etc.)
+══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Header de página */
+  .page-header, .module-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 16px !important;
+  }
+
+  /* Barra de búsqueda y filtros apilados */
+  .search-bar-row, .filter-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .search-bar-row input,
+  .filter-row select,
+  .filter-row input {
+    width: 100% !important;
+  }
+
+  /* Contenedor principal con padding reducido */
+  .page-content, .module-content {
+    padding: 12px !important;
+  }
+
+  /* Cards de estadísticas en 2 columnas */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Topbar de módulos */
+  .mod-topbar {
+    padding: 0 14px !important;
+    height: 50px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   8. DASHBOARD — Gráficos
+══════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .kpi-c { padding: 12px 14px !important; }
+  .kpi-ico { width: 30px !important; height: 30px !important; font-size: 14px !important; }
+  .kpi-trend { font-size: 10px !important; }
+  .i-card { padding: 12px 14px !important; }
+  .i-card .ic-value { font-size: 20px !important; }
+  .b-stat .val { font-size: 20px !important; }
+}
+
+/* ══════════════════════════════════════════════
+   9. UTILIDADES RESPONSIVAS GLOBALES
+══════════════════════════════════════════════ */
+
+/* Ocultar en móvil / mostrar en desktop */
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
+}
+@media (min-width: 641px) {
+  .show-mobile-only { display: none !important; }
+}
+
+/* Texto responsivo */
+@media (max-width: 640px) {
+  .responsive-title { font-size: 16px !important; }
+  .responsive-subtitle { font-size: 12px !important; }
+}
+
+/* Touch targets mínimos de 44px */
+@media (max-width: 768px) {
+  button, .btn, a.nav-sub, a.nav-btn {
+    min-height: 44px !important;
+  }
+  .nav-sub {
+    padding: 10px 12px !important;
+  }
+}

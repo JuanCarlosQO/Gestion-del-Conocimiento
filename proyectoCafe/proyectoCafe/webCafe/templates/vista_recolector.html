@@ -9,6 +9,23 @@
 <link href="{% static 'css/admin.css' %}?v=bp2" rel="stylesheet">
 <link href="{% static 'css/finanzas.css' %}" rel="stylesheet">
 <link href="{% static 'css/app-shell.css' %}?v=bp2" rel="stylesheet" />
+<link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+<style>
+/* Responsivo extra para vista recolector */
+@media (max-width: 768px) {
+  .contenedor_padre { padding: 10px !important; }
+  #ordena_boton { flex-wrap: wrap !important; gap: 8px !important; }
+  #ordena_boton button { width: 100% !important; }
+  #mostrarR { font-size: 12px !important; }
+  #mostrarR th, #mostrarR td { padding: 8px 6px !important; }
+  #tablaPerson { overflow-x: auto; }
+  #img { max-height: 180px !important; object-fit: cover; }
+  .letras { font-size: 18px !important; }
+  .letragestion { font-size: 13px !important; }
+  .boton_contenedor { flex-wrap: wrap !important; gap: 10px !important; }
+  #carrusel { max-height: 200px !important; overflow: hidden; }
+}
+</style>
     <title>Recolector</title>
     
 </head>
