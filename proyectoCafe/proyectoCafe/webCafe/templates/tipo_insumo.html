@@ -7,308 +7,130 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>Tipo Insumo — SIGIC</title>
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
   <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <title>Tipo Insumo — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
-
-  <!-- SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">TIPO INSUMO</div>
+    <div id="vista_title" class="letras">TIPO INSUMO</div>
     <div id="ordena_boton">
-      <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4'); obtenerTiposInsumo()">📋 Ver todos</button>
+      <div class="letragestion">Gestionar</div>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
-
-  <!-- PANEL AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🧪</div>
-        <div>
-          <h2>Registrar Tipo de Insumo</h2>
-          <p>Complete los datos del nuevo tipo de insumo</p>
-        </div>
+  <div class="panel active">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">🏷️</div>
+        <div><h1 class="crud-title">Tipos de Insumo</h1><p class="crud-subtitle">Gestión de tipos de insumo</p></div>
       </div>
-      <form id="registroUnidad">
-        {% csrf_token %}
-        <label class="labels">ID Tipo de Insumo</label>
-        <input type="text" class="entrada" id="id_tipoinsumo" placeholder="Ej: 1, 2, 3 o código único" maxlength="45" required>
-        
-        <label class="labels">Nombre de Tipo de Insumo</label>
-        <input type="text" class="entrada" id="nombre_tipo" placeholder="Ej: Fertilizante, Insecticida" required>
-        
-        <button type="submit" class="botonsum" id="botonaccion">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- PANEL BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div>
-          <h2>Buscar Tipo de Insumo</h2>
-          <p>Ingrese el ID del tipo de insumo para consultar</p>
-        </div>
-      </div>
-      <form id="buscarTipoinsumo">
-        <label class="labels">ID Tipo Insumo</label>
-        <input type="text" class="entrada" id="id_buscar" placeholder="ID a buscar" required>
-        <button type="submit" class="botonsum" id="botonBuscar">🔍 Buscar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div>
-          <h2>Editar Tipo de Insumo</h2>
-          <p>Modifique los campos necesarios</p>
-        </div>
-      </div>
-      <form id="editartiposinsumo">
-        {% csrf_token %}
-        <label class="labels">ID Tipo Insumo</label>
-        <input type="text" class="entrada2" id="id_tipoinsumo2" disabled>
-        
-        <label class="labels">Nombre Tipo Insumo</label>
-        <input type="text" class="entrada2" id="nombre_tipoinsumo2" disabled>
-        
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered">↩ Volver</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div>
-          <h2>Eliminar Tipo de Insumo</h2>
-          <p>Esta acción eliminará el registro permanentemente</p>
-        </div>
-      </div>
-      <form id="eliminarTipoInsumo">
-        {% csrf_token %}
-        <label class="labels">ID Tipo de Insumo</label>
-        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" id="botonEliminar" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Tipos de Insumo</h2>
-        <span class="tabla-count" id="contador-tipoinsumos">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarTipoinsumos">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre Tipo Insumo</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap"><span class="crud-search-icon">🔍</span><input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar..."></div>
+        <span class="crud-badge" id="contadorRegistros">Cargando...</span>
       </div>
     </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table"><thead><tr><th>ID</th><th>Nombre</th><th class="th-acciones">Acciones</th></tr></thead>
+        <tbody id="tbodyRegistros"><tr><td colspan="3" class="td-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Cargando...</td></tr></tbody>
+      </table>
+    </div>
   </div>
-
 </div>
 
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header"><div class="crud-modal-icon">🏷️</div><div><h2>Registrar Tipo de Insumo</h2><p>Complete los datos</p></div><button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button></div>
+    <form id="formAgregar">
+      <div class="crud-form-grid">
+        <div class="crud-form-group"><label class="labels">ID Tipo Insumo</label><input type="text" class="entrada" id="id_tipoinsumo" placeholder="Ej: F001" maxlength="45" required></div>
+        <div class="crud-form-group"><label class="labels">Nombre</label><input type="text" class="entrada" id="nombre_tipo" placeholder="Ej: Fertilizante" required></div>
+      </div>
+      <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button><button type="submit" class="btn-crud-save">💾 Guardar</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header"><div class="crud-modal-icon">✏️</div><div><h2>Editar Tipo de Insumo</h2><p>Modifique el nombre</p></div><button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button></div>
+    <form id="formEditar">
+      <div class="crud-form-grid">
+        <div class="crud-form-group"><label class="labels">ID</label><input type="text" class="entrada entrada2" id="id2" disabled></div>
+        <div class="crud-form-group"><label class="labels">Nombre</label><input type="text" class="entrada entrada2" id="nombre2" disabled></div>
+      </div>
+      <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button><button type="button" class="btn-crud-unlock" id="btnDesbloquear">✏️ Habilitar</button><button type="submit" class="btn-crud-save" id="btnActualizar" disabled>💾 Actualizar</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger"><div class="crud-modal-icon crud-icon-danger">🗑️</div><div><h2>Eliminar Tipo Insumo</h2><p>No se puede deshacer</p></div><button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button></div>
+    <div class="crud-modal-body"><p class="crud-confirm-text">¿Eliminar el tipo:</p><div class="crud-confirm-target" id="confirmNombre">—</div><p class="crud-confirm-doc">ID: <strong id="confirmDoc">—</strong></p></div>
+    <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button><button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar</button></div>
+  </div>
+</div>
+<div class="crud-toast" id="crudToast"></div>
 <script>
-function showPanel(panelId) {
-  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-  const el = document.getElementById(panelId);
-  if (el) { el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'center'; }
-  const res = document.getElementById('resultado');
-  if (res) res.innerHTML = '';
+function abrirModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+function cerrarModal(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+document.querySelectorAll('.crud-modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)cerrarModal(o.id);}));
+function showToast(msg,tipo='ok'){const t=document.getElementById('crudToast');t.textContent=msg;t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3200);}
+document.getElementById('botonVolver').addEventListener('click',()=>window.location.href='{{ volver_url }}');
+let idEliminar='';
+async function cargarTabla(){
+  try{
+    const r=await fetch('/api/tiposinsumo'); const rows=await r.json();
+    const tbody=document.getElementById('tbodyRegistros');
+    tbody.innerHTML='';
+    if(!Array.isArray(rows)||!rows.length){tbody.innerHTML='<tr><td colspan="3" class="td-empty">Sin registros</td></tr>';document.getElementById('contadorRegistros').textContent='0 registros';return;}
+    document.getElementById('contadorRegistros').textContent=rows.length+' registros';
+    rows.forEach(x=>{
+      const tr=document.createElement('tr'); tr.dataset.nombre=x.nombre_tipo||'';
+      tr.innerHTML=`<td><span class="td-doc">${x.id_tipoinsumo}</span></td><td><strong>${x.nombre_tipo}</strong></td><td class="td-acciones"><button class="btn-tbl-view" onclick="verRegistro('${x.id_tipoinsumo}')">✏️</button><button class="btn-tbl-del" onclick="prepararEliminar('${x.id_tipoinsumo}','${(x.nombre_tipo||'').replace(/'/g,"\\'")}')">🗑️</button></td>`;
+      tbody.appendChild(tr);
+    });
+    const q=document.getElementById('buscadorTabla').value.toLowerCase();
+    document.querySelectorAll('#tbodyRegistros tr[data-nombre]').forEach(tr=>tr.style.display=tr.dataset.nombre.toLowerCase().includes(q)?'':'none');
+  }catch(e){document.getElementById('tbodyRegistros').innerHTML='<tr><td colspan="3" class="td-error">Error al cargar</td></tr>';}
 }
-
-document.getElementById('botonVolver').addEventListener('click', () => {
-  window.location.href = "{{ volver_url }}";
-});
-
-document.getElementById('botonvolvered').addEventListener('click', () => {
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled = false;
-  document.getElementById('botoneditar').disabled = true;
-  document.querySelectorAll('.entrada2').forEach(e => e.disabled = true);
-  document.getElementById('editartiposinsumo').reset();
-});
-
-/* REGISTRAR */
-document.getElementById('registroUnidad').addEventListener('submit', async e => {
+document.getElementById('buscadorTabla').addEventListener('input',()=>{const q=document.getElementById('buscadorTabla').value.toLowerCase();document.querySelectorAll('#tbodyRegistros tr[data-nombre]').forEach(tr=>tr.style.display=tr.dataset.nombre.toLowerCase().includes(q)?'':'none');});
+document.getElementById('formAgregar').addEventListener('submit',async e=>{
   e.preventDefault();
-  const id_tipoinsumo = document.getElementById('id_tipoinsumo').value;
-  const nombre_tipo = document.getElementById('nombre_tipo').value;
-  try {
-    const response = await fetch("/api/tiposinsumo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre_tipo, id_tipoinsumo })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      const resultadoDiv = document.getElementById('resultado');
-      resultadoDiv.innerHTML = `
-        <div id="resultado" style="margin-top:16px;">
-          <div id="tituloDatos">Datos guardados</div>
-          <p><strong>Id de Insumo:</strong> ${data.data.id_tipoinsumo}</p>
-          <p><strong>Tipo de Insumo:</strong> ${data.data.nombre_tipo}</p>
-        </div>`;
-      alert("Datos guardados con éxito");
-      document.getElementById('registroUnidad').reset();
-      obtenerTiposInsumo();
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    alert("Hubo un error al registrar el tipo de insumo.");
-  }
+  const r=await fetch('/api/tiposinsumo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_tipoinsumo:document.getElementById('id_tipoinsumo').value,nombre_tipo:document.getElementById('nombre_tipo').value})});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalAgregar');showToast('Tipo de insumo registrado ✓');document.getElementById('formAgregar').reset();cargarTabla();}
+  else showToast('Error: '+(d.message||'No se pudo guardar'),'err');
 });
-
-/* ELIMINAR */
-document.getElementById('eliminarTipoInsumo').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_tipoinsumo = document.getElementById('id_eliminar').value.trim();
-  if (!id_tipoinsumo) return;
-  if (!confirm(`¿Eliminar el tipo de insumo ID ${id_tipoinsumo}? Esta acción no se puede deshacer.`)) return;
-
-  try {
-    const response = await fetch(`/api/productostiposinsumo/${id_tipoinsumo}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert(data.message || "Tipo de insumo eliminado correctamente.");
-      document.getElementById('id_eliminar').value = '';
-      obtenerTiposInsumo();
-    } else {
-      alert(data.message || "Hubo un error al eliminar el tipo de insumo.");
-    }
-  } catch (error) {
-    alert("Hubo un error al eliminar el tipo de insumo.");
-  }
-});
-
-/* BUSCAR */
-document.getElementById('buscarTipoinsumo').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_tipoinsumo = document.getElementById('id_buscar').value.trim();
-  try {
-    const response = await fetch(`/api/tiposinsumo/${id_tipoinsumo}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      showPanel("panel22");
-      document.getElementById('id_tipoinsumo2').value = data.id_tipoinsumo;
-      document.getElementById('nombre_tipoinsumo2').value = data.nombre_tipo;
-    } else {
-      alert(data.message || "No se pudieron cargar los datos.");
-    }
-  } catch (error) {
-    alert("Hubo un error al cargar los datos.");
-  }
-  document.getElementById('buscarTipoinsumo').reset();
-});
-
-/* DESBLOQUEAR EDICIÓN */
-document.getElementById('botondesbloquear').addEventListener('click', () => {
-  document.getElementById('nombre_tipoinsumo2').disabled = false;
-  document.getElementById('botoneditar').disabled = false;
-  document.getElementById('botondesbloquear').disabled = true;
-});
-
-/* EDITAR / ACTUALIZAR */
-document.getElementById('editartiposinsumo').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_tipoinsumo = parseInt(document.getElementById('id_tipoinsumo2').value, 10);
-  const nombre_tipo = document.getElementById('nombre_tipoinsumo2').value;
-  try {
-    const response = await fetch(`/api/tiposinsumo/${id_tipoinsumo}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_tipoinsumo, nombre_tipo })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert("Datos actualizados con éxito");
-      document.querySelectorAll('.entrada2').forEach(e => e.disabled = true);
-      document.getElementById('botoneditar').disabled = true;
-      document.getElementById('botondesbloquear').disabled = false;
-      showPanel("panel2");
-      obtenerTiposInsumo();
-    } else {
-      alert(data.message || "Hubo un error al actualizar los datos.");
-    }
-  } catch (error) {
-    alert("Hubo un error al guardar los datos.");
-  }
-});
-
-/* OBTENER Y ACTUALIZAR TABLA */
-async function obtenerTiposInsumo() {
-  try {
-    const response = await fetch("/api/tiposinsumo");
-    const tiposInsumo = await response.json();
-    const tbody = document.querySelector('#mostrarTipoinsumos tbody');
-    const counter = document.getElementById('contador-tipoinsumos');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    if (!tiposInsumo.length) {
-      tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
-      if (counter) counter.textContent = '0 registros';
-      return;
-    }
-    if (counter) counter.textContent = tiposInsumo.length + ' registros';
-    tiposInsumo.forEach(tipoInsumo => {
-      const fila = document.createElement("tr");
-      
-      const tdId = document.createElement("td");
-      tdId.textContent = tipoInsumo.id_tipoinsumo;
-      fila.appendChild(tdId);
-      
-      const tdNombre = document.createElement("td");
-      tdNombre.textContent = tipoInsumo.nombre_tipo;
-      fila.appendChild(tdNombre);
-      
-      tbody.appendChild(fila);
-    });
-  } catch (error) {
-    console.error("Error al obtener tipos de insumo:", error);
-  }
+async function verRegistro(id){
+  const r=await fetch(`/api/tiposinsumo/${id}`); const d=await r.json();
+  document.getElementById('id2').value=d.id_tipoinsumo||d.data?.id_tipoinsumo;
+  document.getElementById('nombre2').value=d.nombre_tipo||d.data?.nombre_tipo;
+  document.getElementById('nombre2').disabled=true;
+  document.getElementById('btnActualizar').disabled=true;
+  document.getElementById('btnDesbloquear').disabled=false;
+  abrirModal('modalEditar');
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  obtenerTiposInsumo();
-  setInterval(obtenerTiposInsumo, 5000);
+document.getElementById('btnDesbloquear').addEventListener('click',()=>{document.getElementById('nombre2').disabled=false;document.getElementById('btnActualizar').disabled=false;document.getElementById('btnDesbloquear').disabled=true;});
+document.getElementById('formEditar').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id2').value;
+  const r=await fetch(`/api/tiposinsumo/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_tipoinsumo:id,nombre_tipo:document.getElementById('nombre2').value})});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalEditar');showToast('Tipo actualizado ✓');cargarTabla();}
+  else showToast('Error: '+(d.message||'Error'),'err');
 });
+function prepararEliminar(id,nombre){idEliminar=id;document.getElementById('confirmNombre').textContent=nombre;document.getElementById('confirmDoc').textContent=id;abrirModal('modalEliminar');}
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  const r=await fetch(`/api/productostiposinsumo/${idEliminar}`,{method:'DELETE'});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalEliminar');showToast('Eliminado ✓');cargarTabla();}
+  else showToast('Error: '+(d.message||'Error'),'err');
+});
+document.addEventListener('DOMContentLoaded',()=>{cargarTabla();setInterval(cargarTabla,10000);});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>

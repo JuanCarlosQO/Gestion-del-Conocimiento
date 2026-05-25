@@ -7,300 +7,128 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>Unidad Medida — SIGIC</title>
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
   <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <title>Unidad Medida — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
-
-  <!-- SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">UNIDAD MEDIDA</div>
+    <div id="vista_title" class="letras">UNIDAD MEDIDA</div>
     <div id="ordena_boton">
-      <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4'); obtenerUnidades()">📋 Ver todos</button>
+      <div class="letragestion">Gestionar</div>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
-
-  <!-- PANEL AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">📏</div>
-        <div>
-          <h2>Registrar Unidad de Medida</h2>
-          <p>Complete el nombre de la nueva unidad de medida</p>
-        </div>
+  <div class="panel active">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">📏</div>
+        <div><h1 class="crud-title">Unidades de Medida</h1><p class="crud-subtitle">Gestión de unidades de medida</p></div>
       </div>
-      <form id="registroUnidad">
-        {% csrf_token %}
-        <label class="labels">Nombre de Unidad de Medida</label>
-        <input type="text" class="entrada" id="nombre_unidadmedida" placeholder="Ej: Kilogramo, Litro, Bulto" required>
-        <button type="submit" class="botonsum" id="botonaccion">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- PANEL BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div>
-          <h2>Buscar Unidad de Medida</h2>
-          <p>Ingrese el ID de la unidad para consultar</p>
-        </div>
-      </div>
-      <form id="buscarUnidadMedida">
-        <label class="labels">ID Unidad de Medida</label>
-        <input type="text" class="entrada" id="id_buscar" placeholder="Número de ID a buscar" required>
-        <button type="submit" class="botonsum" id="botonBuscar">🔍 Buscar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div>
-          <h2>Editar Unidad de Medida</h2>
-          <p>Modifique los campos necesarios</p>
-        </div>
-      </div>
-      <form id="editarUnidadMedida">
-        {% csrf_token %}
-        <label class="labels">ID Unidad de Medida</label>
-        <input type="text" class="entrada2" id="id_unidadmedida2" disabled>
-        
-        <label class="labels">Nombre Unidad de Medida</label>
-        <input type="text" class="entrada2" id="nombre_unidadmedida2" disabled>
-        
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered">↩ Volver</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div>
-          <h2>Eliminar Unidad de Medida</h2>
-          <p>Esta acción eliminará el registro permanentemente</p>
-        </div>
-      </div>
-      <form id="eliminarUnidadMedida">
-        {% csrf_token %}
-        <label class="labels">ID Unidad de Medida</label>
-        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" id="botonEliminar" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- PANEL VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Unidades de Medida</h2>
-        <span class="tabla-count" id="contador-unidades">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarUnidadMedida">
-          <thead>
-            <tr>
-              <th>ID Unidad de Medida</th>
-              <th>Nombre</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap"><span class="crud-search-icon">🔍</span><input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar..."></div>
+        <span class="crud-badge" id="contadorRegistros">Cargando...</span>
       </div>
     </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table"><thead><tr><th>ID</th><th>Nombre</th><th class="th-acciones">Acciones</th></tr></thead>
+        <tbody id="tbodyRegistros"><tr><td colspan="3" class="td-loading"><div class="loading-dots"><span></span><span></span><span></span></div>Cargando...</td></tr></tbody>
+      </table>
+    </div>
   </div>
-
 </div>
 
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header"><div class="crud-modal-icon">📏</div><div><h2>Registrar Unidad de Medida</h2><p>Ingrese el nombre</p></div><button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button></div>
+    <form id="formAgregar">
+      <div class="crud-form-grid"><div class="crud-form-group crud-full"><label class="labels">Nombre de la unidad</label><input type="text" class="entrada" id="nombre_unidadmedida" placeholder="Ej: Kilogramo, Litro" required></div></div>
+      <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button><button type="submit" class="btn-crud-save">💾 Guardar</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header"><div class="crud-modal-icon">✏️</div><div><h2>Editar Unidad de Medida</h2><p>Modifique el nombre</p></div><button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button></div>
+    <form id="formEditar">
+      <div class="crud-form-grid">
+        <div class="crud-form-group"><label class="labels">ID</label><input type="text" class="entrada entrada2" id="id2" disabled></div>
+        <div class="crud-form-group"><label class="labels">Nombre</label><input type="text" class="entrada entrada2" id="nombre2" disabled></div>
+      </div>
+      <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button><button type="button" class="btn-crud-unlock" id="btnDesbloquear">✏️ Habilitar</button><button type="submit" class="btn-crud-save" id="btnActualizar" disabled>💾 Actualizar</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger"><div class="crud-modal-icon crud-icon-danger">🗑️</div><div><h2>Eliminar Unidad</h2><p>No se puede deshacer</p></div><button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button></div>
+    <div class="crud-modal-body"><p class="crud-confirm-text">¿Eliminar la unidad:</p><div class="crud-confirm-target" id="confirmNombre">—</div><p class="crud-confirm-doc">ID: <strong id="confirmDoc">—</strong></p></div>
+    <div class="crud-modal-footer"><button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button><button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar</button></div>
+  </div>
+</div>
+<div class="crud-toast" id="crudToast"></div>
 <script>
-function showPanel(panelId) {
-  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-  const el = document.getElementById(panelId);
-  if (el) { el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'center'; }
-  const res = document.getElementById('resultado');
-  if (res) res.innerHTML = '';
+function abrirModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+function cerrarModal(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+document.querySelectorAll('.crud-modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)cerrarModal(o.id);}));
+function showToast(msg,tipo='ok'){const t=document.getElementById('crudToast');t.textContent=msg;t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3200);}
+document.getElementById('botonVolver').addEventListener('click',()=>window.location.href='{{ volver_url }}');
+let idEliminar='';
+async function cargarTabla(){
+  try{
+    const r=await fetch('/api/productosmedida'); const rows=await r.json();
+    const tbody=document.getElementById('tbodyRegistros');
+    tbody.innerHTML='';
+    if(!Array.isArray(rows)||!rows.length){tbody.innerHTML='<tr><td colspan="3" class="td-empty">Sin registros</td></tr>';document.getElementById('contadorRegistros').textContent='0 registros';return;}
+    document.getElementById('contadorRegistros').textContent=rows.length+' registros';
+    rows.forEach(x=>{
+      const tr=document.createElement('tr'); tr.dataset.nombre=x.nombre_unidadmedida||'';
+      tr.innerHTML=`<td><span class="td-doc">${x.id_unidadmedida}</span></td><td><strong>${x.nombre_unidadmedida}</strong></td><td class="td-acciones"><button class="btn-tbl-view" onclick="verRegistro(${x.id_unidadmedida})">✏️</button><button class="btn-tbl-del" onclick="prepararEliminar(${x.id_unidadmedida},'${(x.nombre_unidadmedida||'').replace(/'/g,"\\'")}')">🗑️</button></td>`;
+      tbody.appendChild(tr);
+    });
+    const q=document.getElementById('buscadorTabla').value.toLowerCase();
+    document.querySelectorAll('#tbodyRegistros tr[data-nombre]').forEach(tr=>tr.style.display=tr.dataset.nombre.toLowerCase().includes(q)?'':'none');
+  }catch(e){document.getElementById('tbodyRegistros').innerHTML='<tr><td colspan="3" class="td-error">Error al cargar</td></tr>';}
 }
-
-document.getElementById('botonVolver').addEventListener('click', () => {
-  window.location.href = "{{ volver_url }}";
-});
-
-document.getElementById('botonvolvered').addEventListener('click', () => {
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled = false;
-  document.getElementById('botoneditar').disabled = true;
-  document.querySelectorAll('.entrada2').forEach(e => e.disabled = true);
-  document.getElementById('editarUnidadMedida').reset();
-});
-
-/* REGISTRAR */
-document.getElementById('registroUnidad').addEventListener('submit', async e => {
+document.getElementById('buscadorTabla').addEventListener('input',()=>{const q=document.getElementById('buscadorTabla').value.toLowerCase();document.querySelectorAll('#tbodyRegistros tr[data-nombre]').forEach(tr=>tr.style.display=tr.dataset.nombre.toLowerCase().includes(q)?'':'none');});
+document.getElementById('formAgregar').addEventListener('submit',async e=>{
   e.preventDefault();
-  const nombre_unidadmedida = document.getElementById('nombre_unidadmedida').value;
-  try {
-    const response = await fetch("/api/productosmedida", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre_unidadmedida })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      document.getElementById('resultado').innerHTML = `
-        <div id="resultado" style="margin-top:16px;">
-          <div id="tituloDatos">Datos guardados</div>
-          <p><strong>Unidad de medida:</strong> ${data.data.nombre_unidadmedida}</p>
-        </div>`;
-      alert("Datos guardados con éxito");
-      document.getElementById('registroUnidad').reset();
-      obtenerUnidades();
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    alert("Hubo un error al registrar la unidad de medida.");
-  }
+  const r=await fetch('/api/productosmedida',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre_unidadmedida:document.getElementById('nombre_unidadmedida').value})});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalAgregar');showToast('Unidad registrada ✓');document.getElementById('formAgregar').reset();cargarTabla();}
+  else showToast('Error: '+(d.message||'Error'),'err');
 });
-
-/* ELIMINAR */
-document.getElementById('eliminarUnidadMedida').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_unidadmedida = document.getElementById('id_eliminar').value.trim();
-  if (!id_unidadmedida) return;
-  if (!confirm(`¿Eliminar la unidad de medida ID ${id_unidadmedida}? Esta acción no se puede deshacer.`)) return;
-  try {
-    const response = await fetch(`/api/productosmedida/${id_unidadmedida}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert(data.message);
-      document.getElementById('id_eliminar').value = '';
-      obtenerUnidades();
-    } else {
-      alert(data.message || "Hubo un error al eliminar la unidad de medida.");
-    }
-  } catch (error) {
-    alert("Hubo un error al eliminar la unidad de medida.");
-  }
-});
-
-/* BUSCAR */
-document.getElementById('buscarUnidadMedida').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_unidadmedida = document.getElementById('id_buscar').value.trim();
-  try {
-    const response = await fetch(`/api/productosmedida/${id_unidadmedida}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      showPanel("panel22");
-      document.getElementById('id_unidadmedida2').value = data.data.id_unidadmedida;
-      document.getElementById('nombre_unidadmedida2').value = data.data.nombre_unidadmedida;
-    } else {
-      alert(data.message || "No se pudieron cargar los datos.");
-    }
-  } catch (error) {
-    alert("Hubo un error al cargar los datos.");
-  }
-  document.getElementById('buscarUnidadMedida').reset();
-});
-
-/* DESBLOQUEAR EDICIÓN */
-document.getElementById('botondesbloquear').addEventListener('click', () => {
-  document.getElementById('nombre_unidadmedida2').disabled = false;
-  document.getElementById('botoneditar').disabled = false;
-  document.getElementById('botondesbloquear').disabled = true;
-});
-
-/* EDITAR / ACTUALIZAR */
-document.getElementById('editarUnidadMedida').addEventListener('submit', async e => {
-  e.preventDefault();
-  const id_unidadmedida = document.getElementById('id_unidadmedida2').value;
-  const nombre_unidadmedida = document.getElementById('nombre_unidadmedida2').value;
-  try {
-    const response = await fetch(`/api/productosmedida/${id_unidadmedida}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_unidadmedida, nombre_unidadmedida })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert("Datos actualizados con éxito");
-      document.querySelectorAll('.entrada2').forEach(e => e.disabled = true);
-      document.getElementById('botoneditar').disabled = true;
-      document.getElementById('botondesbloquear').disabled = false;
-      showPanel("panel2");
-      obtenerUnidades();
-    } else {
-      alert(data.message || "Hubo un error al actualizar los datos.");
-    }
-  } catch (error) {
-    alert("Hubo un error al guardar los datos.");
-  }
-});
-
-/* OBTENER Y ACTUALIZAR TABLA */
-async function obtenerUnidades() {
-  try {
-    const response = await fetch("/api/productosmedida");
-    const unidades = await response.json();
-    const tbody = document.querySelector('#mostrarUnidadMedida tbody');
-    const counter = document.getElementById('contador-unidades');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    if (!unidades.length) {
-      tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
-      if (counter) counter.textContent = '0 registros';
-      return;
-    }
-    if (counter) counter.textContent = unidades.length + ' registros';
-    unidades.forEach(unidad => {
-      const fila = document.createElement("tr");
-      
-      const tdId = document.createElement("td");
-      tdId.textContent = unidad.id_unidadmedida;
-      fila.appendChild(tdId);
-      
-      const tdNombre = document.createElement("td");
-      tdNombre.textContent = unidad.nombre_unidadmedida;
-      fila.appendChild(tdNombre);
-      
-      tbody.appendChild(fila);
-    });
-  } catch (error) {
-    console.error("Error al obtener unidades de medida:", error);
-  }
+async function verRegistro(id){
+  const r=await fetch(`/api/productosmedida/${id}`); const d=await r.json();
+  const reg=d.data||d;
+  document.getElementById('id2').value=reg.id_unidadmedida;
+  document.getElementById('nombre2').value=reg.nombre_unidadmedida;
+  document.getElementById('nombre2').disabled=true;
+  document.getElementById('btnActualizar').disabled=true;
+  document.getElementById('btnDesbloquear').disabled=false;
+  abrirModal('modalEditar');
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  obtenerUnidades();
-  setInterval(obtenerUnidades, 5000);
+document.getElementById('btnDesbloquear').addEventListener('click',()=>{document.getElementById('nombre2').disabled=false;document.getElementById('btnActualizar').disabled=false;document.getElementById('btnDesbloquear').disabled=true;});
+document.getElementById('formEditar').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const id=document.getElementById('id2').value;
+  const r=await fetch(`/api/productosmedida/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id_unidadmedida:id,nombre_unidadmedida:document.getElementById('nombre2').value})});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalEditar');showToast('Unidad actualizada ✓');cargarTabla();}
+  else showToast('Error: '+(d.message||'Error'),'err');
 });
+function prepararEliminar(id,nombre){idEliminar=id;document.getElementById('confirmNombre').textContent=nombre;document.getElementById('confirmDoc').textContent=id;abrirModal('modalEliminar');}
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  const r=await fetch(`/api/productosmedida/${idEliminar}`,{method:'DELETE'});
+  const d=await r.json();
+  if(r.ok){cerrarModal('modalEliminar');showToast('Eliminado ✓');cargarTabla();}
+  else showToast('Error: '+(d.message||'Error'),'err');
+});
+document.addEventListener('DOMContentLoaded',()=>{cargarTabla();setInterval(cargarTabla,10000);});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>

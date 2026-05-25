@@ -7,463 +7,305 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>PROPIETARIO — SIGIC</title>
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
   <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <title>PROPIETARIO — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
 
-  <!-- SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">PROPIETARIO</div>
+    <div id="vista_title" class="letras">PROPIETARIO</div>
     <div id="ordena_boton">
       <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4'); obtenerPropietarios()">📋 Ver todos</button>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- PANEL AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">💼</div>
-        <div><h2>Registrar Propietario</h2><p>Complete las credenciales del propietario</p></div>
-      </div>
-      <form id="form_propietario" method="POST">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada" id="id_propietario" name="id_propietario" placeholder="Número de documento" minlength="8" required>
-        
-        <label class="labels">Email</label>
-        <input type="email" class="entrada" id="email_propietario" name="email_propietario" placeholder="correo@ejemplo.com" required>
-        
-        <label class="labels">Usuario (login)</label>
-        <input type="text" class="entrada" id="username_propietario" name="username_propietario" placeholder="Nombre de usuario" required>
-        
-        <label class="labels">Contraseña (login)</label>
-        <input type="password" class="entrada" id="password_propietario" name="password_propietario" placeholder="Contraseña de acceso" required>
-        
-        <button type="submit" class="botonsum" id="botonaccion">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- PANEL BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div><h2>Buscar Propietario</h2><p>Ingrese el documento para consultar</p></div>
-      </div>
-      <form id="buscarpersona">
-        <label class="labels">Número de Documento</label>
-        <input type="text" class="entrada" id="documento_buscar" placeholder="Documento a consultar" required>
-        <button type="submit" class="botonsum" id="Buscar">🔍 Buscar</button>
-      </form>
-      <div id="resultado_busqueda"></div>
-    </div>
-  </div>
-
-  <!-- PANEL EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div><h2>Editar Propietario</h2><p>Modifique los campos necesarios</p></div>
-      </div>
-      <form id="editarpersona">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada2" id="documento_persona2" name="documento_persona2" disabled>
-        
-        <label class="labels">Email</label>
-        <input type="email" class="entrada2" id="email_propietario2" name="email_propietario2" disabled>
-        
-        <label class="labels">Estado</label>
-        <select class="selector entrada2" id="estado_propietario2" name="estado_propietario2" disabled>
-          <option value="2">— Seleccione —</option>
-          <option value="1">Activo</option>
-          <option value="0">Suspendido</option>
-        </select>
-        
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered">↩ Volver</button>
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">🧑‍💼</div>
+        <div>
+          <h1 class="crud-title">Propietarios</h1>
+          <p class="crud-subtitle">Gestión de propietarios registrados</p>
         </div>
-      </form>
-      <div id="resultado_edicion"></div>
+      </div>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap">
+          <span class="crud-search-icon">🔍</span>
+          <input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar por documento o email...">
+        </div>
+        <span class="crud-badge" id="contadorRegistros">Cargando...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- PANEL ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Propietario</h2><p>Esta acción suspenderá o eliminará el registro permanentemente</p></div>
-      </div>
-      <form id="eliminarpersona">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada" id="documento_eliminar" placeholder="Documento a eliminar" required>
-        <button type="submit" class="botonsum" id="botoneliminar">🗑️ Eliminar</button>
-      </form>
-      <div id="resultado_eliminacion"></div>
-    </div>
-  </div>
-
-  <!-- PANEL VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Propietarios</h2>
-        <span class="tabla-count" id="contador-propietarios">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarPropietarios">
-          <thead>
-            <tr>
-              <th>ID / Código</th>
-              <th>Documento</th>
-              <th>Email</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaRegistros">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th class="th-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyRegistros">
+          <tr><td colspan="4" class="td-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Cargando registros...
+          </td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
 
+<!-- ══ MODAL AGREGAR ══ -->
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">➕</div>
+      <div><h2>Registrar Propietario</h2><p>Complete las credenciales del nuevo propietario</p></div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button>
+    </div>
+    <form id="form_propietario" method="POST">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento</label>
+          <input type="text" class="entrada" id="id_propietario" name="id_propietario" placeholder="Número de documento" minlength="8" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Email</label>
+          <input type="email" class="entrada" id="email_propietario" name="email_propietario" placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Usuario (login)</label>
+          <input type="text" class="entrada" id="username_propietario" name="username_propietario" placeholder="Nombre de usuario" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Contraseña</label>
+          <input type="password" class="entrada" id="password_propietario" name="password_propietario" placeholder="Contraseña de acceso" required>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button>
+        <button type="submit" class="btn-crud-save" id="botonaccion">💾 Guardar</button>
+      </div>
+      <div id="resultado" style="padding:0 28px 12px;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">✏️</div>
+      <div><h2>Editar Propietario</h2><p>Modifique los campos necesarios</p></div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form id="editarpersona">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento</label>
+          <input type="text" class="entrada entrada2" id="documento_persona2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Email</label>
+          <input type="email" class="entrada entrada2" id="email_propietario2" disabled>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Estado</label>
+          <select class="selector entrada2" id="estado_propietario2" disabled>
+            <option value="2">— Seleccione —</option>
+            <option value="1">Activo</option>
+            <option value="0">Suspendido</option>
+          </select>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="button" class="btn-crud-unlock" id="botondesbloquear">✏️ Habilitar edición</button>
+        <button type="submit" class="btn-crud-save" id="botoneditar" disabled>💾 Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL ELIMINAR ══ -->
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div><h2>Eliminar Propietario</h2><p>Esta acción no se puede deshacer</p></div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar al propietario:</p>
+      <div class="crud-confirm-target" id="confirmNombre">—</div>
+      <p class="crud-confirm-doc">Documento: <strong id="confirmDoc">—</strong></p>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+  </div>
+</div>
+
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
-/* COOKIE CSRF */
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
+function getCookie(n){let c=null;if(document.cookie)for(let k of document.cookie.split(';')){if(k.trim().startsWith(n+'=')){c=k.split('=')[1];break;}}return c;}
+function abrirModal(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+function cerrarModal(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+document.querySelectorAll('.crud-modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)cerrarModal(o.id);}));
+function showToast(msg,tipo='ok'){const t=document.getElementById('crudToast');t.textContent=msg;t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3200);}
+
+document.getElementById('botonVolver').addEventListener('click',()=>window.location.href='/vista_admin/');
+
+let docParaEliminar='';
+
+async function cargarTabla(){
+  try{
+    const r=await fetch('/get_todos/Propietario/');
+    const rows=await r.json();
+    const tbody=document.getElementById('tbodyRegistros');
+    const counter=document.getElementById('contadorRegistros');
+    tbody.innerHTML='';
+    if(!Array.isArray(rows)||!rows.length){
+      tbody.innerHTML='<tr><td colspan="4" class="td-empty">Sin propietarios registrados</td></tr>';
+      counter.textContent='0 registros'; return;
     }
+    counter.textContent=rows.length+' registros';
+    rows.forEach(p=>{
+      const estado=p.estado_propietario
+        ?'<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;">Activo</span>'
+        :'<span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;">Suspendido</span>';
+      const tr=document.createElement('tr');
+      tr.dataset.doc=p.id_propietario||'';
+      tr.dataset.email=p.email_propietario||'';
+      tr.innerHTML=`
+        <td><span class="td-doc">${p.id_propietario||'—'}</span></td>
+        <td>${p.email_propietario||'—'}</td>
+        <td>${estado}</td>
+        <td class="td-acciones">
+          <button class="btn-tbl-view" onclick="verRegistro('${p.id_propietario}')" title="Editar">✏️</button>
+          <button class="btn-tbl-del" onclick="prepararEliminar('${p.id_propietario}','${(p.email_propietario||'').replace(/'/g,"\\'")}')">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    aplicarFiltro();
+  }catch(e){
+    document.getElementById('tbodyRegistros').innerHTML='<tr><td colspan="4" class="td-error">Error al cargar datos</td></tr>';
   }
-  return cookieValue;
 }
 
-/* MOSTRAR PANEL */
-function showPanel(panelId) {
-  document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-  const el = document.getElementById(panelId);
-  if (el) {
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.alignItems = 'center';
-  }
-  const res = document.getElementById('resultado');
-  if (res) res.innerHTML = '';
+function aplicarFiltro(){
+  const q=document.getElementById('buscadorTabla').value.toLowerCase();
+  document.querySelectorAll('#tbodyRegistros tr[data-doc]').forEach(tr=>{
+    tr.style.display=(tr.dataset.doc+' '+tr.dataset.email).toLowerCase().includes(q)?'':'none';
+  });
+}
+document.getElementById('buscadorTabla').addEventListener('input',aplicarFiltro);
+
+async function verRegistro(doc){
+  try{
+    const r=await fetch(`/consultar_registro/Propietario/${doc}/`);
+    const data=await r.json();
+    const reg=data.data||data;
+    document.getElementById('documento_persona2').value=reg.id_propietario||'';
+    document.getElementById('email_propietario2').value=reg.email_propietario||'';
+    document.getElementById('estado_propietario2').value=reg.estado_propietario?'1':'0';
+    document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
+    document.getElementById('estado_propietario2').disabled=true;
+    document.getElementById('botoneditar').disabled=true;
+    document.getElementById('botondesbloquear').disabled=false;
+    abrirModal('modalEditar');
+  }catch(e){showToast('Error al cargar datos','err');}
 }
 
-/* VOLVER */
-document.getElementById('botonVolver').addEventListener('click', () => {
-  window.location.href = '/vista_admin/';
+document.getElementById('botondesbloquear').addEventListener('click',()=>{
+  document.getElementById('email_propietario2').disabled=false;
+  document.getElementById('estado_propietario2').disabled=false;
+  document.getElementById('botoneditar').disabled=false;
+  document.getElementById('botondesbloquear').disabled=true;
 });
 
-/* VOLVER DESDE EDICION */
-document.getElementById('botonvolvered').addEventListener('click', (e) => {
+document.getElementById('editarpersona').addEventListener('submit',async e=>{
   e.preventDefault();
-  e.stopPropagation();
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled = false;
-  document.getElementById('botoneditar').disabled = true;
-  document.getElementById('estado_propietario2').disabled = true;
-  document.getElementById('email_propietario2').disabled = true;
-  document.getElementById('editarpersona').reset();
-});
-
-/* INICIALIZAR Y AUTOMATIZAR DESDE PARAMETROS URL */
-document.addEventListener("DOMContentLoaded", () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const panelActivo = urlParams.get('panel');
-  const docRecibido = urlParams.get('doc');
-  if (panelActivo === 'agregar') {
-    showPanel('panel1');
-  }
-  if (docRecibido) {
-    const inputID = document.getElementById("id_propietario");
-    if (inputID) {
-      inputID.value = docRecibido;
-      inputID.readOnly = true;
-      inputID.classList.add("entrada--solo-lectura");
-    }
-  }
+  const doc=document.getElementById('documento_persona2').value;
+  const estado=document.getElementById('estado_propietario2').value;
+  if(estado==='2'){showToast('Seleccione un estado válido','err');return;}
+  try{
+    const r=await fetch(`/corregir_registro/Propietario/${doc}/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({email_propietario:document.getElementById('email_propietario2').value,estado_propietario:estado==='1'})});
+    const d=await r.json();
+    if(r.ok){cerrarModal('modalEditar');showToast('Propietario actualizado correctamente ✓');cargarTabla();}
+    else showToast('Error: '+(d.message||'No se pudo guardar'),'err');
+  }catch(e){showToast('Error al conectar con el servidor','err');}
 });
 
 /* REGISTRAR */
-document.addEventListener("DOMContentLoaded", function() {
-  const formulario = document.getElementById("form_propietario");
-  const divResultado = document.getElementById("resultado");
-  if (formulario) {
-    formulario.onsubmit = async function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const token = getCookie("csrftoken");
-      try {
-        const resSesion = await fetch("/obtener_persona_temporal/");
-        const datosSesion = await resSesion.json();
-        if (!datosSesion.success) {
-          alert("No hay datos de persona temporal registrados.");
-          return;
-        }
-        const envioPersona = new FormData();
-        Object.keys(datosSesion.data).forEach(k => envioPersona.append(k, datosSesion.data[k]));
-        envioPersona.append("id_tipodoc", datosSesion.data.fk_tipo_documento);
-        const respP = await fetch("/insert_persona/", {
-          method: "POST",
-          headers: { "X-CSRFToken": token },
-          body: envioPersona
-        });
-        const dataP = await respP.json();
-        if (dataP.success) {
-          const respProp = await fetch("/insert_propietario/", {
-            method: "POST",
-            headers: { 
-              "X-CSRFToken": token, 
-              "X-Requested-With": "XMLHttpRequest" 
-            },
-            body: new FormData(formulario)
-          });
-          const dataProp = await respProp.json();
-          if (dataProp.success) {
-            divResultado.innerHTML = `
-              <div id="tituloDatos">Datos guardados</div>
-              <p><strong>Propietario:</strong> ${dataP.data.nombre_persona}</p>
-              <p><strong>Documento:</strong> ${dataProp.data.id_propietario}</p>
-              <p><strong>Email:</strong> ${dataProp.data.email_propietario}</p>    
-              <p><strong>Usuario (login):</strong> ${dataProp.data.username || ''}</p>
-              <p style="font-size:11px;color:#6b7280;margin-top:8px;">El código del propietario en el sistema es el mismo número de documento.</p>
-              <p style="font-size:11px;color:#6b7280;">Para registrar otro propietario, use el flujo desde Personas o recargue esta página.</p>
-            `;
-            const docFin = String(dataProp.data.id_propietario || "").trim();
-            const inpDoc = document.getElementById("id_propietario");
-            if (inpDoc && docFin) {
-              inpDoc.value = docFin;
-              inpDoc.readOnly = true;
-              inpDoc.classList.add("entrada--solo-lectura");
-            }
-            const em = document.getElementById("email_propietario");
-            const un = document.getElementById("username_propietario");
-            const pw = document.getElementById("password_propietario");
-            const btnG = document.getElementById("botonaccion");
-            if (em) { em.value = ""; em.disabled = true; em.removeAttribute("required"); }
-            if (un) { un.value = ""; un.disabled = true; un.removeAttribute("required"); }
-            if (pw) { pw.value = ""; pw.disabled = true; pw.removeAttribute("required"); }
-            if (btnG) btnG.disabled = true;
-            if (typeof divResultado.scrollIntoView === "function") {
-              divResultado.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            }
-          } else {
-            alert("Error Propietario: " + dataProp.message);
-            await fetch(`/eliminar_registro/persona/${dataP.data.documento_persona}/`, {
-              method: "DELETE",
-              headers: { "X-CSRFToken": token }
-            });
-          }
-        } else {
-          alert("Error Persona: " + dataP.message);
-        }
-      } catch (err) {
-        alert("Fallo de conexión");
-      }   
-      return false; 
-    };
-  }
-});
-
-/* BUSCAR */
-document.getElementById("buscarpersona").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const documento = document.getElementById("documento_buscar").value;
-  const contenedor = document.getElementById("resultado_busqueda");
-  try {
-    const response = await fetch(`/consultar_registro/Propietario/${documento}/`);
-    const data = await response.json();
-    if (response.ok) {
-      const registro = data.data ? data.data : data;
-      showPanel("panel22");
-      document.getElementById("documento_persona2").value = registro.id_propietario || '';
-      document.getElementById("email_propietario2").value = registro.email_propietario || '';
-      const estadoValue = registro.estado_propietario ? "1" : "0";
-      const selectEstado = document.getElementById("estado_propietario2");
-      if (selectEstado) {
-        selectEstado.value = estadoValue;
-      }
-      if (contenedor) contenedor.innerHTML = '';
-    } else {
-      if (contenedor) {
-        contenedor.innerHTML = `
-          <div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-            <div id="tituloDatos" style="color:#ef4444;">No encontrado</div>
-            <p style="color:#ef4444;">${data.message || 'No se encontró el registro del propietario'}</p>
-          </div>
-        `;
-      }
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Hubo un error al cargar los datos.");
-  }
-  document.getElementById("buscarpersona").reset();
-});
-
-/* DESBLOQUEAR EDICIÓN */
-document.getElementById("botondesbloquear").addEventListener("click", () => {
-  const entradas = document.querySelectorAll(".entrada2");
-  const selector = document.getElementById("estado_propietario2");
-  const botonEditar = document.getElementById("botoneditar");
-  const botonDesbloquear = document.getElementById("botondesbloquear");
-  botonEditar.disabled = false;
-  botonDesbloquear.disabled = true;
-
-  if (selector) selector.disabled = false;
-  entradas.forEach((input) => {
-    if (input.id !== "documento_persona2") {
-      input.disabled = false;
-    }
-  });
-});
-
-/* EDITAR / ACTUALIZAR */
-document.getElementById("editarpersona").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const contenedorAbajo = document.getElementById("resultado_edicion");
-  const documento = document.getElementById("documento_persona2").value;
-  const email_propietario = document.getElementById("email_propietario2").value;
-  const estado_propietario = document.getElementById("estado_propietario2").value;
-
-  if (estado_propietario === "2") {
-    alert("Por favor, seleccione un estado válido.");
-    return;
-  }
-  const estado_bool = estado_propietario === "1";
-  const datos = {
-    email_propietario: email_propietario,
-    estado_propietario: estado_bool
+document.addEventListener('DOMContentLoaded',()=>{
+  const formulario=document.getElementById('form_propietario');
+  formulario.onsubmit=async function(e){
+    e.preventDefault();
+    const token=getCookie('csrftoken');
+    try{
+      const resSesion=await fetch('/obtener_persona_temporal/');
+      const datosSesion=await resSesion.json();
+      if(!datosSesion.success){showToast('No hay datos de persona temporal','err');return;}
+      const envioPersona=new FormData();
+      Object.keys(datosSesion.data).forEach(k=>envioPersona.append(k,datosSesion.data[k]));
+      envioPersona.append('id_tipodoc',datosSesion.data.fk_tipo_documento);
+      const respP=await fetch('/insert_persona/',{method:'POST',headers:{'X-CSRFToken':token},body:envioPersona});
+      const dataP=await respP.json();
+      if(dataP.success){
+        const respProp=await fetch('/insert_propietario/',{method:'POST',headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'},body:new FormData(formulario)});
+        const dataProp=await respProp.json();
+        if(dataProp.success){
+          cerrarModal('modalAgregar');
+          showToast('Propietario registrado correctamente ✓');
+          formulario.reset();
+          cargarTabla();
+        }else showToast('Error: '+dataProp.message,'err');
+      }else showToast('Error: '+dataP.message,'err');
+    }catch(err){showToast('Error de conexión','err');}
   };
-  try {
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const response = await fetch(`/corregir_registro/Propietario/${documento}/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken
-      },
-      body: JSON.stringify(datos)
-    });
-    const data = await response.json();
-    if (response.ok) {
-      document.querySelectorAll(".entrada2, .selector").forEach(el => el.disabled = true);
-      document.getElementById("botoneditar").disabled = true;
-      document.getElementById("botondesbloquear").disabled = false;
-      if (contenedorAbajo) {
-        contenedorAbajo.innerHTML = `
-          <div id="resultado" style="margin-top:16px;">
-            <div id="tituloDatos">Datos actualizados</div>
-            <p><b>Documento:</b> ${documento}</p>
-            <p><b>Email:</b> ${email_propietario}</p>
-            <p><b>Estado:</b> ${estado_bool ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Suspendido</span>'}</p>
-          </div>
-        `;
-      }
-      setTimeout(() => showPanel('panel2'), 1800);
-    } else {
-      alert("Error: " + (data.message || "No se pudo guardar"));
-    }
-  } catch (error) {
-    console.error("Error en la petición:", error);
-    alert("Hubo un error al conectar con el servidor.");
-  }
 });
 
 /* ELIMINAR */
-document.getElementById("eliminarpersona").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const documento = document.getElementById("documento_eliminar").value.trim();
-  if (!documento) { alert("Ingrese un documento"); return; }
-  if (!confirm(`¿Eliminar el propietario con documento ${documento}? Esta acción no se puede deshacer.`)) return;
-  const cont = document.getElementById("resultado_eliminacion");
-  try {
-    const csrftoken = getCookie("csrftoken");
-    const response = await fetch(`/eliminar_registro/Propietario/${documento}/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrftoken }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      document.getElementById("documento_eliminar").value = "";
-      if (cont) {
-        cont.innerHTML = `
-          <div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-            <div id="tituloDatos" style="color:#ef4444;">Registro Eliminado</div>
-            <p style="color:#dc2626;"><strong>Propietario eliminado con éxito:</strong> ${documento}</p>
-          </div>
-        `;
-      }
-      obtenerPropietarios();
-    } else {
-      alert(data.message || "Hubo un error al eliminar el propietario.");
-    }
-  } catch (error) {
-    alert("Hubo un error al eliminar el propietario.");
-  }
+function prepararEliminar(doc,email){
+  docParaEliminar=doc;
+  document.getElementById('confirmNombre').textContent=email||doc;
+  document.getElementById('confirmDoc').textContent=doc;
+  abrirModal('modalEliminar');
+}
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  if(!docParaEliminar) return;
+  try{
+    const r=await fetch(`/eliminar_registro/Propietario/${docParaEliminar}/`,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')}});
+    const d=await r.json();
+    if(r.ok){cerrarModal('modalEliminar');showToast('Propietario eliminado ✓');cargarTabla();}
+    else showToast('Error: '+(d.message||'No se pudo eliminar'),'err');
+  }catch(e){showToast('Error al conectar','err');}
 });
 
-/* OBTENER Y LISTAR TODOS */
-async function obtenerPropietarios() {
-  try {
-    const response = await fetch('/get_todos/Propietario/');
-    const propietarios = await response.json();
-    const tablaBody = document.querySelector('#mostrarPropietarios tbody');
-    const counter = document.getElementById('contador-propietarios');
-    if (!tablaBody) return;
-    tablaBody.innerHTML = ''; 
-    if (!propietarios.length) {
-      tablaBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
-      if (counter) counter.textContent = '0 registros';
-      return;
-    }
-    if (counter) counter.textContent = propietarios.length + ' registros';
-    propietarios.forEach(prop => {
-      const fila = document.createElement('tr');
-      const estadoBadge = prop.estado_propietario 
-        ? '<span class="badge-activo">Activo</span>' 
-        : '<span class="badge-inactivo">Suspendido</span>';
-      fila.innerHTML = `
-        <td>${prop.id_propietario || '---'}</td>
-        <td>${prop.id_propietario || '---'}</td>
-        <td>${prop.email_propietario || '---'}</td>
-        <td>${estadoBadge}</td>
-      `;
-      tablaBody.appendChild(fila);
-    });
-  } catch (error) {
-    console.error('Error al obtener propietarios:', error);
+/* INIT */
+document.addEventListener('DOMContentLoaded',()=>{
+  cargarTabla();
+  setInterval(cargarTabla,10000);
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('panel')==='agregar') abrirModal('modalAgregar');
+  if(params.get('doc')){
+    const inp=document.getElementById('id_propietario');
+    if(inp){inp.value=params.get('doc');inp.readOnly=true;}
+    abrirModal('modalAgregar');
   }
-}
-
-/* AUTO-CARGAR AL INICIO */
-document.addEventListener('DOMContentLoaded', () => {
-  obtenerPropietarios();
-  setInterval(obtenerPropietarios, 5000);
 });
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
