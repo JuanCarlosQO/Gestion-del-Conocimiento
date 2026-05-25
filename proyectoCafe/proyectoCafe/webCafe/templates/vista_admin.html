@@ -558,6 +558,7 @@ function renderDashboard(){
     .kpi-bar{height:3px;border-radius:99px;background:rgba(5,150,105,0.10);overflow:hidden;margin-top:12px;}
     .kpi-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#059669,#34d399);transition:width 1.2s cubic-bezier(.34,1.1,.64,1);}
     .bottom-g{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:18px;}
+    .bottom-g > * { min-width: 0; }
     .ch-card,.act-card{background:#fff;border-radius:14px;border:1px solid rgba(5,150,105,0.10);padding:20px 22px;box-shadow:0 2px 8px rgba(2,44,34,0.07);}
     .c-title{font-family:'Syne','Inter',sans-serif;font-size:14px;font-weight:800;color:#022c22;margin-bottom:2px;display:flex;align-items:center;gap:7px;}
     .c-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 7px rgba(16,185,129,.5);}
@@ -570,6 +571,7 @@ function renderDashboard(){
     .act-ds{font-size:10px;color:#9ca3af;margin-top:1px;}
     .act-t{font-size:10px;color:#9ca3af;white-space:nowrap;margin-left:auto;}
     .bottom-g2{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+    .bottom-g2 > * { min-width: 0; }
     .mini-c{background:#fff;border-radius:14px;border:1px solid rgba(5,150,105,0.10);padding:18px 20px;box-shadow:0 2px 8px rgba(2,44,34,0.07);}
     .prog-h{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#065f46;margin-bottom:5px;}
     .prog-b{height:7px;border-radius:99px;background:rgba(5,150,105,0.10);overflow:hidden;margin-bottom:12px;}
@@ -584,9 +586,17 @@ function renderDashboard(){
     .chg-up{background:#dcfce7;color:#16a34a;}.chg-dn{background:#fee2e2;color:#dc2626;}
     .ld{display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 1s ease infinite;}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:900px){.bottom-g{grid-template-columns:1fr}.bottom-g2{grid-template-columns:1fr 1fr}}
+    @media(max-width:1200px){
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .info-strip{grid-template-columns:repeat(2,1fr)}
+      .bottom-g{grid-template-columns:1fr}
+      .bottom-g2{grid-template-columns:1fr 1fr}
+    }
     @media(max-width:768px){.bottom-g2{grid-template-columns:1fr}}
+    @media(max-width:560px){
+      .kpi-grid{grid-template-columns:1fr}
+      .info-strip{grid-template-columns:1fr}
+    }
   </style>
   <div id="db-inner">
 

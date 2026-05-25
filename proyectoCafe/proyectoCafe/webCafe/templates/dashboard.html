@@ -104,6 +104,7 @@
 
     /* ── BOTTOM GRID ── */
     .bottom-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;animation:fadeInUp .65s ease-out .15s both}
+    .bottom-grid > * { min-width: 0; }
     .chart-card,.activity-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);padding:22px 24px;box-shadow:var(--sh-card)}
     .card-title{font-family:'Syne','Inter',sans-serif;font-size:15px;font-weight:800;color:var(--g-900);margin-bottom:4px;display:flex;align-items:center;gap:8px}
     .card-title .dot{width:8px;height:8px;border-radius:50%;background:var(--g-400);box-shadow:0 0 8px rgba(52,211,153,0.5)}
@@ -120,6 +121,7 @@
 
     /* ── BOTTOM GRID 2 ── */
     .bottom-grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:18px;animation:fadeInUp .70s ease-out .20s both}
+    .bottom-grid2 > * { min-width: 0; }
     .mini-card{background:var(--card);border-radius:var(--radius);border:1px solid rgba(5,150,105,0.10);padding:20px 22px;box-shadow:var(--sh-card)}
     .progress-item{margin-bottom:14px}
     .prog-header{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--g-800);margin-bottom:6px}
@@ -144,9 +146,19 @@
     ::-webkit-scrollbar-track{background:var(--g-25)}
     ::-webkit-scrollbar-thumb{background:var(--g-300);border-radius:3px}
     ::-webkit-scrollbar-thumb:hover{background:var(--g-500)}
-    @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:900px){.bottom-grid{grid-template-columns:1fr}.bottom-grid2{grid-template-columns:1fr 1fr}}
-    @media(max-width:768px){.bottom-grid2{grid-template-columns:1fr}}
+    @media(max-width:1200px){
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .info-strip{grid-template-columns:repeat(2,1fr)}
+      .bottom-grid{grid-template-columns:1fr}
+      .bottom-grid2{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:768px){
+      .bottom-grid2{grid-template-columns:1fr}
+    }
+    @media(max-width:560px){
+      .kpi-grid{grid-template-columns:1fr}
+      .info-strip{grid-template-columns:1fr}
+    }
 
     /* ── RESPONSIVE MÓVIL ── */
     #db-ham-btn{
@@ -184,6 +196,9 @@
     }
     @media(max-width:640px){
       .db-scroll{padding:14px 12px 40px!important}
+      .welcome-banner{flex-direction:column;gap:16px;align-items:stretch}
+      .banner-stats{flex-wrap:wrap;justify-content:center;gap:10px}
+      .banner-stat{flex:1;min-width:80px}
     }
   </style>
 </head>
