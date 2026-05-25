@@ -15,6 +15,20 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
+  fuseki:
+    image: stain/jena-fuseki:4.9.0
+    container_name: fuseki
+    ports:
+      - "3030:3030"
+    environment:
+      - ADMIN_PASSWORD=admin123
+      - JVM_ARGS=-Xmx1g
+    volumes:
+      - fuseki_data:/fuseki
+      - ./cafeAPI/CafeV9_Final.rdf:/staging/CafeV9_Final.rdf:ro
+      - ./cafeAPI/fuseki_init.sh:/docker-entrypoint-initdb.d/fuseki_init.sh:ro
+    restart: always
+
   cafeapi:
     build: ./cafeAPI
     container_name: cafeapi
@@ -24,10 +38,13 @@ services:
       - ./cafeAPI/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/bdcafe
+      - FUSEKI_URL=http://fuseki:3030
+      - FUSEKI_DATASET=cafe
     volumes:
       - rdf_data:/app/rdf
     depends_on:
       - db
+      - fuseki
     restart: always
 
   django:
@@ -51,3 +68,4 @@ services:
 volumes:
   postgres_data:
   rdf_data:
+  fuseki_data:

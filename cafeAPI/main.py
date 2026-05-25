@@ -1,6 +1,5 @@
-
 import os
-import shutil
+import json
 from pathlib import Path
 
 # Cargar .env antes de cualquier otra cosa
@@ -12,22 +11,9 @@ if _env_path.exists():
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
 
-# Ruta persistente del RDF (volumen Docker) con fallback al directorio local
-_RDF_DIR  = Path(os.environ.get("RDF_DIR", "/app/rdf"))
-_RDF_DIR.mkdir(parents=True, exist_ok=True)
-RDF_PATH = _RDF_DIR / "CafeV9_Final.rdf"
-# Si el volumen está vacío, copiar el RDF original incluido en la imagen
-_RDF_ORIGINAL = Path(__file__).parent / "CafeV9_Final.rdf"
-if not RDF_PATH.exists() and _RDF_ORIGINAL.exists():
-    shutil.copy2(_RDF_ORIGINAL, RDF_PATH)
-elif not RDF_PATH.exists():
-    raise FileNotFoundError(f"No se encontró CafeV9_Final.rdf en {RDF_PATH} ni en {_RDF_ORIGINAL}")
-
 from typing import Optional, List
 
 from fastapi import FastAPI, Depends, HTTPException, Body
-from rdflib import Graph, RDF, OWL, Namespace, URIRef, Literal, XSD
-from rdflib.plugins.sparql import prepareQuery
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from datetime import date, datetime, timedelta
@@ -49,24 +35,23 @@ from schemas import fincaModel, loteModel, insumoModel, compraModel, recoleccion
 from schemas import personaModel, propietarioModel, recolectorModel, tipoDocModel, reporteModel, pagoModel, loginModel, usuarioModel
 from schemas import catTipoInsumoModel, catUnidadMedidaCreateModel, catMetodoAplicacionCreateModel
 from fastapi.middleware.cors import CORSMiddleware
+import fuseki_client as fk
 
-
-app = FastAPI(title="API Ontología RDF", version="1.0")
+app = FastAPI(title="API Ontología RDF - Fuseki", version="2.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # En producción pon la URL de tu Django
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-CAFE = Namespace("http://www.semanticweb.org/cafe/")
-
-g = Graph()
-g.parse(str(RDF_PATH), format="xml")
-
-print(f"Ontología cargada: {len(g)} triples")
 
 ensure_recolector_propietario_finca_columns()
+print("FastAPI iniciada. Ontología gestionada por Apache Jena Fuseki en", fk.FUSEKI_URL)
+
+@app.on_event("startup")
+def startup_event():
+    fk.init_fuseki()
 
 class reporteDiarioReq(BaseModel):
     id_recolector: str
@@ -97,273 +82,125 @@ def _rdf_propietario_de_finca(finca_id: str) -> Optional[str]:
     fid = (finca_id or "").strip()
     if not fid:
         return None
-    uri = URIRef(f"http://www.semanticweb.org/cafe/{fid}")
-    if (uri, None, None) not in g:
-        return None
-    for _, _, o in g.triples((uri, CAFE.fk_idPropietario, None)):
-        return str(o).split("/")[-1]
-    return None
+    return fk.propietario_de_finca(fid)
 
 
 def _kg_recolector_en_fecha(recolector_id: str, fecha_str: str) -> float:
-    rid = (recolector_id or "").strip()
-    fs = (fecha_str or "").strip()[:10]
-    total = 0.0
-    rec_uris = []
-    for rec_uri, _, r_obj in g.triples((None, CAFE.fk_idRecolector, None)):
-        if str(r_obj).strip() != rid:
-            continue
-        for _, __, f in g.triples((rec_uri, CAFE.fecha, None)):
-            if str(f).strip()[:10] == fs:
-                rec_uris.append(rec_uri)
-                break
-    for rec_uri in rec_uris:
-        for ev_uri, _, _ in g.triples((None, CAFE.generaRecoleccion, rec_uri)):
-            for _, __, q in g.triples((ev_uri, CAFE.cantidad, None)):
-                try:
-                    total += float(str(q))
-                except Exception:
-                    pass
-    return total
+    return fk.kg_recolector_en_fecha(recolector_id, fecha_str)
 
 
-# Listar todas las clases ----------------------
+# ── Endpoints ontología ──────────────────────────────────────────────────────
+
 @app.get("/clases")
 def get_clases():
-    query = """
+    q = """
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT DISTINCT ?clase WHERE {
             ?clase a owl:Class .
             FILTER(!isBlank(?clase))
         }
     """
-    resultados = g.query(query, initNs={"owl": OWL})
-    clases = [str(row.clase) for row in resultados]
+    results = fk.sparql_query(q)
+    clases = [r["clase"]["value"] for r in results.get("results", {}).get("bindings", [])]
     return {"total": len(clases), "clases": clases}
 
 
-# Listar todas las propiedades ------------------
 @app.get("/propiedades")
 def get_propiedades():
-    query = """
+    q = """
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT DISTINCT ?prop WHERE {
             { ?prop a owl:ObjectProperty }
             UNION
             { ?prop a owl:DatatypeProperty }
         }
     """
-    resultados = g.query(query, initNs={"owl": OWL})
-    props = [str(row.prop) for row in resultados]
+    results = fk.sparql_query(q)
+    props = [r["prop"]["value"] for r in results.get("results", {}).get("bindings", [])]
     return {"total": len(props), "propiedades": props}
 
 
-# Listar todos los individuos ----------------------
 @app.get("/individuos")
 def get_individuos():
-    query = """
+    q = """
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
         SELECT DISTINCT ?ind ?tipo WHERE {
             ?ind a ?tipo .
             ?tipo a owl:Class .
             FILTER(!isBlank(?ind))
         }
     """
-    resultados = g.query(query, initNs={"owl": OWL})
-    individuos = [{"individuo": str(row.ind), "tipo": str(row.tipo)} for row in resultados]
+    results = fk.sparql_query(q)
+    individuos = [
+        {"individuo": r["ind"]["value"], "tipo": r["tipo"]["value"]}
+        for r in results.get("results", {}).get("bindings", [])
+    ]
     return {"total": len(individuos), "individuos": individuos}
 
 
-
-
-### Apache JENA -----------------------Ontologia
-
-# --- Si existe el individuo
 def existe_recurso(id_recurso: str) -> bool:
-    uri = URIRef(f"http://www.semanticweb.org/cafe/{id_recurso}")
-    return (uri, None, None) in g
+    return fk.existe_recurso(id_recurso)
 
-# ---Get individuo ----------
+
 @app.get("/detalle/{id_recurso}", tags=["consultas"])
 def get_detalle_individual(id_recurso: str):
-    
-    uri_individuo = URIRef(f"http://www.semanticweb.org/cafe/{id_recurso}")
-    
+    detalle = fk.get_detalle_individuo(id_recurso)
+    if detalle is None:
+        raise HTTPException(status_code=404, detail=f"El individuo '{id_recurso}' no existe.")
+    return detalle
 
-    if (uri_individuo, None, None) not in g:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"El individuo '{id_recurso}' no existe en la base de datos."
-        )
-
-    detalles = {}
-    relaciones = {}
-    
-    for p, o in g.predicate_objects(uri_individuo):
-        nombre_prop = str(p).split('/')[-1]
-        if nombre_prop == "type": continue
-        
-        if isinstance(o, Literal):
-            detalles[nombre_prop] = o.toPython()
-        else:
-            id_relacionado = str(o).split('/')[-1]
-            relaciones[nombre_prop] = id_relacionado
-
-    return {
-        "Id": id_recurso,
-        "Datos": detalles,
-        "Relaciones": relaciones
-    }
-
-# --- Get por clase ----------
 
 @app.get("/detallesClase/{nombre_clase}", tags=["consultasClase"])
 def get_individuosClase(nombre_clase: str):
-  
-    uri_clase = URIRef(f"http://www.semanticweb.org/cafe/{nombre_clase}")
-    
-    query = """
-        SELECT ?ind ?p ?o WHERE {
-            ?ind rdf:type ?clase .
-            ?ind ?p ?o .
-            FILTER(?clase = %s)
-            FILTER(isLiteral(?o))
-        }
-    """ % uri_clase.n3() # n3formatea la URI 
-
     try:
-        resultados = g.query(query)
-        respuesta = {}
-        for row in resultados:
-            ind_id = str(row.ind).split('/')[-1]
-            propiedad = str(row.p).split('/')[-1]
-            valor = row.o.toPython()
-            if ind_id not in respuesta:
-                respuesta[ind_id] = {} 
-            respuesta[ind_id][propiedad] = valor
+        respuesta = fk.get_individuos_clase(nombre_clase)
         if not respuesta:
-            return {"mensaje": f"No se encontraron individuos para  '{nombre_clase}'"}
-        return {
-            "Clase": nombre_clase,
-            "Total de registros": len(respuesta),
-            "Individuos": respuesta
-        }
+            return {"mensaje": f"No se encontraron individuos para '{nombre_clase}'"}
+        return {"Clase": nombre_clase, "Total de registros": len(respuesta), "Individuos": respuesta}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al consultar")
+        raise HTTPException(status_code=500, detail=f"Error al consultar: {str(e)}")
 
-# --Eliminar por id individuo
 
 @app.delete("/individuos/{id_recurso}", tags=["Eliminar"])
 def eliminar_individuo(id_recurso: str):
-    uri_encontrar = URIRef(f"http://www.semanticweb.org/cafe/{id_recurso}")
-    
-    if (uri_encontrar, None, None) not in g and (None, None, uri_encontrar) not in g:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"No se encontró el individuo"
-        )
+    if not fk.existe_recurso(id_recurso):
+        raise HTTPException(status_code=404, detail="No se encontró el individuo")
     try:
-        g.remove((uri_encontrar, None, None))
-        g.remove((None, None, uri_encontrar))
-        g.serialize(destination=str(RDF_PATH), format="xml")
-        return {
-            "mensaje": f"El individuo ha sido eliminado.",
-            "id_eliminado": id_recurso
-        }
+        fk.eliminar_individuo(id_recurso)
+        return {"mensaje": "El individuo ha sido eliminado.", "id_eliminado": id_recurso}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Error al intentar eliminar"
-        )
+        raise HTTPException(status_code=500, detail=f"Error al eliminar: {str(e)}")
 
-# --Editar un individuo
+
 @app.put("/corregirIndividuo/{id_recurso}", tags=["Editar"])
 def editar_individuo(id_recurso: str, nuevos_datos: dict):
-    uri_editar = URIRef(f"http://www.semanticweb.org/cafe/{id_recurso}")
-    
-    if (uri_editar, None, None) not in g:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"No se puede editar"
-        )
-    
+    if not fk.existe_recurso(id_recurso):
+        raise HTTPException(status_code=404, detail="No se puede editar")
     try:
-        tipo_original = g.value(uri_editar, RDF.type)
-        for p, o in g.predicate_objects(uri_editar):
-            if isinstance(o, Literal):
-                g.remove((uri_editar, p, o))
-
-        for propiedad, valor in nuevos_datos.items():
-            prop_uri = CAFE[propiedad] 
-            
-            if isinstance(valor, bool):
-                nuevo_valor = Literal(valor, datatype=XSD.boolean)
-            elif isinstance(valor, int):
-                nuevo_valor = Literal(valor, datatype=XSD.int)
-            elif isinstance(valor, float):
-                nuevo_valor = Literal(valor, datatype=XSD.double)
-            else:
-                nuevo_valor = Literal(str(valor), datatype=XSD.string)
-            
-            g.add((uri_editar, prop_uri, nuevo_valor))
-        if tipo_original:
-            g.add((uri_editar, RDF.type, tipo_original))
-
-        g.serialize(destination=str(RDF_PATH), format="xml")
-        return {
-            "mensaje": f"Individuo '{id_recurso}' actualizado correctamente.",
-            "datos_actualizados": nuevos_datos
-        }
+        fk.editar_individuo_completo(id_recurso, nuevos_datos)
+        return {"mensaje": f"Individuo '{id_recurso}' actualizado.", "datos_actualizados": nuevos_datos}
     except Exception as e:
-        raise HTTPException(
-            status_code=500, 
-            detail=f"Error durante la edición"
-        )
+        raise HTTPException(status_code=500, detail=f"Error durante la edición: {str(e)}")
 
-# -- Guardar -----------------
 
 def guardar_rdf(id_uri, tipo_clase, id_numero, datos_restantes, relaciones_dict=None):
-    uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_uri}")
-    if (uri_recurso, None, None) in g:
-        raise HTTPException(status_code=400, detail=f"El individuo ya existe.")
-
-    g.add((uri_recurso, RDF.type, CAFE[tipo_clase]))
-    g.add((uri_recurso, CAFE.id, Literal(id_numero, datatype=XSD.int)))
-    
-    for prop, valor in datos_restantes.items():
-        if valor is not None:
-            if isinstance(valor, bool): dtype = XSD.boolean
-            elif isinstance(valor, int): dtype = XSD.int
-            elif isinstance(valor, float): dtype = XSD.double
-            else: dtype = XSD.string
-            g.add((uri_recurso, CAFE[prop], Literal(valor, datatype=dtype)))
-
-    if relaciones_dict:
-        for prop, id_destino in relaciones_dict.items():
-            if id_destino:
-                uri_destino = URIRef(f"http://www.semanticweb.org/cafe/{id_destino}")
-                g.add((uri_recurso, CAFE[prop], uri_destino))
-    
-    g.serialize(destination=str(RDF_PATH), format="xml")
+    """Equivalente al guardar_rdf original, ahora usa Fuseki."""
+    try:
+        fk.insertar_individuo(id_uri, tipo_clase, id_numero, datos_restantes, relaciones_dict)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al guardar en Fuseki: {str(e)}")
 
 
-# Crear un individuo RDF genérico por clase
 @app.post("/individuos/{tipo_clase}", tags=["Estructura"])
 def crear_individuo_generico(tipo_clase: str, body: dict = Body(...)):
-    """
-    body esperado:
-      - id_uri: str (obligatorio)
-      - id_numeric: int (obligatorio)
-      - datos: dict (propiedades literales)
-      - relaciones: dict (propiedades -> id_destino)
-    """
-    if not isinstance(body, dict):
-        raise HTTPException(status_code=400, detail="Body inválido")
-    id_uri = body.get("id_uri") or body.get("id") or body.get("id_recurso")
+    id_uri     = body.get("id_uri") or body.get("id") or body.get("id_recurso")
     id_numeric = body.get("id_numeric")
-    datos = body.get("datos") or {}
+    datos      = body.get("datos") or {}
     relaciones = body.get("relaciones") or {}
     if not id_uri or id_numeric is None:
         raise HTTPException(status_code=400, detail="id_uri e id_numeric son obligatorios")
-    if not isinstance(datos, dict) or not isinstance(relaciones, dict):
-        raise HTTPException(status_code=400, detail="datos/relaciones deben ser dict")
     guardar_rdf(str(id_uri), str(tipo_clase), int(id_numeric), datos, relaciones)
     return {"status": "creado", "id": str(id_uri), "clase": str(tipo_clase)}
 
@@ -390,12 +227,10 @@ def insert_finca(data: fincaModel, db: Session = Depends(get_db)):
         "fk_idPropietario": propietario_sql.id_propietario  
     }
     guardar_rdf(data.id_finca, "finca", data.id_numeric, datos)
-    uri_finca = URIRef(f"http://www.semanticweb.org/cafe/{data.id_finca}")
     for l_id in data.lotes:
-        g.add((uri_finca, CAFE.contieneLote, URIRef(f"http://www.semanticweb.org/cafe/{l_id}")))
+        fk.agregar_relacion(data.id_finca, "contieneLote", l_id)
     for c_id in data.compras:
-        g.add((uri_finca, CAFE.realizaCompra, URIRef(f"http://www.semanticweb.org/cafe/{c_id}")))
-    g.serialize(destination=str(RDF_PATH), format="xml")
+        fk.agregar_relacion(data.id_finca, "realizaCompra", c_id)
     return {"status": "Finca registrada"}
 
 #Lote
@@ -408,12 +243,10 @@ def insert_lote(data: loteModel):
         "estado": data.estado
     } 
     guardar_rdf(data.id_lote, "lote", data.id_numeric, datos)
-    uri_lote = URIRef(f"http://www.semanticweb.org/cafe/{data.id_lote}")
     for e_id in data.eventosRecoleccion:
-        g.add((uri_lote, CAFE.estableceRecoleccion, URIRef(f"http://www.semanticweb.org/cafe/{e_id}")))
+        fk.agregar_relacion(data.id_lote, "estableceRecoleccion", e_id)
     for s_id in data.suministros:
-        g.add((uri_lote, CAFE.seAbastecePor, URIRef(f"http://www.semanticweb.org/cafe/{s_id}")))
-    g.serialize(destination=str(RDF_PATH), format="xml")
+        fk.agregar_relacion(data.id_lote, "seAbastecePor", s_id)
     return {"status": "Lote registrado"}
 
 @app.post("/compras", tags=["Estructura"])
@@ -421,7 +254,6 @@ def insert_compra(data: compraModel):
     datos = {"fecha": data.fecha, "cantidad": data.cantidad, "precio": data.precio, "estado": data.estado}
     relaciones = {"incluyeInsumo": data.id_insumo, "esCompraDe": data.id_finca}
     guardar_rdf(data.id_compra, "compra", data.id_numeric, datos, relaciones)
-    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Compra registrada"}
 
 #Insumos
@@ -437,16 +269,11 @@ def insert_insumo(data: insumoModel):
     }
     datos = {k: v for k, v in datos.items() if v not in (None, "")}
     guardar_rdf(data.id_insumo, "insumo", data.id_numeric, datos)
-    uri_insumo = URIRef(f"http://www.semanticweb.org/cafe/{data.id_insumo}")
     for c_id in getattr(data, 'compras', []):
-        uri_compra = URIRef(f"http://www.semanticweb.org/cafe/{c_id}")
-        g.add((uri_insumo, CAFE.esAdquiridoPor, uri_compra))
+        fk.agregar_relacion(data.id_insumo, "esAdquiridoPor", c_id)
         
     for s_id in getattr(data, 'suministrosVinculados', []):
-        uri_sum = URIRef(f"http://www.semanticweb.org/cafe/{s_id}")
-        g.add((uri_insumo, CAFE.permiteLa, uri_sum))
-
-    g.serialize(destination=str(RDF_PATH), format="xml")
+        fk.agregar_relacion(data.id_insumo, "permiteLa", s_id)
     return {"status": "Insumo registrado"}
 
 #Inventario
@@ -459,7 +286,6 @@ def insert_inventario(data: inventarioModel):
     }
     relaciones = {"contieneInsumo": data.id_insumo}
     guardar_rdf(data.id_inventario, "inventario", data.id_numeric, datos, relaciones)
-    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Inventario registrado"}
 
 #Suministros
@@ -471,7 +297,6 @@ def insert_suministro(data: suministraInsumoModel):
         "seaplicaEn": data.id_lote  
     }
     guardar_rdf(data.id_suministro, "suministroInsumo", data.id_numeric, datos, relaciones)
-    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Suministro registrado"}
 
 
@@ -672,10 +497,10 @@ def eliminar_registro(nombre_tabla: str, id_registro: str, db: Session = Depends
     elif tabla.name == "recolector":
         _cascade_delete_recolector_db(db, id_registro)
         db.commit()
-        uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_registro}")
-        g.remove((uri_recurso, None, None))
-        g.remove((None, None, uri_recurso))
-        g.serialize(destination=str(RDF_PATH), format="xml")
+        try:
+            fk.eliminar_individuo(id_registro)
+        except Exception:
+            pass
         return {"status": "Eliminacion realizada"}
 
     query = text(f"DELETE FROM {tabla.name} WHERE {pk_column} = :id")
@@ -684,10 +509,10 @@ def eliminar_registro(nombre_tabla: str, id_registro: str, db: Session = Depends
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="El registro no existe en Postgres")
 
-    uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_registro}")
-    g.remove((uri_recurso, None, None))
-    g.remove((None, None, uri_recurso))
-    g.serialize(destination=str(RDF_PATH), format="xml")
+    try:
+        fk.eliminar_individuo(id_registro)
+    except Exception:
+        pass
     return {"status": "Eliminacion realizada"}
 
 # Editar un registro
@@ -745,14 +570,12 @@ def editar_registro(
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="No existe el registro")
     
-    #Apache jena
-    uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_registro}")
-    
+    # Apache jena
     for campo, nuevo_valor in actualizaciones.items():
-        predicado = CAFE[campo] 
-        g.remove((uri_recurso, predicado, None))
-        g.add((uri_recurso, predicado, Literal(nuevo_valor)))
-        g.serialize(destination=str(RDF_PATH), format="xml")
+        try:
+            fk.editar_literal(id_registro, campo, nuevo_valor)
+        except Exception:
+            pass
     return {
         "status": "Actualización realizada",
         "campos_modificados": list(actualizaciones.keys())
@@ -1149,23 +972,10 @@ def generar_reporte_diario(data: reporteDiarioReq, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail=f"Fecha fuera de rango ({inicio.isoformat()} - {fin.isoformat()})")
 
     # Calcular total recolectado desde RDF
-    total_cantidad = 0
-    rec_uris = []
-    for rec_uri, _, rid in g.triples((None, CAFE.fk_idRecolector, None)):
-        if str(rid).strip() != recolector_id:
-            continue
-        for _, __, f in g.triples((rec_uri, CAFE.fecha, None)):
-            if str(f).strip()[:10] == fecha_str:
-                rec_uris.append(rec_uri)
-                break
-
-    for rec_uri in rec_uris:
-        for ev_uri, _, _ in g.triples((None, CAFE.generaRecoleccion, rec_uri)):
-            for _, __, q in g.triples((ev_uri, CAFE.cantidad, None)):
-                try:
-                    total_cantidad += int(float(str(q)))
-                except Exception:
-                    pass
+    try:
+        total_cantidad = int(fk.kg_recolector_en_fecha(recolector_id, fecha_str))
+    except Exception:
+        total_cantidad = 0
 
     reporte_id = f"RD_{recolector_id}_{fecha_str}"
     rep = db.query(reporte).filter(reporte.id_reporte == reporte_id).first()
@@ -1479,20 +1289,16 @@ Devuelve SOLO JSON puro sin markdown:
 
     if db_choice in ("rdf", "both") and sparql_query:
         try:
-            res_sparql = g.query(sparql_query)
-            vars_list = [str(v) for v in res_sparql.vars]
+            res_json = fk.sparql_query(sparql_query)
+            vars_list = res_json.get("head", {}).get("vars", [])
             records = []
-            for row in res_sparql:
+            for binding in res_json.get("results", {}).get("bindings", []):
                 row_dict = {}
                 for var in vars_list:
-                    try:
-                        val = row[var]
-                    except Exception:
-                        val = getattr(row, var, None)
-                    if val is not None:
-                        vs = str(val)
-                        row_dict[var] = (vs.split("/")[-1] if "semanticweb.org/cafe/" in vs
-                                         else (val.toPython() if hasattr(val, "toPython") else vs))
+                    var_data = binding.get(var)
+                    if var_data is not None:
+                        vs = var_data.get("value")
+                        row_dict[var] = vs.split("/")[-1] if "semanticweb.org/cafe/" in vs else vs
                     else:
                         row_dict[var] = None
                 records.append(row_dict)
