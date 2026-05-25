@@ -7,7 +7,7 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
   <title>PERSONA — SIGIC</title>
 </head>
 <body>
@@ -15,230 +15,294 @@
 
   <!-- SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">PERSONA</div>
+    <div id="vista_title" class="letras">PERSONA</div>
     <div id="ordena_boton">
       <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4'); obtenerPersonas()">📋 Ver todos</button>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- PANEL AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">👤</div>
-        <div><h2>Registrar Persona</h2><p>Complete los datos del nuevo registro</p></div>
-      </div>
-      <form id="registropersona">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada" id="documento_persona" name="documento_persona" placeholder="Número de documento" minlength="8" required>
-        <label class="labels">Tipo de Documento</label>
-        <select class="selector" id="id_tipodoc" name="id_tipodoc" required>
-          <option value="0">— Seleccione —</option>
-          <option value="1">Cédula de Ciudadanía</option>
-          <option value="2">Tarjeta de Identidad</option>
-          <option value="3">Cédula de Extranjería</option>
-        </select>
-        <label class="labels">Nombre completo</label>
-        <input type="text" class="entrada" id="nombre_persona" name="nombre_persona" placeholder="Nombre y apellidos" required>
-        <label class="labels">Edad</label>
-        <input type="number" class="entrada" id="edad_persona" name="edad_persona" placeholder="Edad en años" min="1" max="110" required>
-        <label class="labels">Teléfono</label>
-        <input type="text" class="entrada" id="telefono_persona" name="telefono_persona" placeholder="10 dígitos" minlength="10" required>
-        <label class="labels">Rol a asignar</label>
-        <select class="selector" id="roles" name="roles" required>
-          <option value="0">— Seleccione —</option>
-          <option value="1">Propietario</option>
-          <option value="2">Recolector</option>
-        </select>
-        <button type="submit" class="botonsum" id="botonaccion">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- PANEL BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div><h2>Buscar Persona</h2><p>Ingrese el documento para consultar</p></div>
-      </div>
-      <form id="buscarpersona">
-        <label class="labels">Número de Documento</label>
-        <input type="text" class="entrada" id="documento_buscar" name="documento_persona" placeholder="Documento de la persona" required>
-        <button type="submit" class="botonsum" id="Buscar">🔍 Buscar</button>
-      </form>
-      <div id="resultado_busqueda"></div>
-    </div>
-  </div>
-
-  <!-- PANEL EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div><h2>Editar Persona</h2><p>Modifique los campos necesarios</p></div>
-      </div>
-      <form id="editarpersona">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada2" id="documento_persona2" disabled>
-        <label class="labels">Tipo de Documento</label>
-        <select class="selector entrada2" id="id_tipodoc2" disabled>
-          <option value="0">— Seleccione —</option>
-          <option value="1">Cédula de Ciudadanía</option>
-          <option value="2">Tarjeta de Identidad</option>
-          <option value="3">Cédula de Extranjería</option>
-        </select>
-        <label class="labels">Nombre</label>
-        <input type="text" class="entrada2" id="nombre_persona2" disabled>
-        <label class="labels">Edad</label>
-        <input type="number" class="entrada2" id="edad_persona2" disabled>
-        <label class="labels">Teléfono</label>
-        <input type="text" class="entrada2" id="telefono_persona2" disabled>
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered" style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">↩ Volver</button>
+  <!-- PANEL TABLA PRINCIPAL -->
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">👤</div>
+        <div>
+          <h1 class="crud-title">Personas</h1>
+          <p class="crud-subtitle">Gestión de registros de personas</p>
         </div>
-      </form>
+      </div>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap">
+          <span class="crud-search-icon">🔍</span>
+          <input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar por nombre, documento...">
+        </div>
+        <span class="crud-badge" id="contadorPersonas">Cargando...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- PANEL ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Persona</h2><p>Esta acción eliminará el registro permanentemente</p></div>
-      </div>
-      <form id="eliminarpersona">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada" id="documento_eliminar" name="documento_eliminar" placeholder="Documento a eliminar" required>
-        <button type="submit" class="botonsum" id="botoneliminar" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-      <div id="resultado_eliminacion"></div>
-    </div>
-  </div>
-
-  <!-- PANEL VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Personas</h2>
-        <span class="tabla-count" id="contador-personas">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarPersonas">
-          <thead>
-            <tr>
-              <th>Documento</th>
-              <th>Tipo Doc.</th>
-              <th>Nombre</th>
-              <th>Edad</th>
-              <th>Teléfono</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaPersonas">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Tipo Doc.</th>
+            <th>Nombre</th>
+            <th>Edad</th>
+            <th>Teléfono</th>
+            <th class="th-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPersonas">
+          <tr><td colspan="6" class="td-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Cargando registros...
+          </td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
 
+<!-- ══ MODAL AGREGAR ══ -->
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">➕</div>
+      <div>
+        <h2>Registrar Persona</h2>
+        <p>Complete los datos del nuevo registro</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button>
+    </div>
+    <form id="registropersona">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento</label>
+          <input type="text" class="entrada" id="documento_persona" name="documento_persona" placeholder="Número de documento" minlength="8" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Tipo de Documento</label>
+          <select class="selector" id="id_tipodoc" name="id_tipodoc" required>
+            <option value="0">— Seleccione —</option>
+            <option value="1">Cédula de Ciudadanía</option>
+            <option value="2">Tarjeta de Identidad</option>
+            <option value="3">Cédula de Extranjería</option>
+          </select>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Nombre completo</label>
+          <input type="text" class="entrada" id="nombre_persona" name="nombre_persona" placeholder="Nombre y apellidos" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Edad</label>
+          <input type="number" class="entrada" id="edad_persona" name="edad_persona" placeholder="Años" min="1" max="110" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Teléfono</label>
+          <input type="text" class="entrada" id="telefono_persona" name="telefono_persona" placeholder="10 dígitos" minlength="10" required>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Rol a asignar</label>
+          <select class="selector" id="roles" name="roles" required>
+            <option value="0">— Seleccione —</option>
+            <option value="1">Propietario</option>
+            <option value="2">Recolector</option>
+          </select>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button>
+        <button type="submit" class="btn-crud-save" id="botonaccion">💾 Guardar</button>
+      </div>
+      <div id="resultado"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">✏️</div>
+      <div>
+        <h2>Editar Persona</h2>
+        <p>Modifique los campos necesarios</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form id="editarpersona">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento</label>
+          <input type="text" class="entrada entrada2" id="documento_persona2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Tipo de Documento</label>
+          <select class="selector entrada2" id="id_tipodoc2" disabled>
+            <option value="0">— Seleccione —</option>
+            <option value="1">Cédula de Ciudadanía</option>
+            <option value="2">Tarjeta de Identidad</option>
+            <option value="3">Cédula de Extranjería</option>
+          </select>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Nombre completo</label>
+          <input type="text" class="entrada entrada2" id="nombre_persona2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Edad</label>
+          <input type="number" class="entrada entrada2" id="edad_persona2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Teléfono</label>
+          <input type="text" class="entrada entrada2" id="telefono_persona2" disabled>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="button" class="btn-crud-unlock" id="botondesbloquear">✏️ Habilitar edición</button>
+        <button type="submit" class="btn-crud-save" id="botoneditar" disabled>💾 Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div>
+        <h2>Eliminar Persona</h2>
+        <p>Esta acción no se puede deshacer</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar el registro de:</p>
+      <div class="crud-confirm-target" id="confirmNombre">—</div>
+      <p class="crud-confirm-doc">Documento: <strong id="confirmDoc">—</strong></p>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+    <div id="resultado_eliminacion" style="padding:0 28px 16px;"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
 function getCookie(name){let c=null;if(document.cookie){for(let k of document.cookie.split(';')){if(k.trim().startsWith(name+'=')){c=k.split('=')[1];break;}}}return c;}
 
-function showPanel(panelId){
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  const el=document.getElementById(panelId);
-  if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
-  const res=document.getElementById('resultado');
-  if(res) res.innerHTML='';
+/* ── Modales ── */
+function abrirModal(id){
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.crud-modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) cerrarModal(overlay.id); });
+});
+
+/* ── Toast ── */
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('crudToast');
+  t.textContent=msg;
+  t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
 }
 
+function getTipodoc(id){return id==1?'CC':id==2?'TI':id==3?'CE':'—';}
+let docParaEliminar='';
+
+/* ── Volver ── */
 document.getElementById('botonVolver').addEventListener('click',()=>{
-  window.location.href = '{{ volver_url }}';
+  window.location.href='{{ volver_url }}';
 });
 
-document.getElementById('botonvolvered').addEventListener('click',()=>{
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled=false;
-  document.getElementById('botoneditar').disabled=true;
-  document.getElementById('id_tipodoc2').disabled=true;
-  document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
-  document.getElementById('editarpersona').reset();
-});
-
-/* REGISTRAR */
-document.getElementById('registropersona').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const doc=document.getElementById('documento_persona').value;
-  const tipoDoc=document.getElementById('id_tipodoc').value;
-  const nombre=document.getElementById('nombre_persona').value;
-  const edad=document.getElementById('edad_persona').value;
-  const tel=document.getElementById('telefono_persona').value;
-  const rol=document.getElementById('roles').value;
-  if(tipoDoc==='0'){alert('Seleccione un tipo de documento');return;}
-  if(rol==='0'){alert('Seleccione un rol');return;}
-  if(!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)){alert('El nombre solo puede tener letras');return;}
-  const fd=new FormData();
-  fd.append('documento_persona',doc);fd.append('id_tipodoc',tipoDoc);
-  fd.append('nombre_persona',nombre);fd.append('edad_persona',edad);
-  fd.append('telefono_persona',tel);fd.append('csrfmiddlewaretoken',getCookie('csrftoken'));
+/* ── CARGAR TABLA ── */
+async function obtenerPersonas(){
   try{
-    const r=await fetch('/insert_persona_temporal/',{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')},body:fd});
-    const d=await r.json();
-    if(d.success){
-      window.location.href=rol==='1'?`/propietario/?doc=${doc}&panel=agregar`:`/recolector/?doc=${doc}&panel=agregar`;
-    }else{alert('Error: '+d.message);}
-  }catch(err){alert('Error al conectar con el servidor.');}
-});
+    const r=await fetch('/get_todos/Persona/',{headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const personas=await r.json();
+    const tbody=document.getElementById('tbodyPersonas');
+    const counter=document.getElementById('contadorPersonas');
+    tbody.innerHTML='';
+    if(!personas.length){
+      tbody.innerHTML='<tr><td colspan="6" class="td-empty">Sin registros registrados</td></tr>';
+      counter.textContent='0 registros'; return;
+    }
+    counter.textContent=personas.length+' registros';
+    personas.forEach(p=>{
+      const tr=document.createElement('tr');
+      tr.dataset.doc=p.documento_persona||'';
+      tr.dataset.nombre=p.nombre_persona||'';
+      tr.innerHTML=`
+        <td><span class="td-doc">${p.documento_persona||'—'}</span></td>
+        <td><span class="badge-tipodoc">${getTipodoc(p.fk_tipo_documento)}</span></td>
+        <td><strong>${p.nombre_persona||'—'}</strong></td>
+        <td>${p.edad_persona||'—'}</td>
+        <td>${p.telefono_persona||'—'}</td>
+        <td class="td-acciones">
+          <button class="btn-tbl-view" onclick="verPersona('${p.documento_persona}')" title="Ver / Editar">✏️</button>
+          <button class="btn-tbl-del" onclick="prepararEliminar('${p.documento_persona}','${(p.nombre_persona||'').replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    aplicarFiltro();
+  }catch(err){
+    document.getElementById('tbodyPersonas').innerHTML='<tr><td colspan="6" class="td-error">Error al cargar datos</td></tr>';
+  }
+}
 
-/* BUSCAR */
-document.getElementById('buscarpersona').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const doc=document.getElementById('documento_buscar').value;
-  const cont=document.getElementById('resultado_busqueda');
-  cont.innerHTML='<p style="font-size:13px;color:#6b7280;margin-top:10px;">Buscando...</p>';
+/* ── FILTRO ── */
+function aplicarFiltro(){
+  const q=document.getElementById('buscadorTabla').value.toLowerCase();
+  document.querySelectorAll('#tbodyPersonas tr[data-doc]').forEach(tr=>{
+    const texto=(tr.dataset.doc+' '+tr.dataset.nombre).toLowerCase();
+    tr.style.display=texto.includes(q)?'':'none';
+  });
+}
+document.getElementById('buscadorTabla').addEventListener('input',aplicarFiltro);
+
+/* ── VER / EDITAR ── */
+async function verPersona(doc){
   try{
     const r=await fetch(`/consultar_registro/Persona/${doc}/`);
     const data=await r.json();
-    if(r.ok){
-      const reg=data.data||data;
-      showPanel('panel22');
-      document.getElementById('documento_persona2').value=reg.documento_persona||'';
-      document.getElementById('nombre_persona2').value=reg.nombre_persona||'';
-      document.getElementById('edad_persona2').value=reg.edad_persona||'';
-      document.getElementById('telefono_persona2').value=reg.telefono_persona||'';
-      document.getElementById('id_tipodoc2').value=String(reg.fk_tipo_documento||'0');
-      cont.innerHTML=`<div id="resultado" style="margin-top:16px;"><div id="tituloDatos">Datos encontrados</div>
-        <p><strong>Documento:</strong> ${reg.documento_persona||'N/A'}</p>
-        <p><strong>Nombre:</strong> ${reg.nombre_persona||'N/A'}</p>
-        <p><strong>Edad:</strong> ${reg.edad_persona||'N/A'}</p>
-        <p><strong>Teléfono:</strong> ${reg.telefono_persona||'N/A'}</p></div>`;
-    }else{cont.innerHTML=`<p style="color:#ef4444;margin-top:10px;">${data.error||'No se encontró el registro'}</p>`;}
-  }catch(err){alert('Error al cargar los datos.');}
-  document.getElementById('buscarpersona').reset();
-});
+    const reg=data.data||data;
+    document.getElementById('documento_persona2').value=reg.documento_persona||'';
+    document.getElementById('nombre_persona2').value=reg.nombre_persona||'';
+    document.getElementById('edad_persona2').value=reg.edad_persona||'';
+    document.getElementById('telefono_persona2').value=reg.telefono_persona||'';
+    document.getElementById('id_tipodoc2').value=String(reg.fk_tipo_documento||'0');
+    document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
+    document.getElementById('id_tipodoc2').disabled=true;
+    document.getElementById('botoneditar').disabled=true;
+    document.getElementById('botondesbloquear').disabled=false;
+    abrirModal('modalEditar');
+  }catch(err){ showToast('Error al cargar los datos','err'); }
+}
 
-/* DESBLOQUEAR EDICIÓN */
 document.getElementById('botondesbloquear').addEventListener('click',()=>{
-  document.querySelectorAll('.entrada2').forEach(e=>{if(e.id!=='documento_persona2') e.disabled=false;});
+  document.querySelectorAll('.entrada2').forEach(e=>{ if(e.id!=='documento_persona2') e.disabled=false; });
   document.getElementById('id_tipodoc2').disabled=false;
   document.getElementById('botoneditar').disabled=false;
   document.getElementById('botondesbloquear').disabled=true;
 });
 
-/* EDITAR */
 document.getElementById('editarpersona').addEventListener('submit',async e=>{
   e.preventDefault();
   const doc=document.getElementById('documento_persona2').value;
@@ -248,66 +312,63 @@ document.getElementById('editarpersona').addEventListener('submit',async e=>{
     edad_persona:parseInt(document.getElementById('edad_persona2').value),
     telefono_persona:document.getElementById('telefono_persona2').value
   };
-  if(datos.fk_tipo_documento===0){alert('Seleccione tipo de documento');return;}
+  if(datos.fk_tipo_documento===0){ showToast('Seleccione tipo de documento','err'); return; }
   try{
     const r=await fetch(`/corregir_registro/Persona/${doc}/`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify(datos)});
     const data=await r.json();
-    if(r.ok){
-      document.querySelectorAll('.entrada2,.selector').forEach(el=>el.disabled=true);
-      document.getElementById('botoneditar').disabled=true;
-      document.getElementById('botondesbloquear').disabled=false;
-      document.getElementById('resultado_busqueda').innerHTML=`<div id="resultado" style="margin-top:16px;">
-        <div id="tituloDatos">Datos actualizados</div>
-        <p><strong>Documento:</strong> ${doc}</p>
-        <p><strong>Nombre:</strong> ${datos.nombre_persona}</p></div>`;
-      setTimeout(()=>showPanel('panel2'),1500);
-    }else{alert('Error: '+(data.message||'No se pudo guardar'));}
-  }catch(err){alert('Error al conectar con el servidor.');}
+    if(r.ok){ cerrarModal('modalEditar'); showToast('Persona actualizada correctamente ✓'); obtenerPersonas(); }
+    else{ showToast('Error: '+(data.message||'No se pudo guardar'),'err'); }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
 });
 
-/* ELIMINAR */
-document.getElementById('eliminarpersona').addEventListener('submit',async e=>{
+/* ── REGISTRAR ── */
+document.getElementById('registropersona').addEventListener('submit',async e=>{
   e.preventDefault();
-  const doc=document.getElementById('documento_eliminar').value.trim();
-  if(!doc){alert('Ingrese un documento');return;}
-  if(!confirm(`¿Eliminar el registro del documento ${doc}? Esta acción no se puede deshacer.`)) return;
-  const cont=document.getElementById('resultado_eliminacion');
+  const doc=document.getElementById('documento_persona').value;
+  const tipoDoc=document.getElementById('id_tipodoc').value;
+  const nombre=document.getElementById('nombre_persona').value;
+  const edad=document.getElementById('edad_persona').value;
+  const tel=document.getElementById('telefono_persona').value;
+  const rol=document.getElementById('roles').value;
+  if(tipoDoc==='0'){ showToast('Seleccione un tipo de documento','err'); return; }
+  if(rol==='0'){ showToast('Seleccione un rol','err'); return; }
+  if(!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)){ showToast('El nombre solo puede tener letras','err'); return; }
+  const fd=new FormData();
+  fd.append('documento_persona',doc); fd.append('id_tipodoc',tipoDoc);
+  fd.append('nombre_persona',nombre); fd.append('edad_persona',edad);
+  fd.append('telefono_persona',tel); fd.append('csrfmiddlewaretoken',getCookie('csrftoken'));
   try{
-    const r=await fetch(`/eliminar_registro/Persona/${doc}/`,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')}});
-    const data=await r.json();
-    if(r.ok){
-      document.getElementById('documento_eliminar').value='';
-      cont.innerHTML=`<div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;">
-        <div id="tituloDatos" style="color:#ef4444;">Registro Eliminado</div>
-        <p><strong>Documento eliminado:</strong> ${doc}</p></div>`;
-    }else{alert('Error: '+(data.message||'No se pudo eliminar'));}
-  }catch(err){alert('Error al conectar con el servidor.');}
+    const r=await fetch('/insert_persona_temporal/',{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')},body:fd});
+    const d=await r.json();
+    if(d.success){
+      window.location.href=rol==='1'?`/propietario/?doc=${doc}&panel=agregar`:`/recolector/?doc=${doc}&panel=agregar`;
+    }else{ showToast('Error: '+d.message,'err'); }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
 });
 
-/* VER TODOS */
-function getTipodoc(id){return id==1?'CC':id==2?'TI':id==3?'CE':'—';}
-async function obtenerPersonas(){
-  try{
-    const r=await fetch('/get_todos/Persona/',{headers:{'X-Requested-With':'XMLHttpRequest'}});
-    const personas=await r.json();
-    const tbody=document.querySelector('#mostrarPersonas tbody');
-    const counter=document.getElementById('contador-personas');
-    if(!tbody) return;
-    tbody.innerHTML='';
-    if(!personas.length){
-      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
-      if(counter) counter.textContent='0 registros';
-      return;
-    }
-    if(counter) counter.textContent=personas.length+' registros';
-    personas.forEach(p=>{
-      const fila=document.createElement('tr');
-      fila.innerHTML=`<td>${p.documento_persona||'—'}</td><td>${getTipodoc(p.fk_tipo_documento)}</td><td>${p.nombre_persona||'—'}</td><td>${p.edad_persona||'—'}</td><td>${p.telefono_persona||'—'}</td>`;
-      tbody.appendChild(fila);
-    });
-  }catch(err){console.error('Error al cargar personas:',err);}
+/* ── ELIMINAR ── */
+function prepararEliminar(doc, nombre){
+  docParaEliminar=doc;
+  document.getElementById('confirmNombre').textContent=nombre;
+  document.getElementById('confirmDoc').textContent=doc;
+  document.getElementById('resultado_eliminacion').innerHTML='';
+  abrirModal('modalEliminar');
 }
-document.addEventListener('DOMContentLoaded',()=>{setInterval(obtenerPersonas,5000);});
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  if(!docParaEliminar) return;
+  try{
+    const r=await fetch(`/eliminar_registro/Persona/${docParaEliminar}/`,{method:'POST',headers:{'X-CSRFToken':getCookie('csrftoken')}});
+    const data=await r.json();
+    if(r.ok){ cerrarModal('modalEliminar'); showToast('Registro eliminado correctamente ✓'); obtenerPersonas(); }
+    else{ showToast('Error: '+(data.message||'No se pudo eliminar'),'err'); }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
+});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  obtenerPersonas();
+  setInterval(obtenerPersonas, 10000);
+});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
