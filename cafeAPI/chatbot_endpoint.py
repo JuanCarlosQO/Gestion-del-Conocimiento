@@ -1,6 +1,6 @@
 # --- Chatbot Inteligente Semántico ---
 import json
-from gemini_handler import get_gemini_handler
+from openai_handler import get_openai_handler
 
 class ChatbotConsultaReq(BaseModel):
     pregunta: str
@@ -11,8 +11,8 @@ def chatbot_consultar(data: ChatbotConsultaReq, db: Session = Depends(get_db)):
     if not pregunta:
         raise HTTPException(status_code=400, detail="La pregunta no puede estar vacía")
 
-    # Obtener handler de Gemini (singleton con caché y rate limiting)
-    gemini = get_gemini_handler()
+    # Obtener handler de OpenAI (singleton con caché y rate limiting)
+    openai = get_openai_handler()
 
     # ── PROMPT ÚNICO: traducción + consultas + respuesta en una sola llamada ──
     prompt_unico = f"""
@@ -52,12 +52,12 @@ Clases: cafe:finca (nombre,direccion,area,altitud,fk_idPropietario),
 
     # Primera llamada — obtener plan
     try:
-        json_str = gemini.llamar_gemini(prompt_unico, json_mode=True, reintentos=5)
+        json_str = openai.llamar_openai(prompt_unico, json_mode=True, reintentos=5)
         plan = json.loads(json_str)
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando plan de Gemini: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error procesando plan de OpenAI: {str(e)}")
 
     db_choice        = plan.get("database", "none")
     sql_query        = plan.get("sql")

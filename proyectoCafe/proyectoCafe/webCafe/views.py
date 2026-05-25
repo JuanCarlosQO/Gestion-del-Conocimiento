@@ -996,12 +996,20 @@ def metodo_aplicacion_page(request):
 
 # ══════════════════════════════════════════════
 # ASISTENTE IA — CHATBOT con Groq (LLaMA 3)
-# La API key se lee desde cafeAPI/.env (variable GROQ_API_KEY).
-# Nunca escribas claves directamente en este archivo.
 # ══════════════════════════════════════════════
 
 GROQ_MODEL = "llama-3.1-8b-instant"
 GROQ_URL   = "https://api.groq.com/openai/v1/chat/completions"
+
+# ── Caché en memoria para el contexto del chatbot ──
+import threading
+_chatbot_cache = {
+    "context_str": None,
+    "datos_tecnicos": None,
+    "timestamp": 0,
+}
+_cache_lock = threading.Lock()
+CACHE_TTL = 120  # segundos (2 minutos)
 
 
 def _get_groq_key() -> str:
@@ -1010,28 +1018,51 @@ def _get_groq_key() -> str:
 
 
 def _chatbot_contexto():
-    """Recopila TODOS los datos reales del sistema para que la IA tenga contexto completo."""
+    """Recopila datos reales del sistema con caché de 2 minutos y llamadas en paralelo."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    # ── Devolver caché si aún es válido ──────────────────────────────────
+    with _cache_lock:
+        if (
+            _chatbot_cache["context_str"] is not None
+            and (time.time() - _chatbot_cache["timestamp"]) < CACHE_TTL
+        ):
+            return _chatbot_cache["context_str"], _chatbot_cache["datos_tecnicos"]
+
+    # ── Fetch paralelo de las 12 tablas ──────────────────────────────────────
+    tablas = [
+        "persona", "propietario", "recolector", "finca", "lote",
+        "insumo", "recoleccion", "reporte", "pago", "compra",
+        "inventario", "suministro",
+    ]
 
     def fetch(tabla):
         try:
-            r = requests.get(f"{_api_base()}/detallesT/{tabla}", timeout=6)
-            return r.json() if r.status_code == 200 else []
+            r = requests.get(f"{_api_base()}/detallesT/{tabla}", timeout=8)
+            return tabla, r.json() if r.status_code == 200 else []
         except Exception:
-            return []
+            return tabla, []
 
-    # ── Obtener todos los datos ────────────────────────────────────────────────
-    personas      = fetch("persona")
-    propietarios  = fetch("propietario")
-    recolectores  = fetch("recolector")
-    fincas        = fetch("finca")
-    lotes         = fetch("lote")
-    insumos       = fetch("insumo")
-    recolecciones = fetch("recoleccion")
-    reportes      = fetch("reporte")
-    pagos         = fetch("pago")
-    compras       = fetch("compra")
-    inventarios   = fetch("inventario")
-    suministros   = fetch("suministro")
+    resultados = {}
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        futuros = {executor.submit(fetch, t): t for t in tablas}
+        for futuro in as_completed(futuros):
+            tabla, datos = futuro.result()
+            resultados[tabla] = datos
+
+    personas      = resultados.get("persona", [])
+    propietarios  = resultados.get("propietario", [])
+    recolectores  = resultados.get("recolector", [])
+    fincas        = resultados.get("finca", [])
+    lotes         = resultados.get("lote", [])
+    insumos       = resultados.get("insumo", [])
+    recolecciones = resultados.get("recoleccion", [])
+    reportes      = resultados.get("reporte", [])
+    pagos         = resultados.get("pago", [])
+    compras       = resultados.get("compra", [])
+    inventarios   = resultados.get("inventario", [])
+    suministros   = resultados.get("suministro", [])
 
     datos_tecnicos = {
         "persona": personas, "propietario": propietarios, "recolector": recolectores,
@@ -1040,22 +1071,19 @@ def _chatbot_contexto():
         "compra": compras, "inventario": inventarios, "suministro": suministros,
     }
 
-    # ── Construir texto de contexto legible para la IA ─────────────────────────────
+    # ── Construir texto de contexto ─────────────────────────────────────────────
     lines = []
 
-    # Personas
     lines.append(f"\n--- PERSONAS REGISTRADAS ({len(personas)}) ---")
     for p in personas:
         lines.append(f"  Doc: {p.get('documento_persona')} | Nombre: {p.get('nombre_persona')} | "
                      f"Edad: {p.get('edad_persona')} | Tel: {p.get('telefono_persona')}")
 
-    # Propietarios
     lines.append(f"\n--- PROPIETARIOS ({len(propietarios)}) ---")
     for p in propietarios:
         lines.append(f"  ID: {p.get('id_propietario')} | Email: {p.get('email_propietario')} | "
                      f"Estado: {'Activo' if p.get('estado_propietario') else 'Inactivo'}")
 
-    # Recolectores
     lines.append(f"\n--- RECOLECTORES ({len(recolectores)}) ---")
     for r in recolectores:
         lines.append(f"  ID: {r.get('id_recolector')} | Propietario: {r.get('fk_id_propietario')} | "
@@ -1064,56 +1092,45 @@ def _chatbot_contexto():
                      f"Días trabajados: {r.get('diastrabajados_recolector')} | "
                      f"Estado: {'Activo' if r.get('estado_recolector') else 'Inactivo'}")
 
-    # Fincas
     lines.append(f"\n--- FINCAS ({len(fincas)}) ---")
     for f in fincas:
         lines.append(f"  ID: {f.get('id_finca')} | Nombre: {f.get('nombre')} | "
                      f"Área: {f.get('area')} ha | Altitud: {f.get('altitud')} msnm | "
                      f"Propietario: {f.get('FK_idPropietario') or f.get('fk_idPropietario')}")
 
-    # Lotes
     lines.append(f"\n--- LOTES ({len(lotes)}) ---")
     for l in lotes:
         lines.append(f"  ID: {l.get('id_lote')} | Nombre: {l.get('nombre')} | "
                      f"Área: {l.get('area')} ha | Cantidad plantas: {l.get('cantidad')} | "
                      f"Estado: {l.get('estado')}")
 
-    # Insumos
     lines.append(f"\n--- INSUMOS ({len(insumos)}) ---")
     for i in insumos:
         lines.append(f"  ID: {i.get('id_insumo')} | Nombre: {i.get('nombre')} | "
-                     f"Precio: ${i.get('precio')} | Tipo: {i.get('tipo')} | "
-                     f"Estado: {i.get('estado')}")
+                     f"Precio: ${i.get('precio')} | Tipo: {i.get('tipo')} | Estado: {i.get('estado')}")
 
-    # Recolecciones
     lines.append(f"\n--- RECOLECCIONES ({len(recolecciones)}) ---")
     for r in recolecciones:
         lines.append(f"  ID: {r.get('id_recoleccion')} | Fecha: {r.get('fecha')} | "
                      f"Recolector: {r.get('FK_idRecolector') or r.get('fk_idRecolector')}")
 
-    # Reportes
     lines.append(f"\n--- REPORTES DE RECOLECCIÓN ({len(reportes)}) ---")
     total_kg = 0
+    kg_por_recolector = {}
     for r in reportes:
         kg = float(r.get('totaltecoleccion_reporte') or 0)
         total_kg += kg
-        lines.append(f"  ID: {r.get('id_reporte')} | Fecha: {r.get('fecha_reporte')} | "
-                     f"Total kg: {kg} | Recolector: {r.get('fk_id_recolector')} | "
-                     f"Estado: {'Pagado' if r.get('estado_reporte') else 'Pendiente'}")
-    lines.append(f"  >>> TOTAL KG RECOLECTADOS EN TODOS LOS REPORTES: {total_kg:.1f} kg")
-
-    # Resumen kg por recolector
-    kg_por_recolector = {}
-    for r in reportes:
         rec_id = str(r.get('fk_id_recolector') or '')
-        kg = float(r.get('totaltecoleccion_reporte') or 0)
         kg_por_recolector[rec_id] = kg_por_recolector.get(rec_id, 0) + kg
+        lines.append(f"  ID: {r.get('id_reporte')} | Fecha: {r.get('fecha_reporte')} | "
+                     f"Total kg: {kg} | Recolector: {rec_id} | "
+                     f"Estado: {'Pagado' if r.get('estado_reporte') else 'Pendiente'}")
+    lines.append(f"  >>> TOTAL KG: {total_kg:.1f} kg")
     if kg_por_recolector:
-        lines.append(f"\n--- KG RECOLECTADOS POR RECOLECTOR ---")
+        lines.append("\n--- KG POR RECOLECTOR ---")
         for rec_id, kg in kg_por_recolector.items():
             lines.append(f"  Recolector {rec_id}: {kg:.1f} kg")
 
-    # Pagos
     lines.append(f"\n--- PAGOS ({len(pagos)}) ---")
     total_pagos = 0
     for p in pagos:
@@ -1121,36 +1138,38 @@ def _chatbot_contexto():
         total_pagos += monto
         lines.append(f"  ID: {p.get('id_pago')} | Fecha: {p.get('fecha_pago')} | "
                      f"Monto: ${monto:,.0f} | Método: {p.get('metodo_pago')} | "
-                     f"Precio/kg: ${p.get('preciokilo_pago')} | Reporte: {p.get('fk_id_reporte')} | "
+                     f"Precio/kg: ${p.get('preciokilo_pago')} | "
                      f"Estado: {'Pagado' if p.get('estado_pago') else 'Pendiente'}")
     lines.append(f"  >>> TOTAL PAGADO: ${total_pagos:,.0f}")
 
-    # Compras
-    lines.append(f"\n--- COMPRAS DE INSUMOS ({len(compras)}) ---")
+    lines.append(f"\n--- COMPRAS ({len(compras)}) ---")
     total_compras = 0
     for c in compras:
         precio = float(c.get('precio') or 0)
         total_compras += precio
-        lines.append(f"  ID: {c.get('id_compra')} | Fecha: {c.get('fecha')} | "
-                     f"Insumo: {c.get('id_insumo')} | Finca: {c.get('id_finca')} | "
-                     f"Cantidad: {c.get('cantidad')} | Precio: ${precio:,.0f}")
+        lines.append(f"  ID: {c.get('id_compra')} | Insumo: {c.get('id_insumo')} | "
+                     f"Finca: {c.get('id_finca')} | Cantidad: {c.get('cantidad')} | Precio: ${precio:,.0f}")
     if compras:
-        lines.append(f"  >>> TOTAL INVERTIDO EN COMPRAS: ${total_compras:,.0f}")
+        lines.append(f"  >>> TOTAL COMPRAS: ${total_compras:,.0f}")
 
-    # Inventarios
     lines.append(f"\n--- INVENTARIOS ({len(inventarios)}) ---")
     for i in inventarios:
-        lines.append(f"  ID: {i.get('id_inventario')} | Insumo: {i.get('id_insumo')} | "
-                     f"Cantidad: {i.get('cantidad')} {i.get('unidadMedida')} | Fecha: {i.get('fecha')}")
+        lines.append(f"  Insumo: {i.get('id_insumo')} | Cantidad: {i.get('cantidad')} {i.get('unidadMedida')} | Fecha: {i.get('fecha')}")
 
-    # Suministros
-    lines.append(f"\n--- SUMINISTROS APLICADOS ({len(suministros)}) ---")
+    lines.append(f"\n--- SUMINISTROS ({len(suministros)}) ---")
     for s in suministros:
-        lines.append(f"  ID: {s.get('id_suministro')} | Insumo: {s.get('id_insumo')} | "
-                     f"Lote: {s.get('id_lote')} | Cantidad: {s.get('cantidad')} | "
-                     f"Fecha: {s.get('fecha')} | Estado: {'Aplicado' if s.get('estado') else 'Pendiente'}")
+        lines.append(f"  Insumo: {s.get('id_insumo')} | Lote: {s.get('id_lote')} | "
+                     f"Cantidad: {s.get('cantidad')} | Fecha: {s.get('fecha')} | "
+                     f"Estado: {'Aplicado' if s.get('estado') else 'Pendiente'}")
 
     context_str = "\n".join(lines) if lines else "Sin datos disponibles."
+
+    # ── Guardar en caché ────────────────────────────────────────────────────
+    with _cache_lock:
+        _chatbot_cache["context_str"]   = context_str
+        _chatbot_cache["datos_tecnicos"] = datos_tecnicos
+        _chatbot_cache["timestamp"]      = time.time()
+
     return context_str, datos_tecnicos
 
 
