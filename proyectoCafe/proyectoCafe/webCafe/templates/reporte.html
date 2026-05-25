@@ -7,118 +7,238 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>Reporte — SIGIC</title>
-  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
+  <title>Reportes — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
 
+  <!-- ENCABEZADO / SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">{% if is_recolector %}MIS REPORTES{% else %}REPORTE{% endif %}</div>
+    <div id="vista_title" class="letras">{% if is_recolector %}MIS REPORTES{% else %}REPORTES{% endif %}</div>
     <div id="ordena_boton">
-      <div class="letragestion" id="letra_gestion">Gestionar</div>
-      {% if not is_recolector %}<button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>{% endif %}
-      <button id="botones" onclick="showPanel('panel4')">📋 Ver todos</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- ELIMINAR -->
-  {% if not is_recolector %}
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Reporte</h2><p>Esta acción no se puede deshacer</p></div>
-      </div>
-      <form id="eliminarReporte">
-        <label class="labels">ID del Reporte</label>
-        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>{% if is_recolector %}Mis Reportes{% else %}Lista de Reportes{% endif %}</h2>
-        <div style="display:flex;align-items:center;gap:12px;">
-          {% if is_recolector %}
-          <input type="date" class="entrada" id="filtroFechaReporte" style="width:160px;margin:0;padding:7px 12px;font-size:12px;">
-          <button class="botonsum" type="button" id="btnLimpiarFiltro" style="margin:0;padding:7px 14px;font-size:12px;min-height:36px;">✕ Limpiar</button>
-          {% endif %}
-          <span class="tabla-count" id="contadorReportes">Cargando...</span>
+  <!-- PANEL TABLA PRINCIPAL -->
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">📋</div>
+        <div>
+          <h1 class="crud-title">{% if is_recolector %}Mis Reportes{% else %}Reportes{% endif %}</h1>
+          <p class="crud-subtitle">Historial de recolección de café diario</p>
         </div>
       </div>
-      <div class="tabla-wrap">
-        <table id="mostrarReportes">
-          <thead>
-            <tr><th>ID Reporte</th><th>Estado</th><th>Total Recolección</th><th>ID Recolector</th><th>Fecha</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="crud-header-right">
+        {% if is_recolector %}
+        <input type="date" class="crud-search" id="filtroFechaReporte" style="width:160px; padding: 10px 14px;">
+        <button class="btn-crud-cancel" type="button" id="btnLimpiarFiltro" style="padding: 10px 16px;">✕ Limpiar</button>
+        {% endif %}
+        <span class="crud-badge" id="contadorReportes">Cargando...</span>
       </div>
+    </div>
+
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaReportes">
+        <thead>
+          <tr>
+            <th>ID Reporte</th>
+            <th>Estado</th>
+            <th>Total Recolección (kg)</th>
+            <th>ID Recolector</th>
+            <th>Fecha</th>
+            {% if not is_recolector %}
+            <th class="th-acciones">Acciones</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody id="tbodyReportes">
+          <tr>
+            <td colspan="{% if is_recolector %}5{% else %}6{% endif %}" class="td-loading">
+              <div class="loading-dots"><span></span><span></span><span></span></div>
+              Cargando registros...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
+
+<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+{% if not is_recolector %}
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div>
+        <h2>Eliminar Reporte</h2>
+        <p>Esta acción no se puede deshacer</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar el reporte:</p>
+      <div class="crud-confirm-target" id="confirmIdReporte">—</div>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══ TOAST ══ -->
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
+var IS_RECOLECTOR = {% if is_recolector %}true{% else %}false{% endif %};
+
 function safeDateYYYYMMDD(v){if(!v)return'—';const d=new Date(v);if(isNaN(d.getTime()))return'—';return d.toISOString().split('T')[0];}
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  const el=document.getElementById(id);if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
+
+/* ── Modales ── */
+function abrirModal(id){
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('active');
+    document.body.style.overflow='hidden';
+  }
 }
-document.getElementById('botonVolver').addEventListener('click',()=>{window.location.href='{{ volver_url }}';});
+function cerrarModal(id){
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('active');
+    document.body.style.overflow='';
+  }
+}
+document.querySelectorAll('.crud-modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) cerrarModal(overlay.id); });
+});
+
+/* ── Toast ── */
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('crudToast');
+  t.textContent=msg;
+  t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ── Volver ── */
+document.getElementById('botonVolver').addEventListener('click',()=>{
+  window.location.href='{{ volver_url }}';
+});
 
 let _cache=[];
+
+/* ── PINTAR TABLA ── */
 function pintarTabla(reportes){
-  const tbody=document.getElementById('mostrarReportes').querySelector('tbody');
+  const tbody=document.getElementById('tbodyReportes');
   const counter=document.getElementById('contadorReportes');
   tbody.innerHTML='';
-  if(!Array.isArray(reportes)||!reportes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';if(counter)counter.textContent='0 registros';return;}
-  if(counter) counter.textContent=reportes.length+' reporte(s)';
+  
+  const cols = IS_RECOLECTOR ? 5 : 6;
+  
+  if(!Array.isArray(reportes)||!reportes.length){
+    tbody.innerHTML=`<tr><td colspan="${cols}" class="td-empty">Sin registros</td></tr>`;
+    if(counter) counter.textContent='0 registros';
+    return;
+  }
+  
+  if(counter) counter.textContent=reportes.length+' registros';
+  
   reportes.forEach(rep=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${rep.id_reporte||'—'}</td><td><span class="badge-${rep.estado_reporte?'activo':'inactivo'}">${rep.estado_reporte?'Activo':'Inactivo'}</span></td><td>${rep.totalrecoleccion_reporte||'—'}</td><td>${rep.fk_idrecolector||'—'}</td><td>${safeDateYYYYMMDD(rep.fecha_reporte)}</td>`;
+    tr.dataset.id=rep.id_reporte||'';
+    
+    const estadoBadge = rep.estado_reporte
+      ? '<span class="badge-tipodoc" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0;">Activo</span>'
+      : '<span class="badge-tipodoc" style="background:#fef2f2;color:#b91c1c;border-color:#fca5a5;">Inactivo</span>';
+    
+    const accionesHtml = IS_RECOLECTOR
+      ? ''
+      : `<td class="td-acciones">
+           <button class="btn-tbl-del" onclick="prepararEliminar('${rep.id_reporte}')" title="Eliminar">🗑️</button>
+         </td>`;
+         
+    tr.innerHTML=`
+      <td><span class="td-doc">${rep.id_reporte||'—'}</span></td>
+      <td>${estadoBadge}</td>
+      <td><strong>${rep.totalrecoleccion_reporte||'0'}</strong></td>
+      <td>${rep.fk_idrecolector||'—'}</td>
+      <td>${safeDateYYYYMMDD(rep.fecha_reporte)}</td>
+      ${accionesHtml}`;
+      
     tbody.appendChild(tr);
   });
 }
+
+/* ── FILTRO FECHA ── */
 function aplicarFiltro(){
   const inp=document.getElementById('filtroFechaReporte');
-  if(!inp) return;
+  if(!inp) {
+    pintarTabla(_cache);
+    return;
+  }
   const v=(inp.value||'').trim();
   pintarTabla(v?_cache.filter(r=>safeDateYYYYMMDD(r.fecha_reporte)===v):_cache);
 }
+
+/* ── OBTENER REPORTES ── */
 async function obtenerReportes(){
   try{
-    const r=await fetch('/api/productosreporte');const data=await r.json();
+    const r=await fetch('/api/productosreporte');
+    const data=await r.json();
     _cache=Array.isArray(data)?data:[];
     aplicarFiltro();
-  }catch(err){console.error(err);}
+  }catch(err){
+    const cols = IS_RECOLECTOR ? 5 : 6;
+    document.getElementById('tbodyReportes').innerHTML=`<tr><td colspan="${cols}" class="td-error">Error al cargar datos</td></tr>`;
+  }
+}
+
+/* ── ELIMINAR ── */
+let idParaEliminar='';
+function prepararEliminar(id){
+  idParaEliminar=id;
+  const target = document.getElementById('confirmIdReporte');
+  if (target) target.textContent=id;
+  abrirModal('modalEliminar');
 }
 
 {% if not is_recolector %}
-document.getElementById('eliminarReporte').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const id=document.getElementById('id_eliminar').value;
-  if(!confirm(`¿Eliminar reporte ID ${id}?`)) return;
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  if(!idParaEliminar) return;
   try{
-    const r=await fetch(`/api/productosreporte/${id}`,{method:'DELETE'});const d=await r.json();
-    alert(r.ok?'Reporte eliminado':(d.message||'Error'));if(r.ok){document.getElementById('eliminarReporte').reset();obtenerReportes();}
-  }catch{alert('Error al eliminar.');}
+    const r=await fetch(`/api/productosreporte/${idParaEliminar}`,{method:'DELETE'});
+    const d=await r.json();
+    if(r.ok){
+      cerrarModal('modalEliminar');
+      showToast('Reporte eliminado correctamente ✓');
+      obtenerReportes();
+    }else{
+      showToast('Error: '+(d.message||'No se pudo eliminar'),'err');
+    }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
 });
 {% endif %}
 
+/* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
-  obtenerReportes();setInterval(obtenerReportes,5000);
-  showPanel('panel4');
+  obtenerReportes();
+  setInterval(obtenerReportes, 10000);
+  
   const inp=document.getElementById('filtroFechaReporte');
   const btn=document.getElementById('btnLimpiarFiltro');
   if(inp) inp.addEventListener('change',aplicarFiltro);
-  if(btn) btn.addEventListener('click',()=>{if(inp)inp.value='';pintarTabla(_cache);});
+  if(btn) btn.addEventListener('click',()=>{
+    if(inp) inp.value='';
+    pintarTabla(_cache);
+  });
 });
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>

@@ -7,163 +7,260 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>Insumo — SIGIC</title>
-  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
+  <title>Insumos — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
 
+  <!-- ENCABEZADO / SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">INSUMO</div>
+    <div id="vista_title" class="letras">INSUMOS</div>
     <div id="ordena_boton">
       <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4')">📋 Ver todos</button>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">📦</div>
-        <div><h2>Registrar Insumo</h2><p>Complete los datos del nuevo insumo</p></div>
-      </div>
-      <form id="registroinsumo">
-        <label class="labels">ID Insumo</label>
-        <input type="text" class="entrada" id="id_insumo" placeholder="Identificador único" maxlength="45" required>
-        <label class="labels">Nombre del Insumo</label>
-        <input type="text" class="entrada" id="nombre_insumo" placeholder="Ej: Fertilizante NPK" maxlength="45" required>
-        <label class="labels">Precio por Unidad (COP)</label>
-        <input type="text" class="entrada" id="preciounidad_insumo" placeholder="Ej: 85000" required>
-        <label class="labels">Estado</label>
-        <select class="selector" id="estado_insumo" required>
-          <option value="true">Activo</option>
-          <option value="false">Inactivo</option>
-        </select>
-        <label class="labels">Tipo de Insumo</label>
-        <select class="selector" id="id_tipoinsumo" required>
-          <option value="">— Seleccione tipo —</option>
-        </select>
-        <label class="labels">Unidad de Medida</label>
-        <select class="selector" id="unidad_medida" required>
-          <option value="">— Seleccione unidad —</option>
-        </select>
-        <label class="labels">Método de Aplicación</label>
-        <select class="selector" id="metodo_aplicacion" required>
-          <option value="">— Seleccione método —</option>
-        </select>
-        <button type="submit" class="botonsum">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div><h2>Buscar Insumo</h2><p>Ingrese el ID para consultar</p></div>
-      </div>
-      <form id="buscarInsumo">
-        <label class="labels">ID del Insumo</label>
-        <input type="text" class="entrada" id="id_buscar" placeholder="ID del insumo" required>
-        <button type="submit" class="botonsum">🔍 Buscar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div><h2>Editar Insumo</h2><p>Modifique los campos necesarios</p></div>
-      </div>
-      <form id="editarInsumo">
-        <label class="labels">ID Insumo</label>
-        <input type="text" class="entrada2" id="id_insumo2" disabled>
-        <label class="labels">Nombre del Insumo</label>
-        <input type="text" class="entrada2" id="nombre_insumo2" disabled>
-        <label class="labels">Precio por Unidad</label>
-        <input type="number" class="entrada2" id="preciounidad_insumo2" disabled>
-        <label class="labels">Estado</label>
-        <select class="entrada2" id="estado_insumo2" disabled>
-          <option value="true">Activo</option>
-          <option value="false">Inactivo</option>
-        </select>
-        <label class="labels">Tipo de Insumo</label>
-        <select class="entrada2" id="tipo_insumo2" disabled>
-          <option value="">— Seleccione tipo —</option>
-        </select>
-        <label class="labels">Unidad de Medida</label>
-        <select class="entrada2" id="unidad_medida2" disabled>
-          <option value="">— Seleccione unidad —</option>
-        </select>
-        <label class="labels">Método de Aplicación</label>
-        <select class="entrada2" id="metodo_aplicacion2" disabled>
-          <option value="">— Seleccione método —</option>
-        </select>
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered" style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">↩ Volver</button>
+  <!-- PANEL TABLA PRINCIPAL -->
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">📦</div>
+        <div>
+          <h1 class="crud-title">Insumos</h1>
+          <p class="crud-subtitle">Gestión de registros de insumos y recursos</p>
         </div>
-      </form>
+      </div>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap">
+          <span class="crud-search-icon">🔍</span>
+          <input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar por nombre, ID o tipo...">
+        </div>
+        <span class="crud-badge" id="contadorInsumos">Cargando...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Insumo</h2><p>Esta acción no se puede deshacer</p></div>
-      </div>
-      <form id="eliminarUnidadMedida">
-        <label class="labels">ID del Insumo</label>
-        <input type="text" class="entrada" id="id_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Insumos</h2>
-        <span class="tabla-count" id="contador-insumos">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarInsumos">
-          <thead>
-            <tr><th>ID</th><th>Nombre</th><th>Precio/und</th><th>Estado</th><th>Tipo</th><th>Unidad</th><th>Método</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaInsumos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio/und</th>
+            <th>Estado</th>
+            <th>Tipo</th>
+            <th>Unidad</th>
+            <th>Método</th>
+            <th class="th-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyInsumos">
+          <tr>
+            <td colspan="8" class="td-loading">
+              <div class="loading-dots"><span></span><span></span><span></span></div>
+              Cargando registros...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
+
+<!-- ══ MODAL AGREGAR ══ -->
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">➕</div>
+      <div>
+        <h2>Registrar Insumo</h2>
+        <p>Complete los datos del nuevo insumo</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button>
+    </div>
+    <form id="registroinsumo">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">ID Insumo</label>
+          <input type="text" class="entrada" id="id_insumo" name="id_insumo" placeholder="Identificador único" maxlength="45" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Nombre del Insumo</label>
+          <input type="text" class="entrada" id="nombre_insumo" name="nombre_insumo" placeholder="Ej: Fertilizante NPK" maxlength="45" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Precio por Unidad (COP)</label>
+          <input type="number" class="entrada" id="preciounidad_insumo" name="preciounidad_insumo" placeholder="Ej: 85000" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Estado</label>
+          <select class="selector" id="estado_insumo" name="estado_insumo" required>
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Tipo de Insumo</label>
+          <select class="selector" id="id_tipoinsumo" name="id_tipoinsumo" required>
+            <option value="">— Seleccione tipo —</option>
+          </select>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Unidad de Medida</label>
+          <select class="selector" id="unidad_medida" name="unidad_medida" required>
+            <option value="">— Seleccione unidad —</option>
+          </select>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Método de Aplicación</label>
+          <select class="selector" id="metodo_aplicacion" name="metodo_aplicacion" required>
+            <option value="">— Seleccione método —</option>
+          </select>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button>
+        <button type="submit" class="btn-crud-save">💾 Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">✏️</div>
+      <div>
+        <h2>Editar Insumo</h2>
+        <p>Modifique los campos necesarios</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form id="editarInsumo">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">ID Insumo</label>
+          <input type="text" class="entrada entrada2" id="id_insumo2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Nombre del Insumo</label>
+          <input type="text" class="entrada entrada2" id="nombre_insumo2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Precio por Unidad (COP)</label>
+          <input type="number" class="entrada entrada2" id="preciounidad_insumo2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Estado</label>
+          <select class="selector entrada2" id="estado_insumo2" disabled>
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Tipo de Insumo</label>
+          <select class="selector entrada2" id="tipo_insumo2" disabled>
+            <option value="">— Seleccione tipo —</option>
+          </select>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Unidad de Medida</label>
+          <select class="selector entrada2" id="unidad_medida2" disabled>
+            <option value="">— Seleccione unidad —</option>
+          </select>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Método de Aplicación</label>
+          <select class="selector entrada2" id="metodo_aplicacion2" disabled>
+            <option value="">— Seleccione método —</option>
+          </select>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="button" class="btn-crud-unlock" id="botondesbloquear">✏️ Habilitar edición</button>
+        <button type="submit" class="btn-crud-save" id="botoneditar" disabled>💾 Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div>
+        <h2>Eliminar Insumo</h2>
+        <p>Esta acción no se puede deshacer</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar el insumo:</p>
+      <div class="crud-confirm-target" id="confirmNombreInsumo">—</div>
+      <p class="crud-confirm-doc">ID: <strong id="confirmIdInsumo">—</strong></p>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  const el=document.getElementById(id);if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
-  const r=document.getElementById('resultado');if(r)r.innerHTML='';
+/* Cache global de catálogos */
+let catalogos = { tipos: [], unidades: [], metodos: [] };
+
+/* ── Modales ── */
+function abrirModal(id){
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow='hidden';
 }
-document.getElementById('botonVolver').addEventListener('click',()=>{window.location.href='{{ volver_url }}';});
-document.getElementById('botonvolvered').addEventListener('click',()=>{
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled=false;document.getElementById('botoneditar').disabled=true;
-  document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
-  document.getElementById('editarInsumo').reset();
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.crud-modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) cerrarModal(overlay.id); });
 });
+
+/* ── Toast ── */
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('crudToast');
+  t.textContent=msg;
+  t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ── Volver ── */
+document.getElementById('botonVolver').addEventListener('click',()=>{
+  window.location.href='{{ volver_url }}';
+});
+
+/* ── Traductores de Catálogos ── */
+function getTipoLabel(id) {
+  const item = catalogos.tipos.find(x => String(x.id_tipoinsumo) === String(id));
+  return item ? item.nombre_tipo : id || '—';
+}
+function getUnidadLabel(id) {
+  const item = catalogos.unidades.find(x => String(x.id_unidadmedida) === String(id));
+  return item ? item.nombre_unidadmedida : id || '—';
+}
+function getMetodoLabel(id) {
+  const item = catalogos.metodos.find(x => String(x.id_metodoaplicacion) === String(id));
+  return item ? (item.nombre_metodoaplicacion || item.nombre_aplicacion) : id || '—';
+}
 
 function setOptions(selectId,rows,getValue,getLabel,placeholder){
   const sel=document.getElementById(selectId);if(!sel) return;
@@ -176,98 +273,190 @@ async function cargarCatalogos(){
   try{
     const [tR,uR,mR]=await Promise.all([fetch('/api/tiposinsumo'),fetch('/api/productosmedida'),fetch('/api/productosmetodoaplica')]);
     const tipos=tR.ok?await tR.json():[];const unidades=uR.ok?await uR.json():[];const metodos=mR.ok?await mR.json():[];
-    ['id_tipoinsumo','tipo_insumo2'].forEach(id=>setOptions(id,Array.isArray(tipos)?tipos:[],x=>x.id_tipoinsumo,x=>`${x.id_tipoinsumo} - ${x.nombre_tipo||''}`, '— Seleccione tipo —'));
-    ['unidad_medida','unidad_medida2'].forEach(id=>setOptions(id,Array.isArray(unidades)?unidades:[],x=>x.id_unidadmedida,x=>`${x.id_unidadmedida} - ${x.nombre_unidadmedida||''}`, '— Seleccione unidad —'));
-    ['metodo_aplicacion','metodo_aplicacion2'].forEach(id=>setOptions(id,Array.isArray(metodos)?metodos:[],x=>x.id_metodoaplicacion,x=>`${x.id_metodoaplicacion} - ${x.nombre_metodoaplicacion||x.nombre_aplicacion||''}`, '— Seleccione método —'));
+    
+    catalogos.tipos = Array.isArray(tipos) ? tipos : [];
+    catalogos.unidades = Array.isArray(unidades) ? unidades : [];
+    catalogos.metodos = Array.isArray(metodos) ? metodos : [];
+
+    ['id_tipoinsumo','tipo_insumo2'].forEach(id=>setOptions(id,catalogos.tipos,x=>x.id_tipoinsumo,x=>`${x.id_tipoinsumo} - ${x.nombre_tipo||''}`, '— Seleccione tipo —'));
+    ['unidad_medida','unidad_medida2'].forEach(id=>setOptions(id,catalogos.unidades,x=>x.id_unidadmedida,x=>`${x.id_unidadmedida} - ${x.nombre_unidadmedida||''}`, '— Seleccione unidad —'));
+    ['metodo_aplicacion','metodo_aplicacion2'].forEach(id=>setOptions(id,catalogos.metodos,x=>x.id_metodoaplicacion,x=>`${x.id_metodoaplicacion} - ${x.nombre_metodoaplicacion||x.nombre_aplicacion||''}`, '— Seleccione método —'));
   }catch(err){console.error('Error catálogos:',err);}
 }
 
-document.getElementById('registroinsumo').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const nombre=document.getElementById('nombre_insumo').value;
-  if(!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)){alert('El nombre solo debe contener letras');return;}
+/* ── CARGAR TABLA ── */
+async function obtenerInsumos(){
   try{
-    const r=await fetch('/api/insumos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      id_insumo:document.getElementById('id_insumo').value,
-      nombre_insumo:nombre,
-      preciounidad_insumo:document.getElementById('preciounidad_insumo').value,
-      estado_insumo:document.getElementById('estado_insumo').value,
-      id_tipoinsumo:document.getElementById('id_tipoinsumo').value,
-      unidad_medida:document.getElementById('unidad_medida').value,
-      metodo_aplicacion:document.getElementById('metodo_aplicacion').value,
-    })});
-    const d=await r.json();
-    if(r.ok){document.getElementById('resultado').innerHTML=`<div id="resultado"><div id="tituloDatos">Insumo registrado</div><p><strong>Nombre:</strong> ${d.data.nombre_insumo}</p><p><strong>Precio/und:</strong> ${d.data.preciounidad_insumo}</p></div>`;document.getElementById('registroinsumo').reset();document.getElementById('estado_insumo').value='true';}
-    else alert(d.message||'Error al registrar');
-  }catch{alert('Error al registrar.');}
-});
+    const r=await fetch('/api/insumos');
+    const insumos=await r.json();
+    const tbody=document.getElementById('tbodyInsumos');
+    const counter=document.getElementById('contadorInsumos');
+    tbody.innerHTML='';
+    if(!Array.isArray(insumos)||!insumos.length){
+      tbody.innerHTML='<tr><td colspan="8" class="td-empty">Sin registros registrados</td></tr>';
+      counter.textContent='0 registros'; return;
+    }
+    counter.textContent=insumos.length+' registros';
+    insumos.forEach(ins=>{
+      const tr=document.createElement('tr');
+      tr.dataset.id=ins.id_insumo||'';
+      tr.dataset.nombre=ins.nombre_insumo||'';
+      tr.dataset.tipo=getTipoLabel(ins.id_tipoinsumo);
+      
+      const estadoBadge = ins.estado_insumo === 'Activo' || ins.estado_insumo === true
+        ? '<span class="badge-tipodoc" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0;">Activo</span>'
+        : '<span class="badge-tipodoc" style="background:#fef2f2;color:#b91c1c;border-color:#fca5a5;">Inactivo</span>';
 
-document.getElementById('buscarInsumo').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const id=document.getElementById('id_buscar').value;
+      tr.innerHTML=`
+        <td><span class="td-doc">${ins.id_insumo||'—'}</span></td>
+        <td><strong>${ins.nombre_insumo||'—'}</strong></td>
+        <td>${ins.preciounidad_insumo||'0'}</td>
+        <td>${estadoBadge}</td>
+        <td>${getTipoLabel(ins.id_tipoinsumo)}</td>
+        <td>${getUnidadLabel(ins.unidad_medida)}</td>
+        <td>${getMetodoLabel(ins.metodo_aplicacion)}</td>
+        <td class="td-acciones">
+          <button class="btn-tbl-view" onclick="verInsumo('${ins.id_insumo}')" title="Ver / Editar">✏️</button>
+          <button class="btn-tbl-del" onclick="prepararEliminar('${ins.id_insumo}','${(ins.nombre_insumo||'').replace(/'/g,"\\'")}')" title="Eliminar">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    aplicarFiltro();
+  }catch(err){
+    document.getElementById('tbodyInsumos').innerHTML='<tr><td colspan="8" class="td-error">Error al cargar datos</td></tr>';
+  }
+}
+
+/* ── FILTRO ── */
+function aplicarFiltro(){
+  const q=document.getElementById('buscadorTabla').value.toLowerCase();
+  document.querySelectorAll('#tbodyInsumos tr[data-id]').forEach(tr=>{
+    const texto=(tr.dataset.id+' '+tr.dataset.nombre+' '+tr.dataset.tipo).toLowerCase();
+    tr.style.display=texto.includes(q)?'':'none';
+  });
+}
+document.getElementById('buscadorTabla').addEventListener('input',aplicarFiltro);
+
+/* ── VER / EDITAR ── */
+async function verInsumo(id){
   try{
-    const r=await fetch(`/api/insumos/${id}`);const d=await r.json();
-    if(r.ok){
-      showPanel('panel22');
-      document.getElementById('id_insumo2').value=d.id_insumo;
-      document.getElementById('nombre_insumo2').value=d.nombre_insumo;
-      document.getElementById('preciounidad_insumo2').value=d.preciounidad_insumo;
-      document.getElementById('estado_insumo2').value=String(d.estado_insumo).toLowerCase()==='activo'||d.estado_insumo===true?'true':'false';
-      document.getElementById('tipo_insumo2').value=d.id_tipoinsumo;
-      document.getElementById('unidad_medida2').value=d.unidad_medida;
-      document.getElementById('metodo_aplicacion2').value=d.metodo_aplicacion||'';
-    }else alert(d.message||'No encontrado');
-  }catch{alert('Error al buscar.');}
-  document.getElementById('buscarInsumo').reset();
-});
+    const r=await fetch(`/api/insumos/${id}`);
+    const d=await r.json();
+    document.getElementById('id_insumo2').value=d.id_insumo||'';
+    document.getElementById('nombre_insumo2').value=d.nombre_insumo||'';
+    document.getElementById('preciounidad_insumo2').value=d.preciounidad_insumo||'0';
+    document.getElementById('estado_insumo2').value= (d.estado_insumo === '1' || d.estado_insumo === true) ? 'true' : 'false';
+    document.getElementById('tipo_insumo2').value=d.id_tipoinsumo||'';
+    document.getElementById('unidad_medida2').value=d.unidad_medida||'';
+    document.getElementById('metodo_aplicacion2').value=d.metodo_aplicacion||'';
+    
+    document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
+    document.getElementById('botoneditar').disabled=true;
+    document.getElementById('botondesbloquear').disabled=false;
+    abrirModal('modalEditar');
+  }catch(err){ showToast('Error al cargar los datos','err'); }
+}
 
 document.getElementById('botondesbloquear').addEventListener('click',()=>{
-  document.querySelectorAll('.entrada2').forEach(e=>{if(e.id!=='id_insumo2') e.disabled=false;});
-  document.getElementById('botoneditar').disabled=false;document.getElementById('botondesbloquear').disabled=true;
+  document.querySelectorAll('.entrada2').forEach(e=>{ if(e.id!=='id_insumo2') e.disabled=false; });
+  document.getElementById('botoneditar').disabled=false;
+  document.getElementById('botondesbloquear').disabled=true;
 });
 
 document.getElementById('editarInsumo').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=document.getElementById('id_insumo2').value;
+  const datos={
+    nombre_insumo:document.getElementById('nombre_insumo2').value,
+    preciounidad_insumo:document.getElementById('preciounidad_insumo2').value,
+    estado_insumo:document.getElementById('estado_insumo2').value,
+    id_tipoinsumo:document.getElementById('tipo_insumo2').value,
+    unidad_medida:document.getElementById('unidad_medida2').value,
+    metodo_aplicacion:document.getElementById('metodo_aplicacion2').value
+  };
   try{
-    const r=await fetch(`/api/insumos/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      id_insumo:id,nombre_insumo:document.getElementById('nombre_insumo2').value,
-      preciounidad_insumo:document.getElementById('preciounidad_insumo2').value,
-      estado_insumo:document.getElementById('estado_insumo2').value,
-      id_tipoinsumo:document.getElementById('tipo_insumo2').value,
-      unidad_medida:document.getElementById('unidad_medida2').value,
-      metodo_aplicacion:document.getElementById('metodo_aplicacion2').value,
-    })});
+    const r=await fetch(`/api/insumos/${id}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(datos)
+    });
     const d=await r.json();
-    if(r.ok){alert('Actualizado con éxito');document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);showPanel('panel2');document.getElementById('editarInsumo').reset();}
-    else alert(d.message||'Error');
-  }catch{alert('Error al guardar.');}
-  document.getElementById('botondesbloquear').disabled=false;document.getElementById('botoneditar').disabled=true;
+    if(r.ok){
+      cerrarModal('modalEditar');
+      showToast('Insumo actualizado correctamente ✓');
+      obtenerInsumos();
+    } else {
+      showToast('Error: '+(d.message||'No se pudo actualizar'),'err');
+    }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
 });
 
-document.getElementById('eliminarUnidadMedida').addEventListener('submit',async e=>{
+/* ── REGISTRAR ── */
+document.getElementById('registroinsumo').addEventListener('submit',async e=>{
   e.preventDefault();
-  const id=document.getElementById('id_eliminar').value;
-  if(!confirm(`¿Eliminar insumo ID ${id}?`)) return;
+  const nombre=document.getElementById('nombre_insumo').value;
+  if(!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)){
+    showToast('El nombre solo debe contener letras','err');
+    return;
+  }
+  const datos={
+    id_insumo:document.getElementById('id_insumo').value,
+    nombre_insumo:nombre,
+    preciounidad_insumo:document.getElementById('preciounidad_insumo').value,
+    estado_insumo:document.getElementById('estado_insumo').value,
+    id_tipoinsumo:document.getElementById('id_tipoinsumo').value,
+    unidad_medida:document.getElementById('unidad_medida').value,
+    metodo_aplicacion:document.getElementById('metodo_aplicacion').value
+  };
   try{
-    const r=await fetch(`/api/insumos/${id}`,{method:'DELETE'});const d=await r.json();
-    alert(r.ok?d.message:(d.message||'Error'));if(r.ok){document.getElementById('eliminarUnidadMedida').reset();obtenerInsumos();}
-  }catch{alert('Error al eliminar.');}
+    const r=await fetch('/api/insumos',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(datos)
+    });
+    const d=await r.json();
+    if(r.ok){
+      cerrarModal('modalAgregar');
+      showToast('Insumo registrado correctamente ✓');
+      document.getElementById('registroinsumo').reset();
+      document.getElementById('estado_insumo').value='true';
+      obtenerInsumos();
+    }else{
+      showToast('Error: '+(d.message||'Error al registrar'),'err');
+    }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
 });
 
-async function obtenerInsumos(){
-  try{
-    const r=await fetch('/api/insumos');const insumos=await r.json();
-    const tbody=document.querySelector('#mostrarInsumos tbody');
-    const counter=document.getElementById('contador-insumos');
-    tbody.innerHTML='';
-    if(!Array.isArray(insumos)||!insumos.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';if(counter)counter.textContent='0 registros';return;}
-    if(counter) counter.textContent=insumos.length+' registros';
-    insumos.forEach(ins=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${ins.id_insumo||'—'}</td><td>${ins.nombre_insumo||'—'}</td><td>${ins.preciounidad_insumo||'—'}</td><td>${ins.estado_insumo||'—'}</td><td>${ins.id_tipoinsumo||'—'}</td><td>${ins.unidad_medida||'—'}</td><td>${ins.metodo_aplicacion||'—'}</td>`;tbody.appendChild(tr);});
-  }catch(err){console.error(err);}
+/* ── ELIMINAR ── */
+let idParaEliminar='';
+function prepararEliminar(id, nombre){
+  idParaEliminar=id;
+  document.getElementById('confirmNombreInsumo').textContent=nombre;
+  document.getElementById('confirmIdInsumo').textContent=id;
+  abrirModal('modalEliminar');
 }
 
-document.addEventListener('DOMContentLoaded',()=>{cargarCatalogos();obtenerInsumos();setInterval(obtenerInsumos,5000);});
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  if(!idParaEliminar) return;
+  try{
+    const r=await fetch(`/api/insumos/${idParaEliminar}`,{method:'DELETE'});
+    const d=await r.json();
+    if(r.ok){
+      cerrarModal('modalEliminar');
+      showToast('Registro eliminado correctamente ✓');
+      obtenerInsumos();
+    }else{
+      showToast('Error: '+(d.message||'No se pudo eliminar'),'err');
+    }
+  }catch(err){ showToast('Error al conectar con el servidor','err'); }
+});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',async()=>{
+  await cargarCatalogos();
+  await obtenerInsumos();
+  setInterval(obtenerInsumos, 10000);
+});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>

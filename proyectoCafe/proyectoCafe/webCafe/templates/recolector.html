@@ -7,246 +7,252 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>RECOLECTOR — SIGIC</title>
-  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
+  <title>Recolectores — SIGIC</title>
+  <style>
+    .form-section {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--g-800, #064e3b);
+      margin: 16px 0 8px;
+      border-bottom: 1.5px solid rgba(5,150,105,0.12);
+      padding-bottom: 4px;
+    }
+  </style>
 </head>
 <body>
 <div class="contenedor_padre">
 
-  <!-- SIDEBAR -->
+  <!-- ENCABEZADO / SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">RECOLECTOR</div>
+    <div id="vista_title" class="letras">RECOLECTORES</div>
     <div id="ordena_boton">
       <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4'); obtenerRecolectores()">📋 Ver todos</button>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- PANEL AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card" style="max-width:680px;">
-      <div class="panel-header">
-        <div class="panel-header-icon">🎒</div>
+  <!-- PANEL TABLA PRINCIPAL -->
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">🎒</div>
         <div>
-          <h2>Registrar Recolector</h2>
-          <p>Flujo: datos de persona → contrato → asignación (propietario/finca)</p>
+          <h1 class="crud-title">Recolectores</h1>
+          <p class="crud-subtitle">Gestión de contratos y asignación de recolectores</p>
         </div>
       </div>
-      <form id="registroRecolector">
-        {% csrf_token %}
-        
-        <div class="form-section">1) Datos de la Persona</div>
-        <label class="labels">Documento de Persona</label>
-        <input class="entrada" type="text" id="documento_persona" name="documento_persona" placeholder="Número de documento" required>
-        
-        <label class="labels">Tipo de Documento</label>
-        <select class="selector" id="id_tipodoc_prop_recolector" name="id_tipodoc" required>
-          <option value="">— Seleccione —</option>
-          <option value="1">Cédula de Ciudadanía</option>
-          <option value="2">Tarjeta de Identidad</option>
-          <option value="3">Cédula de Extranjería</option>
-        </select>
-        
-        <label class="labels">Nombre Completo</label>
-        <input class="entrada" type="text" id="nombre_persona_prop_recolector" name="nombre_persona" placeholder="Nombre y apellidos" required>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="labels">Edad</label>
-            <input class="entrada" type="number" id="edad_persona_prop_recolector" name="edad_persona" min="1" max="120" placeholder="Edad" required>
-          </div>
-          <div class="form-group">
-            <label class="labels">Teléfono</label>
-            <input class="entrada" type="text" id="telefono_persona_prop_recolector" name="telefono_persona" minlength="10" placeholder="10 dígitos" required>
-          </div>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap">
+          <span class="crud-search-icon">🔍</span>
+          <input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar por documento o finca...">
         </div>
-        
-        <div class="form-section">2) Contrato</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="labels">Fecha de Inicio</label>
-            <input class="entrada" type="date" id="fechainicio_recolector" name="fechainicio_recolector" required>
-          </div>
-          <div class="form-group">
-            <label class="labels">Fecha de Fin</label>
-            <input class="entrada" type="date" id="fechafin_recolector" name="fechafin_recolector">
-          </div>
-        </div>
-        
-        <label class="labels">Estado del Contrato</label>
-        <select class="selector" id="estado_recolector_alta" name="estado_recolector_alta" required>
-          <option value="1">Activo</option>
-          <option value="0">Inactivo</option>
-        </select>
-        
-        {% if is_admin %}
-        <div class="form-section">3) Asignación (Finca)</div>
-        <label class="labels">Finca Asignada (opcional)</label>
-        <select class="selector" id="select_finca_propietario" name="fk_id_finca">
-          <option value="">— Seleccione finca (opcional) —</option>
-        </select>
-        {% endif %}
-
-        <div class="form-section">4) Acceso al sistema (opcional)</div>
-        <p style="font-size:12px;color:#6b7280;margin-bottom:10px;">Si desea que el recolector pueda iniciar sesión en SIGIC, complete estos campos. De lo contrario, déjelos en blanco.</p>
-        <label class="labels">Nombre de usuario</label>
-        <input class="entrada" type="text" id="username_recolector" name="username_recolector" placeholder="Ej: juan.perez" autocomplete="off">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="labels">Contraseña</label>
-            <input class="entrada" type="password" id="password_recolector" name="password_recolector" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label class="labels">Confirmar contraseña</label>
-            <input class="entrada" type="password" id="password_recolector2" name="password_recolector2" placeholder="Repita la contraseña" autocomplete="new-password">
-          </div>
-        </div>
-        
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botonaccion">💾 Guardar Recolector</button>
-        </div>
-      </form>
-      <div id="resultado"></div>
+        <span class="crud-badge" id="contadorRecolectores">Cargando...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- PANEL BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div><h2>Buscar Recolector</h2><p>Ingrese el documento del recolector</p></div>
-      </div>
-      <form id="buscarRecolector">
-        <label class="labels">Documento Recolector</label>
-        <input type="text" class="entrada" id="id_buscar" name="id_buscar" placeholder="Número de documento" required>
-        <button type="submit" class="botonsum" id="botonBuscar">🔍 Buscar</button>
-      </form>
-      <div id="resultado_busqueda"></div>
-    </div>
-  </div>
-
-  <!-- PANEL EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div><h2>Editar Recolector</h2><p>Actualice los datos del contrato del recolector</p></div>
-      </div>
-      <form id="editarRecolector">
-        {% csrf_token %}
-        <label class="labels">Documento</label>
-        <input type="text" class="entrada2" id="id_recolector_editar" name="id_recolector_editar" disabled>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="labels">Fecha de Inicio</label>
-            <input type="date" class="entrada2" id="fechainicio_recolector_editar" name="fechainicio_recolector_editar" disabled>
-          </div>
-          <div class="form-group">
-            <label class="labels">Fecha de Fin</label>
-            <input type="date" class="entrada2" id="fechafin_recolector_editar" name="fechafin_recolector_editar" disabled>
-          </div>
-        </div>
-        
-        <label class="labels">Días Trabajados</label>
-        <input type="number" class="entrada2" id="diastrabajados_recolector_editar" name="diastrabajados_recolector_editar" disabled>
-        
-        <label class="labels">Estado</label>
-        <select class="selector entrada2" id="estado_recolector_editar" name="estado_recolector_editar" disabled>
-          <option value="2">— Seleccione —</option>
-          <option value="1">Activo</option>
-          <option value="0">Inactivo</option>
-        </select>
-        
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered">↩ Volver</button>
-        </div>
-      </form>
-      <div id="resultado_edicion"></div>
-    </div>
-  </div>
-
-  <!-- PANEL ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Recolector</h2><p>Esta acción eliminará la vinculación y contrato permanentemente</p></div>
-      </div>
-      <form id="eliminarRecolector">
-        {% csrf_token %}
-        <label class="labels">Documento Recolector</label>
-        <input type="text" class="entrada" id="id_eliminar" name="id_eliminar" placeholder="Documento a eliminar" required>
-        <button type="submit" class="botonsum" id="botonEliminar">🗑️ Eliminar</button>
-      </form>
-      <div id="resultado_eliminacion"></div>
-    </div>
-  </div>
-
-  <!-- PANEL VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Recolectores</h2>
-        <span class="tabla-count" id="contador-recolectores">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarRecolector">
-          <thead>
-            <tr>
-              <th>Documento</th>
-              <th>Fecha Inicio</th>
-              <th>Fecha Fin</th>
-              <th>Días Trabajados</th>
-              <th>Finca</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaRecolectores">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Días Trabajados</th>
+            <th>Finca</th>
+            <th>Estado</th>
+            <th class="th-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyRecolectores">
+          <tr>
+            <td colspan="7" class="td-loading">
+              <div class="loading-dots"><span></span><span></span><span></span></div>
+              Cargando registros...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
 
+<!-- ══ MODAL AGREGAR ══ -->
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal" style="max-width: 640px;">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">➕</div>
+      <div>
+        <h2>Registrar Recolector</h2>
+        <p>Complete los datos de la persona y su contrato</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button>
+    </div>
+    <form id="registroRecolector">
+      {% csrf_token %}
+      
+      <div class="form-section">1) Datos de la Persona</div>
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento de Persona</label>
+          <input class="entrada" type="text" id="documento_persona" name="documento_persona" placeholder="Número de documento" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Tipo de Documento</label>
+          <select class="selector" id="id_tipodoc_prop_recolector" name="id_tipodoc" required>
+            <option value="">— Seleccione —</option>
+            <option value="1">Cédula de Ciudadanía</option>
+            <option value="2">Tarjeta de Identidad</option>
+            <option value="3">Cédula de Extranjería</option>
+          </select>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Nombre Completo</label>
+          <input class="entrada" type="text" id="nombre_persona_prop_recolector" name="nombre_persona" placeholder="Nombre y apellidos" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Edad</label>
+          <input class="entrada" type="number" id="edad_persona_prop_recolector" name="edad_persona" min="1" max="120" placeholder="Edad" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Teléfono</label>
+          <input class="entrada" type="text" id="telefono_persona_prop_recolector" name="telefono_persona" minlength="10" placeholder="10 dígitos" required>
+        </div>
+      </div>
+      
+      <div class="form-section">2) Contrato</div>
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Fecha de Inicio</label>
+          <input class="entrada" type="date" id="fechainicio_recolector" name="fechainicio_recolector" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Fecha de Fin</label>
+          <input class="entrada" type="date" id="fechafin_recolector" name="fechafin_recolector">
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Estado del Contrato</label>
+          <select class="selector" id="estado_recolector_alta" name="estado_recolector_alta" required>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      
+      {% if is_admin or is_propietario %}
+      <div class="form-section">3) Asignación (Finca)</div>
+      <div class="crud-form-grid">
+        <div class="crud-form-group crud-full">
+          <label class="labels">Finca Asignada (opcional)</label>
+          <select class="selector" id="select_finca_propietario" name="fk_id_finca">
+            <option value="">— Seleccione finca (opcional) —</option>
+          </select>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="form-section">4) Acceso al sistema (opcional)</div>
+      <p style="font-size:12px;color:#6b7280;margin:0 0 8px;">Deje en blanco si no requiere usuario para la app.</p>
+      <div class="crud-form-grid">
+        <div class="crud-form-group crud-full">
+          <label class="labels">Nombre de usuario</label>
+          <input class="entrada" type="text" id="username_recolector" name="username_recolector" placeholder="Ej: juan.perez" autocomplete="off">
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Contraseña</label>
+          <input class="entrada" type="password" id="password_recolector" name="password_recolector" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Confirmar contraseña</label>
+          <input class="entrada" type="password" id="password_recolector2" name="password_recolector2" placeholder="Repita la contraseña" autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button>
+        <button type="submit" class="btn-crud-save">💾 Guardar Recolector</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">✏️</div>
+      <div>
+        <h2>Editar Recolector</h2>
+        <p>Actualice los datos del contrato del recolector</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form id="editarRecolector">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group">
+          <label class="labels">Documento</label>
+          <input type="text" class="entrada entrada2" id="id_recolector_editar" name="id_recolector_editar" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Días Trabajados</label>
+          <input type="number" class="entrada entrada2" id="diastrabajados_recolector_editar" name="diastrabajados_recolector_editar" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Fecha de Inicio</label>
+          <input type="date" class="entrada entrada2" id="fechainicio_recolector_editar" name="fechainicio_recolector_editar" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Fecha de Fin</label>
+          <input type="date" class="entrada entrada2" id="fechafin_recolector_editar" name="fechafin_recolector_editar" disabled>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">Estado del Contrato</label>
+          <select class="selector entrada2" id="estado_recolector_editar" name="estado_recolector_editar" disabled>
+            <option value="2">— Seleccione —</option>
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="button" class="btn-crud-unlock" id="botondesbloquear">✏️ Habilitar edición</button>
+        <button type="submit" class="btn-crud-save" id="botoneditar" disabled>💾 Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div>
+        <h2>Eliminar Recolector</h2>
+        <p>Esta acción eliminará el contrato permanentemente</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar el recolector:</p>
+      <div class="crud-confirm-target" id="confirmNombreRecolector">—</div>
+      <p class="crud-confirm-doc">Documento: <strong id="confirmIdRecolector">—</strong></p>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
-/* MOSTRAR PANEL */
-function showPanel(panelId) {
-  document.querySelectorAll(".panel").forEach((panel) => (panel.style.display = "none"));
-  const selectedPanel = document.getElementById(panelId);
-  if (selectedPanel) {
-    selectedPanel.style.display = "flex";
-    selectedPanel.style.flexDirection = "column";
-    selectedPanel.style.alignItems = "center";
-  }
-  const result = document.getElementById("resultado");
-  if (result) result.innerHTML = "";
-}
-
-/* VOLVER AL DASHBOARD/PADRE */
-document.getElementById("botonVolver").addEventListener("click", () => {
-  window.location.href = "{{ volver_url }}";
-});
-
-/* VOLVER DESDE EDICION */
-document.getElementById("botonvolvered").addEventListener("click", () => {
-  showPanel("panel2");
-  document.getElementById("botondesbloquear").disabled = false;
-  document.getElementById("botoneditar").disabled = true;
-  document.querySelectorAll(".entrada2").forEach((entrada) => {
-    entrada.disabled = true;
-  });
-  document.getElementById("editarRecolector").reset();
-});
-
 /* COOKIE CSRF */
 function getCookie(name) {
   let cookieValue = null;
@@ -268,13 +274,61 @@ var IS_PROPIETARIO = {% if is_propietario %}true{% else %}false{% endif %};
 var IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
 var PROPIETARIO_DOC = "{{ propietario_doc|escapejs }}";
 
+/* ── Modales ── */
+function abrirModal(id){
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.crud-modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) cerrarModal(overlay.id); });
+});
+
+/* ── Toast ── */
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('crudToast');
+  t.textContent=msg;
+  t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ── Volver ── */
+document.getElementById('botonVolver').addEventListener('click',()=>{
+  window.location.href='{{ volver_url }}';
+});
+
+/* ── CALCULAR DÍAS ── */
+function calcularDias(inicio, fin) {
+  if (!inicio || !fin) return 0;
+  const fechaInicio = new Date(inicio);
+  const fechaFin = new Date(fin);
+  const diferencia = fechaFin - fechaInicio;
+  if (diferencia < 0) return 0;
+  return Math.floor(diferencia / (1000 * 60 * 60 * 24));
+}
+
+/* EVENTOS DE CÁLCULO DÍAS EN EDICION */
+document.getElementById("fechainicio_recolector_editar").addEventListener("change", () => {
+  const inicio = document.getElementById("fechainicio_recolector_editar").value;
+  const fin = document.getElementById("fechafin_recolector_editar").value;
+  document.getElementById("diastrabajados_recolector_editar").value = calcularDias(inicio, fin);
+});
+document.getElementById("fechafin_recolector_editar").addEventListener("change", () => {
+  const inicio = document.getElementById("fechainicio_recolector_editar").value;
+  const fin = document.getElementById("fechafin_recolector_editar").value;
+  document.getElementById("diastrabajados_recolector_editar").value = calcularDias(inicio, fin);
+});
+
 /* CARGAR DINÁMICOS AL INICIO */
 async function cargarFincasPropietario() {
   const sel = document.getElementById("select_finca_propietario");
-  if (!sel || !IS_PROPIETARIO) return;
+  if (!sel) return;
   sel.innerHTML = '<option value="">— Cargando fincas —</option>';
   try {
-    // Intenta primero con el endpoint node_compat que devuelve todas las fincas
     const r = await fetch("/api/fincas");
     const rows = await r.json();
     sel.innerHTML = '<option value="">— Seleccione finca —</option>';
@@ -282,7 +336,6 @@ async function cargarFincasPropietario() {
       sel.innerHTML = '<option value="">No hay fincas disponibles</option>';
       return;
     }
-    // Filtra por propietario si PROPIETARIO_DOC está disponible
     const fincasFiltradas = PROPIETARIO_DOC
       ? rows.filter(f => String(f.FK_idPropietario || f.id_propietario || f.fk_idPropietario || "") === String(PROPIETARIO_DOC))
       : rows;
@@ -294,7 +347,6 @@ async function cargarFincasPropietario() {
       sel.appendChild(opt);
     });
   } catch (e) {
-    // Fallback al endpoint anterior
     try {
       const r2 = await fetch("/api/productosfinca");
       const rows2 = await r2.json();
@@ -312,98 +364,63 @@ async function cargarFincasPropietario() {
   }
 }
 
-async function cargarPropietariosAdmin() {
-  const sel = document.getElementById("select_propietario_admin");
-  if (!sel || !IS_ADMIN) return;
-  sel.innerHTML = '<option value="">— Cargando propietarios —</option>';
+/* ── CARGAR TABLA ── */
+async function obtenerRecolectores() {
   try {
-    const r = await fetch("/get_todos/Propietario/");
-    const rows = await r.json();
-    sel.innerHTML = '<option value="">— Seleccione propietario —</option>';
-    if (!Array.isArray(rows)) return;
-    rows.forEach((p) => {
-      const doc = String(p.id_propietario || "").trim();
-      if (!doc) return;
-      const opt = document.createElement("option");
-      opt.value = doc;
-      opt.textContent = `${doc}${p.email_propietario ? " · " + p.email_propietario : ""}`;
-      sel.appendChild(opt);
+    const response = await fetch('/get_todos/Recolector/');
+    const recolectores = await response.json();
+    const tbody = document.getElementById('tbodyRecolectores');
+    const counter = document.getElementById('contadorRecolectores');
+    tbody.innerHTML = ''; 
+    if (!recolectores.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Sin registros registrados</td></tr>';
+      if (counter) counter.textContent = '0 registros';
+      return;
+    }
+    if (counter) counter.textContent = recolectores.length + ' registros';
+    recolectores.forEach(rec => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = rec.id_recolector || '';
+      tr.dataset.finca = rec.fk_id_finca || '';
+
+      const dias = calcularDias(rec.fechainicio_recolector, rec.fechafin_recolector);
+      const estadoBadge = rec.estado_recolector 
+        ? '<span class="badge-tipodoc" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0;">Activo</span>' 
+        : '<span class="badge-tipodoc" style="background:#fef2f2;color:#b91c1c;border-color:#fca5a5;">Inactivo</span>';
+
+      tr.innerHTML = `
+        <td><span class="td-doc">${rec.id_recolector || '—'}</span></td>
+        <td>${rec.fechainicio_recolector || '—'}</td>
+        <td>${rec.fechafin_recolector || '—'}</td>
+        <td>${dias}</td>
+        <td><strong>${rec.fk_id_finca || '—'}</strong></td>
+        <td>${estadoBadge}</td>
+        <td class="td-acciones">
+          <button class="btn-tbl-view" onclick="verRecolector('${rec.id_recolector}')" title="Ver / Editar">✏️</button>
+          <button class="btn-tbl-del" onclick="prepararEliminar('${rec.id_recolector}')" title="Eliminar">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
     });
-  } catch (e) {
-    sel.innerHTML = '<option value="">Error cargando propietarios</option>';
+    aplicarFiltro();
+  } catch (error) {
+    document.getElementById('tbodyRecolectores').innerHTML = '<tr><td colspan="7" class="td-error">Error al cargar datos</td></tr>';
   }
 }
 
-async function cargarFincasDePropietarioAdmin(propDoc) {
-  const sel = document.getElementById("select_finca_admin");
-  if (!sel || !IS_ADMIN) return;
-  const pd = String(propDoc || "").trim();
-  if (!pd) {
-    sel.innerHTML = '<option value="">— Seleccione un propietario para ver fincas —</option>';
-    return;
-  }
-  sel.innerHTML = '<option value="">— Cargando fincas —</option>';
-  try {
-    const r = await fetch("/api/fincas");
-    const rows = await r.json();
-    sel.innerHTML = '<option value="">(Sin finca)</option>';
-    if (!Array.isArray(rows)) return;
-    const filtradas = rows.filter(f => String(f.FK_idPropietario || f.id_propietario || f.fk_idPropietario || "") === pd);
-    const aRenderizar = filtradas.length > 0 ? filtradas : rows.filter(f => String(f.FK_idPropietario || "") === pd);
-    aRenderizar.forEach(f => {
-      const opt = document.createElement("option");
-      opt.value = String(f.id_finca || f.ID_finca || "");
-      opt.textContent = `${f.nombre || f.nombre_finca || f.id_finca} (${f.id_finca || f.ID_finca})`;
-      sel.appendChild(opt);
-    });
-    if (aRenderizar.length === 0) {
-      sel.innerHTML = '<option value="">(Sin fincas para este propietario)</option>';
-    }
-  } catch (e) {
-    // Fallback
-    try {
-      const r2 = await fetch("/api/productosfinca");
-      const rows2 = await r2.json();
-      sel.innerHTML = '<option value="">(Sin finca)</option>';
-      if (!Array.isArray(rows2)) return;
-      rows2.filter(f => String(f.id_propietario || "") === pd).forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = String(f.id_finca || "");
-        opt.textContent = `${f.nombre_finca || f.id_finca} (${f.id_finca})`;
-        sel.appendChild(opt);
-      });
-    } catch { sel.innerHTML = '<option value="">Error cargando fincas</option>'; }
-  }
+/* ── FILTRO ── */
+function aplicarFiltro(){
+  const q=document.getElementById('buscadorTabla').value.toLowerCase();
+  document.querySelectorAll('#tbodyRecolectores tr[data-id]').forEach(tr=>{
+    const texto=(tr.dataset.id+' '+tr.dataset.finca).toLowerCase();
+    tr.style.display=texto.includes(q)?'':'none';
+  });
 }
+document.getElementById('buscadorTabla').addEventListener('input',aplicarFiltro);
 
-/* DOM LOAD */
-document.addEventListener("DOMContentLoaded", () => {
-  if (IS_ADMIN) {
-    cargarFincasPropietario();
-  }
-  if (IS_PROPIETARIO) cargarFincasPropietario();
-  obtenerRecolectores();
-  setInterval(obtenerRecolectores, 5000);
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const panelActivo = urlParams.get('panel');
-  const docRecibido = urlParams.get('doc');
-  if (panelActivo === 'agregar') showPanel('panel1');
-  if (docRecibido) {
-    const inputID = document.getElementById("documento_persona");
-    if (inputID) {
-      inputID.value = docRecibido;
-      inputID.readOnly = true;
-      inputID.classList.add("entrada--solo-lectura");
-    }
-  }
-});
-
-/* REGISTRAR */
+/* ── REGISTRAR ── */
 document.getElementById("registroRecolector").addEventListener("submit", async (e) => {
   e.preventDefault();
   const token = getCookie("csrftoken");
-  const divResultado = document.getElementById("resultado");
 
   try {
     const doc = document.getElementById("documento_persona").value.trim();
@@ -411,11 +428,12 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
     const nombre = document.getElementById("nombre_persona_prop_recolector")?.value.trim() || "";
     const edad = document.getElementById("edad_persona_prop_recolector")?.value || "";
     const tel = document.getElementById("telefono_persona_prop_recolector")?.value.trim() || "";
-    if (!doc) { alert("Ingrese el documento."); return; }
-    if (!tid) { alert("Seleccione el tipo de documento."); return; }
-    if (!nombre) { alert("Ingrese el nombre completo."); return; }
-    if (!edad || parseInt(edad, 10) < 1) { alert("Ingrese una edad válida."); return; }
-    if (!tel || tel.length < 10) { alert("Ingrese un teléfono válido (mínimo 10 dígitos)."); return; }
+    
+    if (!doc) { showToast("Ingrese el documento.","err"); return; }
+    if (!tid) { showToast("Seleccione el tipo de documento.","err"); return; }
+    if (!nombre) { showToast("Ingrese el nombre completo.","err"); return; }
+    if (!edad || parseInt(edad, 10) < 1) { showToast("Ingrese una edad válida.","err"); return; }
+    if (!tel || tel.length < 10) { showToast("Ingrese un teléfono válido (mínimo 10 dígitos).","err"); return; }
     
     const fdTemp = new FormData();
     fdTemp.append("documento_persona", doc);
@@ -430,7 +448,7 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
     });
     const jTemp = await rTemp.json();
     if (!jTemp.success) {
-      alert(jTemp.message || "No se pudieron guardar los datos de la persona.");
+      showToast(jTemp.message || "No se pudieron guardar los datos temporales.","err");
       return;
     }
     const datosSesion = { success: true, data: jTemp.data };
@@ -459,19 +477,12 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
       formData.append("estado_recolector", estadoVal);
       formData.append("diastrabajados_recolector", "0");
 
-      if (IS_ADMIN) {
-        // Admin no necesita asignar propietario, finca es opcional
-        const fid = document.getElementById("select_finca_propietario")?.value || "";
-        if (fid) formData.append("fk_id_finca", fid);
-      }
-
-      if (IS_PROPIETARIO) {
-        const fid = document.getElementById("select_finca_propietario")?.value || "";
-        if (!fid) {
-          alert("Seleccione una finca.");
-          return;
-        }
+      const fid = document.getElementById("select_finca_propietario")?.value || "";
+      if (fid) {
         formData.append("fk_id_finca", fid);
+      } else if (IS_PROPIETARIO) {
+        showToast("Seleccione una finca.","err");
+        return;
       }
 
       // Credenciales opcionales
@@ -479,9 +490,9 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
       const password = (document.getElementById("password_recolector")?.value || "").trim();
       const password2 = (document.getElementById("password_recolector2")?.value || "").trim();
       if (username || password || password2) {
-        if (!username) { alert("Ingrese un nombre de usuario."); return; }
-        if (password.length < 6) { alert("La contraseña debe tener al menos 6 caracteres."); return; }
-        if (password !== password2) { alert("Las contraseñas no coinciden."); return; }
+        if (!username) { showToast("Ingrese un nombre de usuario.","err"); return; }
+        if (password.length < 6) { showToast("La contraseña debe tener al menos 6 caracteres.","err"); return; }
+        if (password !== password2) { showToast("Las contraseñas no coinciden.","err"); return; }
         formData.append("username_recolector", username);
         formData.append("password_recolector", password);
       }
@@ -494,211 +505,66 @@ document.getElementById("registroRecolector").addEventListener("submit", async (
       const dataRec = await respRec.json();
 
       if (dataRec.success || dataRec.status === "success") {
-      if (dataRec.aviso) {
-      alert(dataRec.aviso);
-      }
-      if (dataRec.aviso_usuario) {
-        alert(dataRec.aviso_usuario);
-      }
-      const estadoTxt = estadoVal === "1" ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Inactivo</span>';
-      const usuarioTxt = dataRec.usuario_creado
-      ? `<p><strong>🔒 Usuario creado:</strong> ${dataRec.username}</p>`
-        : '';
-      let fincaTxt = "";
-      if (IS_PROPIETARIO) {
-      const sel = document.getElementById("select_finca_propietario");
-      const opt = sel?.selectedOptions?.[0];
-      fincaTxt = opt ? `<p><strong>Finca:</strong> ${opt.textContent}</p>` : "";
-      }
-      divResultado.innerHTML = `
-      <div id="tituloDatos">Datos guardados</div>
-        <p><strong>Recolector:</strong> ${dataP.data.nombre_persona}</p>
-        <p><strong>Documento:</strong> ${documento}</p>
-            <p><strong>Teléfono:</strong> ${datosSesion.data.telefono_persona || "—"}</p>
-            <p><strong>Fecha Inicio:</strong> ${fechainicio}</p>
-            <p><strong>Estado:</strong> ${estadoTxt}</p>
-            ${fincaTxt}
-            ${usuarioTxt}
-          `;
-          alert("Recolector registrado con éxito");
+        if (dataRec.aviso) showToast(dataRec.aviso, "ok");
+        if (dataRec.aviso_usuario) showToast(dataRec.aviso_usuario, "ok");
+        
+        cerrarModal('modalAgregar');
+        showToast("Recolector registrado con éxito ✓");
+        
         document.getElementById("registroRecolector").reset();
         const est = document.getElementById("estado_recolector_alta");
         if (est) est.value = "1";
-        // Limpiar campos de credenciales
-        const u = document.getElementById("username_recolector"); if(u) u.value = "";
-        const p1 = document.getElementById("password_recolector"); if(p1) p1.value = "";
-        const p2 = document.getElementById("password_recolector2"); if(p2) p2.value = "";
-        if (IS_PROPIETARIO) cargarFincasPropietario();
-        if (IS_ADMIN) {
-          cargarPropietariosAdmin();
-          const selP = document.getElementById("select_propietario_admin");
-          if (selP) cargarFincasDePropietarioAdmin(selP.value);
-        }
+        
         obtenerRecolectores();
       } else {
-        alert("Error Recolector: " + (dataRec.message || "Fallo en el registro"));
+        showToast("Error Recolector: " + (dataRec.message || "Fallo en el registro"), "err");
         await fetch(`/eliminar_registro/Persona/${documento}/`, {
           method: "POST",
           headers: { "X-CSRFToken": token }
         });
       }
     } else {
-      alert("Error Persona: " + dataP.message);
+      showToast("Error Persona: " + dataP.message, "err");
     }
   } catch (error) {
-    console.error(error);
-    alert("Hubo un error al conectar con el servidor.");
+    showToast("Hubo un error al conectar con el servidor.", "err");
   }
 });
 
-/* ELIMINAR */
-document.getElementById("eliminarRecolector").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const id_recolector = document.getElementById("id_eliminar").value.trim();
-  if (!id_recolector) { alert("Ingrese el documento del recolector"); return; }
-  if (!confirm(`¿Eliminar el recolector con documento ${id_recolector}? Esta acción no se puede deshacer.`)) return;
-  const token = getCookie("csrftoken");
-  const cont = document.getElementById("resultado_eliminacion");
-  try {
-    const response = await fetch(`/eliminar_registro/Recolector/${id_recolector}/`, {
-      method: "POST",
-      headers: { "X-CSRFToken": token }
-    });
-    const data = await response.json();
-    if (response.ok) {
-      alert("Recolector eliminado con éxito");
-      document.getElementById("id_eliminar").value = "";
-      if (cont) {
-        cont.innerHTML = `
-          <div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-            <div id="tituloDatos" style="color:#ef4444;">Registro Eliminado</div>
-            <p style="color:#dc2626;"><strong>Recolector eliminado con éxito:</strong> ${id_recolector}</p>
-          </div>
-        `;
-      }
-      obtenerRecolectores();
-    } else {
-      alert(data.message || "Hubo un error al eliminar.");
-    }
+/* ── VER / EDITAR ── */
+async function verRecolector(id){
+  try{
+    const r = await fetch(`/consultar_registro/Recolector/${id}/`);
+    const data = await r.json();
+    const registro = data.data ? data.data : data;
+    
+    document.getElementById("id_recolector_editar").value = registro.id_recolector || '';
+    document.getElementById("fechainicio_recolector_editar").value = registro.fechainicio_recolector || '';
+    document.getElementById("fechafin_recolector_editar").value = registro.fechafin_recolector || '';
+    
+    const dias = calcularDias(registro.fechainicio_recolector, registro.fechafin_recolector);
+    document.getElementById("diastrabajados_recolector_editar").value = dias;
+    document.getElementById("estado_recolector_editar").value = registro.estado_recolector ? "1" : "0";
+
+    document.querySelectorAll(".entrada2").forEach(e => e.disabled = true);
+    document.getElementById("estado_recolector_editar").disabled = true;
+    document.getElementById("botoneditar").disabled = true;
+    document.getElementById("botondesbloquear").disabled = false;
+    abrirModal('modalEditar');
   } catch (error) {
-    alert("Hubo un error al eliminar.");
-  }
-});
-
-/* CALCULAR DÍAS */
-function calcularDias(inicio, fin) {
-  if (!inicio || !fin) return 0;
-  const fechaInicio = new Date(inicio);
-  const fechaFin = new Date(fin);
-  const diferencia = fechaFin - fechaInicio;
-  if (diferencia < 0) return 0;
-  return Math.floor(diferencia / (1000 * 60 * 60 * 24));
-}
-
-/* EVENTOS DE CÁLCULO DÍAS EN EDICION */
-document.getElementById("fechainicio_recolector_editar").addEventListener("change", () => {
-  const inicio = document.getElementById("fechainicio_recolector_editar").value;
-  const fin = document.getElementById("fechafin_recolector_editar").value;
-  document.getElementById("diastrabajados_recolector_editar").value = calcularDias(inicio, fin);
-});
-
-document.getElementById("fechafin_recolector_editar").addEventListener("change", () => {
-  const inicio = document.getElementById("fechainicio_recolector_editar").value;
-  const fin = document.getElementById("fechafin_recolector_editar").value;
-  document.getElementById("diastrabajados_recolector_editar").value = calcularDias(inicio, fin);
-});
-
-/* LISTAR TODOS */
-async function obtenerRecolectores() {
-  try {
-    const response = await fetch('/get_todos/Recolector/');
-    const recolectores = await response.json();
-    const tablaBody = document.querySelector('#mostrarRecolector tbody');
-    const counter = document.getElementById('contador-recolectores');
-    if (!tablaBody) return;
-    tablaBody.innerHTML = ''; 
-    if (!recolectores.length) {
-      tablaBody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';
-      if (counter) counter.textContent = '0 registros';
-      return;
-    }
-    if (counter) counter.textContent = recolectores.length + ' registros';
-    recolectores.forEach(rec => {
-      const dias = calcularDias(rec.fechainicio_recolector, rec.fechafin_recolector);
-      const fila = document.createElement('tr');
-      const estadoBadge = rec.estado_recolector 
-        ? '<span class="badge-activo">Activo</span>' 
-        : '<span class="badge-inactivo">Inactivo</span>';
-      fila.innerHTML = `
-        <td>${rec.id_recolector || '---'}</td>
-        <td>${rec.fechainicio_recolector || '---'}</td>
-        <td>${rec.fechafin_recolector || '---'}</td>
-        <td>${dias}</td>
-        <td>${rec.fk_id_finca || '---'}</td>
-        <td>${estadoBadge}</td>
-      `;
-      tablaBody.appendChild(fila);
-    });
-  } catch (error) {
-    console.error('Error al obtener recolectores:', error);
+    showToast("Error al cargar los datos.", "err");
   }
 }
 
-/* BUSCAR */
-document.getElementById("buscarRecolector").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const id_recolector = document.getElementById("id_buscar").value.trim();
-  const contenedor = document.getElementById("resultado_busqueda");
-  try {
-    const response = await fetch(`/consultar_registro/Recolector/${id_recolector}/`);
-    const data = await response.json();
-    if (response.ok) {
-      const registro = data.data ? data.data : data;
-      showPanel("panel22");
-      document.getElementById("id_recolector_editar").value = registro.id_recolector || '';
-      document.getElementById("fechainicio_recolector_editar").value = registro.fechainicio_recolector || '';
-      document.getElementById("fechafin_recolector_editar").value = registro.fechafin_recolector || '';
-      
-      const dias = calcularDias(registro.fechainicio_recolector, registro.fechafin_recolector);
-      document.getElementById("diastrabajados_recolector_editar").value = dias;
-      document.getElementById("estado_recolector_editar").value = registro.estado_recolector ? "1" : "0";
-      if (contenedor) contenedor.innerHTML = '';
-    } else {
-      if (contenedor) {
-        contenedor.innerHTML = `
-          <div id="resultado" style="margin-top:16px;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-            <div id="tituloDatos" style="color:#ef4444;">No encontrado</div>
-            <p style="color:#ef4444;">${data.message || 'No se encontró el registro del recolector'}</p>
-          </div>
-        `;
-      }
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Hubo un error al cargar los datos.");
-  }
-  document.getElementById("buscarRecolector").reset();
-});
-
-/* DESBLOQUEAR EDICIÓN */
 document.getElementById("botondesbloquear").addEventListener("click", () => {
-  const entradas = document.querySelectorAll(".entrada2");   
-  const selector = document.getElementById("estado_recolector_editar");
-  const boton = document.getElementById("botoneditar");
-  const botondesb = document.getElementById("botondesbloquear");
-  
-  boton.disabled = false;
-  botondesb.disabled = true;
-  if (selector) selector.disabled = false;
-  
-  entradas.forEach((entrada) => {
-    if (entrada.id !== "id_recolector_editar" && entrada.id !== "diastrabajados_recolector_editar") {
-      entrada.disabled = false;
-    }
+  document.querySelectorAll(".entrada2").forEach(e => {
+    if (e.id !== "id_recolector_editar" && e.id !== "diastrabajados_recolector_editar") e.disabled = false;
   });
+  document.getElementById("estado_recolector_editar").disabled = false;
+  document.getElementById("botoneditar").disabled = false;
+  document.getElementById("botondesbloquear").disabled = true;
 });
 
-/* EDITAR / ACTUALIZAR */
 document.getElementById("editarRecolector").addEventListener("submit", async (e) => {
   e.preventDefault();
   const id_recolector = document.getElementById("id_recolector_editar").value;
@@ -706,10 +572,9 @@ document.getElementById("editarRecolector").addEventListener("submit", async (e)
   const fechafin = document.getElementById("fechafin_recolector_editar").value;
   const estado = document.getElementById("estado_recolector_editar").value;
   const token = getCookie("csrftoken");
-  const contenedorAbajo = document.getElementById("resultado_edicion");
 
   if (estado === "2") {
-    alert("Por favor, seleccione un estado válido.");
+    showToast("Por favor, seleccione un estado válido.", "err");
     return;
   }
 
@@ -731,37 +596,67 @@ document.getElementById("editarRecolector").addEventListener("submit", async (e)
 
     const data = await response.json();
     if (response.ok) {
-      document.querySelectorAll(".entrada2, .selector").forEach(el => el.disabled = true);
-      document.getElementById("botoneditar").disabled = true;
-      document.getElementById("botondesbloquear").disabled = false;
-      
-      const dias = calcularDias(fechainicio, fechafin);
-      if (contenedorAbajo) {
-        contenedorAbajo.innerHTML = `
-          <div id="resultado" style="margin-top:16px;">
-            <div id="tituloDatos">Datos actualizados</div>
-            <p><b>Documento:</b> ${id_recolector}</p>
-            <p><b>Fecha Inicio:</b> ${fechainicio}</p>
-            <p><b>Fecha Fin:</b> ${fechafin || '—'}</p>
-            <p><b>Días Trabajados:</b> ${dias}</p>
-            <p><b>Estado:</b> ${estado === "1" ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Inactivo</span>'}</p>
-          </div>
-        `;
-      }
-      alert("Datos actualizados con éxito");
-      setTimeout(() => {
-        showPanel("panel2");
-        obtenerRecolectores();
-      }, 1800);
+      cerrarModal('modalEditar');
+      showToast("Datos actualizados con éxito ✓");
+      obtenerRecolectores();
     } else {
-      alert(data.message || "Hubo un error al actualizar.");
+      showToast(data.message || "Hubo un error al actualizar.", "err");
     }
   } catch (error) {
-    alert("Hubo un error al guardar los datos.");
+    showToast("Hubo un error al guardar los datos.", "err");
+  }
+});
+
+/* ── ELIMINAR ── */
+let idParaEliminar='';
+function prepararEliminar(id){
+  idParaEliminar=id;
+  document.getElementById('confirmNombreRecolector').textContent=id;
+  document.getElementById('confirmIdRecolector').textContent=id;
+  abrirModal('modalEliminar');
+}
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async()=>{
+  if(!idParaEliminar) return;
+  const token = getCookie("csrftoken");
+  try{
+    const response = await fetch(`/eliminar_registro/Recolector/${idParaEliminar}/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": token }
+    });
+    const data = await response.json();
+    if(response.ok){
+      cerrarModal('modalEliminar');
+      showToast('Registro eliminado correctamente ✓');
+      obtenerRecolectores();
+    }else{
+      showToast(data.message || 'No se pudo eliminar', 'err');
+    }
+  }catch(err){ showToast('Error al conectar con el servidor', 'err'); }
+});
+
+/* ── INIT ── */
+document.addEventListener("DOMContentLoaded", () => {
+  cargarFincasPropietario();
+  obtenerRecolectores();
+  setInterval(obtenerRecolectores, 10000);
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const panelActivo = urlParams.get('panel');
+  const docRecibido = urlParams.get('doc');
+  if (panelActivo === 'agregar') {
+    abrirModal('modalAgregar');
+  }
+  if (docRecibido) {
+    const inputID = document.getElementById("documento_persona");
+    if (inputID) {
+      inputID.value = docRecibido;
+      inputID.readOnly = true;
+      inputID.classList.add("entrada--solo-lectura");
+    }
   }
 });
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'js/app-ui.js' %}" defer></script>
 </body>
 </html>
