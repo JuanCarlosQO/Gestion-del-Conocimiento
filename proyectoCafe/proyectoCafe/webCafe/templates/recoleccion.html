@@ -7,206 +7,334 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/admin.css' %}" rel="stylesheet">
   <link href="{% static 'css/persona.css' %}" rel="stylesheet">
-  <title>Recolección — SIGIC</title>
-  <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'css/crud-tabla.css' %}" rel="stylesheet">
+  <title>RECOLECCIÓN — SIGIC</title>
 </head>
 <body>
 <div class="contenedor_padre">
 
+  <!-- SIDEBAR -->
   <div class="boton_contenedor">
-    <div class="letras" id="vista_title">RECOLECCIÓN</div>
+    <div id="vista_title" class="letras">RECOLECCIÓN</div>
     <div id="ordena_boton">
       <div class="letragestion" id="letra_gestion">Gestionar</div>
-      <button id="botones" onclick="showPanel('panel1')">➕ Agregar</button>
-      <button id="botones" onclick="showPanel('panel2')">🔍 Buscar</button>
-      <button id="botones" onclick="showPanel('panel3')">🗑️ Eliminar</button>
-      <button id="botones" onclick="showPanel('panel4')">📋 Ver todas</button>
+      <button id="botones" onclick="abrirModal('modalAgregar')">➕ Agregar</button>
       <button id="botonVolver">⬅ Volver</button>
     </div>
   </div>
 
-  <!-- AGREGAR -->
-  <div class="panel" id="panel1">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">☕</div>
-        <div><h2>Registrar Recolección</h2><p>Complete los datos de la nueva recolección</p></div>
-      </div>
-      <form id="registrorecoleccion">
-        <label class="labels">Fecha de Recolección</label>
-        <input type="date" class="entrada" id="fecha_recoleccion" required>
-        <label class="labels">ID Recolector</label>
-        <input type="text" class="entrada" id="id_recolector" placeholder="Documento del recolector" required>
-        <button type="submit" class="botonsum">💾 Guardar</button>
-      </form>
-      <div id="resultado"></div>
-    </div>
-  </div>
-
-  <!-- BUSCAR -->
-  <div class="panel" id="panel2">
-    <div class="search-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🔍</div>
-        <div><h2>Buscar Recolección</h2><p>Ingrese el ID para consultar</p></div>
-      </div>
-      <form id="buscarrecoleccion">
-        <label class="labels">ID de la Recolección</label>
-        <input type="text" class="entrada" id="documento_buscar" placeholder="ID de la recolección" required>
-        <button type="submit" class="botonsum">🔍 Buscar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- EDITAR -->
-  <div class="panel" id="panel22">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">✏️</div>
-        <div><h2>Editar Recolección</h2><p>Modifique los campos necesarios</p></div>
-      </div>
-      <form id="editarrecoleccion">
-        <label class="labels">ID Recolección</label>
-        <input type="text" class="entrada2" id="id_recoleccion2" disabled>
-        <label class="labels">Fecha</label>
-        <input type="date" class="entrada2" id="fecha_recoleccion2" disabled>
-        <label class="labels">ID Recolector</label>
-        <input type="text" class="entrada2" id="id_recolector2" disabled>
-        <div class="btn-row">
-          <button type="submit" class="botonsum" id="botoneditar" disabled>💾 Actualizar</button>
-          <button type="button" class="botonsum" id="botondesbloquear">✏️ Editar</button>
-          <button type="button" class="botonsum" id="botonvolvered" style="background:transparent;border:1.5px solid rgba(107,114,128,0.30);color:#6b7280;box-shadow:none;">↩ Volver</button>
+  <!-- PANEL TABLA PRINCIPAL -->
+  <div class="panel active" id="panelTabla">
+    <div class="crud-header">
+      <div class="crud-header-left">
+        <div class="crud-title-icon">☕</div>
+        <div>
+          <h1 class="crud-title">Recolecciones</h1>
+          <p class="crud-subtitle">Gestión de registros de recolección</p>
         </div>
-      </form>
+      </div>
+      <div class="crud-header-right">
+        <div class="crud-search-wrap">
+          <span class="crud-search-icon">🔍</span>
+          <input type="text" class="crud-search" id="buscadorTabla" placeholder="Buscar por ID, recolector...">
+        </div>
+        <span class="crud-badge" id="contadorRecolecciones">Cargando...</span>
+      </div>
     </div>
-  </div>
 
-  <!-- ELIMINAR -->
-  <div class="panel" id="panel3">
-    <div class="form-card">
-      <div class="panel-header">
-        <div class="panel-header-icon">🗑️</div>
-        <div><h2>Eliminar Recolección</h2><p>Esta acción no se puede deshacer</p></div>
-      </div>
-      <form id="eliminarrecoleccion">
-        <label class="labels">ID de la Recolección</label>
-        <input type="text" class="entrada" id="documento_eliminar" placeholder="ID a eliminar" required>
-        <button type="submit" class="botonsum" style="background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 4px 16px rgba(239,68,68,0.25);">🗑️ Eliminar</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- VER TODOS -->
-  <div class="panel" id="panel4">
-    <div class="panel-tabla">
-      <div class="tabla-header">
-        <h2>Lista de Recolecciones</h2>
-        <span class="tabla-count" id="contador-rec">Cargando...</span>
-      </div>
-      <div class="tabla-wrap">
-        <table id="mostrarrecoleccion">
-          <thead>
-            <tr><th>ID Recolección</th><th>Fecha</th><th>ID Recolector</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="crud-tabla-wrap">
+      <table class="crud-table" id="tablaRecolecciones">
+        <thead>
+          <tr>
+            <th>ID Recolección</th>
+            <th>Fecha</th>
+            <th>Recolector</th>
+            <th class="th-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyRecolecciones">
+          <tr><td colspan="4" class="td-loading">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+            Cargando registros...
+          </td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
 </div>
+
+<!-- ══ MODAL AGREGAR ══ -->
+<div class="crud-modal-overlay" id="modalAgregar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">➕</div>
+      <div>
+        <h2>Registrar Recolección</h2>
+        <p>Complete los datos de la nueva recolección</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalAgregar')">✕</button>
+    </div>
+    <form id="registrorecoleccion">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group crud-full">
+          <label class="labels">ID Recolector</label>
+          <input type="text" class="entrada" id="id_recolector" name="id_recolector" placeholder="Documento del recolector" required>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Fecha de Recolección</label>
+          <input type="date" class="entrada" id="fecha_recoleccion" name="fecha_recoleccion" required>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalAgregar')">Cancelar</button>
+        <button type="submit" class="btn-crud-save">💾 Guardar</button>
+      </div>
+      <div id="resultado"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL EDITAR ══ -->
+<div class="crud-modal-overlay" id="modalEditar">
+  <div class="crud-modal">
+    <div class="crud-modal-header">
+      <div class="crud-modal-icon">✏️</div>
+      <div>
+        <h2>Editar Recolección</h2>
+        <p>Modifique los campos necesarios</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEditar')">✕</button>
+    </div>
+    <form id="editarrecoleccion">
+      {% csrf_token %}
+      <div class="crud-form-grid">
+        <div class="crud-form-group crud-full">
+          <label class="labels">ID Recolección</label>
+          <input type="text" class="entrada entrada2" id="id_recoleccion2" disabled>
+        </div>
+        <div class="crud-form-group crud-full">
+          <label class="labels">ID Recolector</label>
+          <input type="text" class="entrada entrada2" id="id_recolector2" disabled>
+        </div>
+        <div class="crud-form-group">
+          <label class="labels">Fecha</label>
+          <input type="date" class="entrada entrada2" id="fecha_recoleccion2" disabled>
+        </div>
+      </div>
+      <div class="crud-modal-footer">
+        <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="button" class="btn-crud-unlock" id="botondesbloquear">✏️ Habilitar edición</button>
+        <button type="submit" class="btn-crud-save" id="botoneditar" disabled>💾 Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMAR ELIMINAR ══ -->
+<div class="crud-modal-overlay" id="modalEliminar">
+  <div class="crud-modal crud-modal-sm">
+    <div class="crud-modal-header crud-modal-danger">
+      <div class="crud-modal-icon crud-icon-danger">🗑️</div>
+      <div>
+        <h2>Eliminar Recolección</h2>
+        <p>Esta acción no se puede deshacer</p>
+      </div>
+      <button class="crud-modal-close" onclick="cerrarModal('modalEliminar')">✕</button>
+    </div>
+    <div class="crud-modal-body">
+      <p class="crud-confirm-text">¿Estás seguro de que deseas eliminar la recolección:</p>
+      <div class="crud-confirm-target" id="confirmID">—</div>
+      <p class="crud-confirm-doc">Fecha: <strong id="confirmFecha">—</strong></p>
+    </div>
+    <div class="crud-modal-footer">
+      <button type="button" class="btn-crud-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+      <button type="button" class="btn-crud-delete" id="btnConfirmarEliminar">🗑️ Confirmar eliminación</button>
+    </div>
+    <div id="resultado_eliminacion" style="padding:0 28px 16px;"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="crud-toast" id="crudToast"></div>
+
 <script>
-function safeDateYYYYMMDD(v){if(!v)return'—';const d=new Date(v);if(isNaN(d.getTime()))return'—';return d.toISOString().split('T')[0];}
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  const el=document.getElementById(id);if(el){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';}
-  const r=document.getElementById('resultado');if(r)r.innerHTML='';
+function getCookie(name){let c=null;if(document.cookie){for(let k of document.cookie.split(';')){if(k.trim().startsWith(name+'=')){c=k.split('=')[1];break;}}}return c;}
+
+/* ── Modales ── */
+function abrirModal(id){
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow='hidden';
 }
-document.getElementById('botonVolver').addEventListener('click',()=>{window.location.href='{{ volver_url }}';});
-document.getElementById('botonvolvered').addEventListener('click',()=>{
-  showPanel('panel2');
-  document.getElementById('botondesbloquear').disabled=false;
-  document.getElementById('botoneditar').disabled=true;
-  document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
-  document.getElementById('editarrecoleccion').reset();
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.crud-modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) cerrarModal(overlay.id); });
 });
 
-async function aplicarRangoFechas(){
-  const doc=(document.getElementById('id_recolector').value||'').trim();
-  const fi=document.getElementById('fecha_recoleccion');
-  if(!doc||!fi) return;
-  try{
-    const r=await fetch(`/consultar_registro/recolector/${doc}/`);
-    const j=await r.json();const data=(j&&(j.data||j))||{};
-    const min=(data.fechainicio_recolector||'').toString().slice(0,10);
-    const max=(data.fechafin_recolector||new Date().toISOString()).toString().slice(0,10);
-    if(min) fi.min=min; if(max) fi.max=max;
-  }catch{}
+/* ── Toast ── */
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('crudToast');
+  t.textContent=msg;
+  t.className='crud-toast '+(tipo==='ok'?'toast-ok':'toast-err')+' show';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
 }
-document.getElementById('id_recolector').addEventListener('blur',aplicarRangoFechas);
 
+function safeDateYYYYMMDD(v){if(!v)return'—';const d=new Date(v);if(isNaN(d.getTime()))return'—';return d.toISOString().split('T')[0];}
+let idParaEliminar='';
+
+/* ── Volver ── */
+document.getElementById('botonVolver').addEventListener('click',()=>{
+  window.location.href='{{ volver_url }}';
+});
+
+/* ── CARGAR TABLA ── */
+async function obtenerRecolecciones(){
+  try{
+    const r=await fetch('/api/recoleccion',{headers:{'X-Requested-With':'XMLHttpRequest'}});
+    const recolecciones=await r.json();
+    const tbody=document.getElementById('tbodyRecolecciones');
+    const counter=document.getElementById('contadorRecolecciones');
+    tbody.innerHTML='';
+    if(!Array.isArray(recolecciones)||!recolecciones.length){
+      tbody.innerHTML='<tr><td colspan="4" class="td-empty">Sin registros registrados</td></tr>';
+      counter.textContent='0 registros'; return;
+    }
+    counter.textContent=recolecciones.length+' registros';
+    recolecciones.forEach(rec=>{
+      const tr=document.createElement('tr');
+      tr.dataset.id=rec.id_recoleccion||'';
+      tr.dataset.recolector=rec.id_recolector||'';
+      tr.innerHTML=`
+        <td><span class="td-doc">${rec.id_recoleccion||'—'}</span></td>
+        <td>${safeDateYYYYMMDD(rec.fecha_recoleccion)}</td>
+        <td><strong>${rec.id_recolector||'—'}</strong></td>
+        <td class="td-acciones">
+          <button class="btn-tbl-view" onclick="verRecoleccion('${rec.id_recoleccion}')" title="Ver / Editar">✏️</button>
+          <button class="btn-tbl-del" onclick="prepararEliminar('${rec.id_recoleccion}','${safeDateYYYYMMDD(rec.fecha_recoleccion)}')" title="Eliminar">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    aplicarFiltro();
+  }catch(err){
+    document.getElementById('tbodyRecolecciones').innerHTML='<tr><td colspan="4" class="td-error">Error al cargar datos</td></tr>';
+  }
+}
+
+/* ── FILTRO ── */
+function aplicarFiltro(){
+  const q=document.getElementById('buscadorTabla').value.toLowerCase();
+  document.querySelectorAll('#tbodyRecolecciones tr[data-id]').forEach(tr=>{
+    const texto=(tr.dataset.id+' '+tr.dataset.recolector).toLowerCase();
+    tr.style.display=texto.includes(q)?'':'none';
+  });
+}
+document.getElementById('buscadorTabla').addEventListener('input',aplicarFiltro);
+
+/* ── VER / EDITAR ── */
+async function verRecoleccion(id){
+  try{
+    const r=await fetch(`/api/recoleccion/${id}`);
+    const data=await r.json();
+    const reg=data.data||data;
+    document.getElementById('id_recoleccion2').value=reg.id_recoleccion||'';
+    document.getElementById('id_recolector2').value=reg.id_recolector||'';
+    document.getElementById('fecha_recoleccion2').value=safeDateYYYYMMDD(reg.fecha_recoleccion)||'';
+    document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
+    document.getElementById('botoneditar').disabled=true;
+    document.getElementById('botondesbloquear').disabled=false;
+    abrirModal('modalEditar');
+  }catch(err){ showToast('Error al cargar los datos','err'); }
+}
+
+document.getElementById('botondesbloquear').addEventListener('click',()=>{
+  document.querySelectorAll('.entrada2').forEach(e=>{ if(e.id!=='id_recoleccion2') e.disabled=false; });
+  document.getElementById('botoneditar').disabled=false;
+  document.getElementById('botondesbloquear').disabled=true;
+});
+
+/* ── AGREGAR ── */
 document.getElementById('registrorecoleccion').addEventListener('submit',async e=>{
   e.preventDefault();
+  const datos={
+    fecha_recoleccion: document.getElementById('fecha_recoleccion').value,
+    id_recolector: document.getElementById('id_recolector').value,
+  };
   try{
-    const r=await fetch('/api/recoleccion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      fecha_recoleccion:document.getElementById('fecha_recoleccion').value,
-      id_recolector:document.getElementById('id_recolector').value,
-    })});
+    const r=await fetch('/api/recoleccion',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},body:JSON.stringify(datos)});
     const d=await r.json();
-    if(r.ok){document.getElementById('resultado').innerHTML=`<div id="resultado"><div id="tituloDatos">Recolección registrada</div><p><strong>Fecha:</strong> ${d.data.fecha_recoleccion}</p><p><strong>Recolector:</strong> ${d.data.id_recolector}</p></div>`;document.getElementById('registrorecoleccion').reset();}
-    else alert(d.message);
-  }catch{alert('Error al registrar.');}
+    if(r.ok){
+      showToast('Recolección registrada correctamente','ok');
+      document.getElementById('registrorecoleccion').reset();
+      cerrarModal('modalAgregar');
+      obtenerRecolecciones();
+    }else{
+      showToast(d.message||'Error al registrar','err');
+    }
+  }catch(err){
+    showToast('Error en la solicitud','err');
+  }
 });
-document.getElementById('buscarrecoleccion').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const id=document.getElementById('documento_buscar').value;
-  try{
-    const r=await fetch(`/api/recoleccion/${id}`);const d=await r.json();
-    if(r.ok){showPanel('panel22');document.getElementById('id_recoleccion2').value=d.data.id_recoleccion;document.getElementById('fecha_recoleccion2').value=safeDateYYYYMMDD(d.data.fecha_recoleccion);document.getElementById('id_recolector2').value=d.data.id_recolector;}
-    else alert(d.message||'No encontrado');
-  }catch{alert('Error al buscar.');}
-  document.getElementById('buscarrecoleccion').reset();
-});
-document.getElementById('botondesbloquear').addEventListener('click',()=>{
-  document.querySelectorAll('.entrada2').forEach(e=>{if(e.id!=='id_recoleccion2') e.disabled=false;});
-  document.getElementById('botoneditar').disabled=false;document.getElementById('botondesbloquear').disabled=true;
-});
+
+/* ── EDITAR ── */
 document.getElementById('editarrecoleccion').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=document.getElementById('id_recoleccion2').value;
+  const datos={
+    fecha_recoleccion: document.getElementById('fecha_recoleccion2').value,
+    id_recolector: document.getElementById('id_recolector2').value,
+  };
   try{
-    const r=await fetch(`/api/recoleccion/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-      fecha_recoleccion:document.getElementById('fecha_recoleccion2').value,
-      id_recolector:document.getElementById('id_recolector2').value,
-    })});
+    const r=await fetch(`/api/recoleccion/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},body:JSON.stringify(datos)});
     const d=await r.json();
-    if(r.ok){alert('Actualizado con éxito');showPanel('panel2');document.getElementById('editarrecoleccion').reset();}
-    else alert(d.message||'Error');
-  }catch{alert('Error al guardar.');}
-  document.getElementById('botondesbloquear').disabled=false;document.getElementById('botoneditar').disabled=true;
+    if(r.ok){
+      showToast('Recolección actualizada correctamente','ok');
+      cerrarModal('modalEditar');
+      obtenerRecolecciones();
+    }else{
+      showToast(d.message||'Error al actualizar','err');
+    }
+  }catch(err){
+    showToast('Error en la solicitud','err');
+  }
+  document.getElementById('botondesbloquear').disabled=false;
+  document.getElementById('botoneditar').disabled=true;
   document.querySelectorAll('.entrada2').forEach(e=>e.disabled=true);
 });
-document.getElementById('eliminarrecoleccion').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const id=document.getElementById('documento_eliminar').value;
-  if(!confirm(`¿Eliminar recolección ID ${id}?`)) return;
-  try{
-    const r=await fetch(`/api/recoleccion/${id}`,{method:'DELETE'});const d=await r.json();
-    alert(r.ok?d.message:(d.message||'Error'));if(r.ok){document.getElementById('eliminarrecoleccion').reset();obtenerRecoleccion();}
-  }catch{alert('Error al eliminar.');}
-});
-async function obtenerRecoleccion(){
-  try{
-    const r=await fetch('/api/recoleccion');const data=await r.json();
-    const tbody=document.querySelector('#mostrarrecoleccion tbody');
-    const counter=document.getElementById('contador-rec');
-    tbody.innerHTML='';
-    if(!Array.isArray(data)||!data.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:20px;color:#9ca3af;">Sin registros</td></tr>';if(counter)counter.textContent='0 registros';return;}
-    if(counter) counter.textContent=data.length+' registros';
-    data.forEach(rec=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${rec.id_recoleccion||'—'}</td><td>${safeDateYYYYMMDD(rec.fecha_recoleccion)}</td><td>${rec.id_recolector||'—'}</td>`;tbody.appendChild(tr);});
-  }catch(err){console.error(err);}
+
+/* ── ELIMINAR ── */
+function prepararEliminar(id, fecha){
+  idParaEliminar=id;
+  document.getElementById('confirmID').textContent=id;
+  document.getElementById('confirmFecha').textContent=fecha;
+  abrirModal('modalEliminar');
 }
-document.addEventListener('DOMContentLoaded',()=>{obtenerRecoleccion();setInterval(obtenerRecoleccion,5000);});
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click',async ()=>{
+  try{
+    const r=await fetch(`/api/recoleccion/${idParaEliminar}`,{method:'DELETE',headers:{'X-CSRFToken':getCookie('csrftoken')}});
+    const d=await r.json();
+    if(r.ok){
+      showToast('Recolección eliminada correctamente','ok');
+      cerrarModal('modalEliminar');
+      obtenerRecolecciones();
+    }else{
+      showToast(d.message||'Error al eliminar','err');
+    }
+  }catch(err){
+    showToast('Error en la solicitud','err');
+  }
+});
+
+/* ── INICIALIZAR ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  obtenerRecolecciones();
+  setInterval(obtenerRecolecciones,5000);
+});
 </script>
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
