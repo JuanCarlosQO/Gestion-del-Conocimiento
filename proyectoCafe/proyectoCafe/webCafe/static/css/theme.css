@@ -2,25 +2,25 @@
  * Tema global — editorial oscuro / oro (alineado con login)
  * Cargar después de Bootstrap y antes de admin.css / persona.css / finanzas.css
  */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,600&family=Outfit:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap");
 
 :root {
-  --app-font: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --app-font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --app-font: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --app-font-display: "Fraunces", Georgia, serif;
 
   /* Texto y fondos (shell interno, mismo lenguaje que login) */
-  --color-ink: #e8f2ec;
-  --color-ink-muted: rgba(200, 220, 208, 0.78);
-  --color-surface: #050a08;
-  --color-surface-elevated: rgba(12, 22, 18, 0.94);
+  --color-ink: #ede0d4; /* Almendra suave */
+  --color-ink-muted: rgba(237, 224, 212, 0.75);
+  --color-surface: #23271b; /* Oliva muy oscuro */
+  --color-surface-elevated: rgba(35, 39, 27, 0.95);
   --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(212, 165, 116, 0.32);
+  --color-border-strong: rgba(166, 138, 100, 0.32);
 
-  --color-primary: #0d4a2c;
-  --color-primary-hover: #126b3f;
-  --color-primary-soft: rgba(45, 120, 85, 0.28);
-  --color-accent: #2d8a54;
-  --color-accent-warm: #d4a574;
+  --color-primary: #7f5539; /* Marrón café principal */
+  --color-primary-hover: #976b4a;
+  --color-primary-soft: rgba(127, 85, 57, 0.25);
+  --color-accent: #656d4a; /* Sage */
+  --color-accent-warm: #a68a64; /* Beige oro */
   --color-danger: #e85d4f;
   --color-danger-soft: rgba(180, 35, 24, 0.22);
 
@@ -33,9 +33,9 @@
   --radius-lg: 18px;
   --radius-pill: 999px;
 
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 0.18s;
-  --duration-normal: 0.28s;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* Curva premium ease-out expo */
+  --duration-fast: 0.22s;
+  --duration-normal: 0.35s;
 }
 
 @keyframes app-fade-in {
@@ -50,11 +50,11 @@
 @keyframes app-slide-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -72,7 +72,7 @@ html {
 }
 
 ::selection {
-  background: rgba(212, 165, 116, 0.35);
+  background: rgba(166, 138, 100, 0.35);
   color: var(--color-ink);
 }
 
@@ -85,12 +85,12 @@ body:not(.login-page) {
   font-family: var(--app-font);
   color: var(--color-ink);
   background:
-    radial-gradient(ellipse 88% 52% at 50% -8%, rgba(55, 130, 88, 0.22), transparent 52%),
-    radial-gradient(ellipse 50% 42% at 100% 72%, rgba(212, 165, 116, 0.09), transparent 48%),
-    radial-gradient(ellipse 45% 38% at 0% 55%, rgba(30, 85, 58, 0.12), transparent 46%),
-    linear-gradient(180deg, #070f0c 0%, var(--color-surface) 42%, #081612 100%);
+    radial-gradient(ellipse 88% 52% at 50% -8%, rgba(101, 109, 74, 0.22), transparent 52%),
+    radial-gradient(ellipse 50% 42% at 100% 72%, rgba(166, 138, 100, 0.09), transparent 48%),
+    radial-gradient(ellipse 45% 38% at 0% 55%, rgba(127, 85, 57, 0.12), transparent 46%),
+    linear-gradient(180deg, #171a12 0%, var(--color-surface) 42%, #12140e 100%);
   -webkit-font-smoothing: antialiased;
-  animation: app-fade-in 0.45s var(--ease-out);
+  animation: app-fade-in 0.5s var(--ease-out);
 }
 
 body.login-page {
@@ -103,7 +103,7 @@ a {
 }
 
 a:hover {
-  color: #f0dcc4;
+  color: #f2e7dd;
 }
 
 :focus-visible {
@@ -121,7 +121,7 @@ a:hover {
   font-family: var(--app-font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #f6faf7;
+  color: #fbf9f7;
 }
 
 .table,
@@ -136,7 +136,7 @@ table {
   margin-left: auto;
   margin-right: auto;
   text-align: left;
-  animation: app-slide-up 0.5s var(--ease-out) 0.08s both;
+  animation: app-slide-up 0.6s var(--ease-out) 0.08s both;
 }
 
 .panel img {
@@ -161,24 +161,25 @@ hr {
 .panel .form-select,
 .panel input.form-control,
 .panel textarea.form-control {
-  background: rgba(4, 10, 7, 0.72);
+  background: rgba(23, 26, 18, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--color-ink);
   border-radius: var(--radius-md);
+  font-family: var(--app-font);
 }
 
 .panel .form-control:focus,
 .panel .form-select:focus,
 .panel textarea.form-control:focus {
   border-color: var(--color-accent-warm);
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.18);
-  background: rgba(6, 14, 10, 0.88);
+  box-shadow: 0 0 0 3px rgba(166, 138, 100, 0.18);
+  background: rgba(28, 32, 22, 0.88);
   color: var(--color-ink);
 }
 
 .panel .form-control::placeholder,
 .panel textarea::placeholder {
-  color: rgba(160, 180, 170, 0.45);
+  color: rgba(142, 133, 126, 0.45);
 }
 
 input[type="date"] {
@@ -209,17 +210,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .panel .form-label,
 .panel label:not(.btn) {
-  color: rgba(212, 165, 116, 0.88);
-  font-weight: 600;
+  color: rgba(166, 138, 100, 0.88);
+  font-weight: 700;
   letter-spacing: 0.06em;
   font-size: 0.72rem;
   text-transform: uppercase;
 }
 
 .panel .btn-primary {
-  background: linear-gradient(135deg, #e8c99a 0%, var(--color-accent-warm) 40%, #b88952 100%);
+  background: linear-gradient(135deg, #ede0d4 0%, var(--color-accent-warm) 40%, #7f5539 100%);
   border: none;
-  color: #0a120e;
+  color: #171a12;
   font-weight: 700;
   letter-spacing: 0.03em;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -227,7 +228,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .panel .btn-primary:hover {
   filter: brightness(1.06);
-  color: #0a120e;
+  color: #171a12;
 }
 
 .panel .btn-secondary,
@@ -239,7 +240,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 
 .panel .btn-secondary:hover,
 .panel .btn-outline-secondary:hover {
-  background: rgba(212, 165, 116, 0.12);
+  background: rgba(166, 138, 100, 0.12);
   border-color: var(--color-accent-warm);
   color: #fff;
 }
@@ -248,12 +249,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 body:not(.login-page) .btn.btn-success,
 body:not(.login-page) .btn.btn-primary:not(.link-primary),
 body:not(.login-page) .btn.btn-info {
-  --bs-btn-color: #0a120e;
+  --bs-btn-color: #171a12;
   --bs-btn-bg: transparent;
   --bs-btn-border-color: transparent;
-  background: linear-gradient(135deg, #e8c99a 0%, var(--color-accent-warm) 40%, #b88952 100%) !important;
+  background: linear-gradient(135deg, #ede0d4 0%, var(--color-accent-warm) 40%, #7f5539 100%) !important;
   border-color: transparent !important;
-  color: #0a120e !important;
+  color: #171a12 !important;
   font-weight: 700;
   letter-spacing: 0.03em;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
@@ -263,18 +264,18 @@ body:not(.login-page) .btn.btn-success:hover,
 body:not(.login-page) .btn.btn-primary:hover,
 body:not(.login-page) .btn.btn-info:hover {
   filter: brightness(1.06);
-  color: #0a120e !important;
+  color: #171a12 !important;
 }
 
 body:not(.login-page) .btn.btn-outline-success,
 body:not(.login-page) .btn.btn-outline-primary,
 body:not(.login-page) .btn.btn-outline-info {
   color: var(--color-ink) !important;
-  border-color: rgba(212, 165, 116, 0.42) !important;
+  border-color: rgba(166, 138, 100, 0.42) !important;
   background: linear-gradient(
     165deg,
-    rgba(18, 28, 24, 0.88) 0%,
-    rgba(6, 12, 10, 0.94) 100%
+    rgba(35, 39, 27, 0.88) 0%,
+    rgba(23, 26, 18, 0.94) 100%
   ) !important;
 }
 
@@ -282,19 +283,8 @@ body:not(.login-page) .btn.btn-outline-success:hover,
 body:not(.login-page) .btn.btn-outline-primary:hover,
 body:not(.login-page) .btn.btn-outline-info:hover {
   color: #fff !important;
-  border-color: rgba(240, 210, 180, 0.55) !important;
-  background: rgba(212, 165, 116, 0.12) !important;
-}
-
-body:not(.login-page) .btn.btn-danger:hover {
-  filter: brightness(1.08);
-  color: #fff !important;
-}
-
-.panel .table {
-  color: #ffe8e6 !important;
-  background: linear-gradient(165deg, rgba(140, 36, 30, 0.9) 0%, rgba(70, 18, 14, 0.95) 100%) !important;
-  border-color: rgba(255, 180, 175, 0.45) !important;
+  border-color: rgba(166, 138, 100, 0.55) !important;
+  background: rgba(166, 138, 100, 0.12) !important;
 }
 
 body:not(.login-page) .btn.btn-danger:hover {
@@ -316,7 +306,7 @@ body:not(.login-page) .btn.btn-danger:hover {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-accent-warm);
-  background: linear-gradient(180deg, rgba(28, 48, 36, 0.98) 0%, rgba(10, 22, 16, 0.99) 100%);
+  background: linear-gradient(180deg, rgba(65, 72, 51, 0.98) 0%, rgba(35, 39, 27, 0.99) 100%);
   border-color: var(--color-border-strong);
 }
 
@@ -331,12 +321,12 @@ body:not(.login-page) .btn.btn-danger:hover {
 }
 
 .panel .table-hover > tbody > tr:hover > * {
-  --bs-table-hover-bg: rgba(212, 165, 116, 0.1);
+  --bs-table-hover-bg: rgba(166, 138, 100, 0.1);
   color: var(--color-ink);
 }
 
 .app-animate-in {
-  animation: app-slide-up 0.45s var(--ease-out) both;
+  animation: app-slide-up 0.55s var(--ease-out) both;
 }
 
 /* Tarjetas / hints — sustituye bloques claros con style="" en formularios */
@@ -351,7 +341,7 @@ body:not(.login-page) .btn.btn-danger:hover {
   padding: 14px 16px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(165deg, rgba(18, 32, 26, 0.88) 0%, rgba(6, 14, 10, 0.94) 100%);
+  background: linear-gradient(165deg, rgba(35, 39, 27, 0.88) 0%, rgba(23, 26, 18, 0.94) 100%);
   box-shadow: var(--shadow-sm);
 }
 
@@ -360,8 +350,8 @@ body:not(.login-page) .btn.btn-danger:hover {
 }
 
 .app-card--accent {
-  border-color: rgba(45, 138, 84, 0.35);
-  background: linear-gradient(165deg, rgba(12, 42, 28, 0.72) 0%, rgba(6, 14, 10, 0.94) 100%);
+  border-color: rgba(101, 109, 74, 0.35);
+  background: linear-gradient(165deg, rgba(65, 72, 51, 0.72) 0%, rgba(23, 26, 18, 0.94) 100%);
 }
 
 .app-hint {
@@ -435,7 +425,7 @@ body:not(.login-page) .btn.btn-danger:hover {
   font-family: var(--app-font-display);
   font-weight: 700;
   font-size: 1.15rem;
-  color: #f6faf7;
+  color: #fbf9f7;
 }
 
 .app-result-body {
@@ -532,7 +522,7 @@ body.app-modal-open {
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
-  background: rgba(2, 8, 5, 0.65);
+  background: rgba(23, 26, 18, 0.65);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: app-fade-in 0.22s var(--ease-out) both;
@@ -548,10 +538,10 @@ body.app-modal-open {
   max-height: min(86vh, 560px);
   overflow: auto;
   border-radius: var(--radius-lg);
-  background: linear-gradient(165deg, rgba(22, 36, 30, 0.97) 0%, rgba(8, 16, 12, 0.99) 100%);
+  background: linear-gradient(165deg, rgba(35, 39, 27, 0.97) 0%, rgba(23, 26, 18, 0.99) 100%);
   border: 1px solid var(--color-border-strong);
   box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.35) inset;
-  animation: app-slide-up 0.32s var(--ease-out) both;
+  animation: app-slide-up 0.4s var(--ease-out) both;
 }
 
 .app-modal__header {
@@ -568,7 +558,7 @@ body.app-modal-open {
   font-family: var(--app-font-display);
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f6faf7;
+  color: #fbf9f7;
   letter-spacing: -0.02em;
   line-height: 1.25;
 }
@@ -580,7 +570,7 @@ body.app-modal-open {
   border: none;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(220, 235, 225, 0.75);
+  color: rgba(237, 224, 212, 0.75);
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
@@ -630,8 +620,8 @@ body.app-modal-open {
 }
 
 .app-modal__btn--primary {
-  background: linear-gradient(135deg, #e8c99a 0%, var(--color-accent-warm) 40%, #b88952 100%);
-  color: #0a120e;
+  background: linear-gradient(135deg, #ede0d4 0%, var(--color-accent-warm) 40%, #7f5539 100%);
+  color: #171a12;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
@@ -641,11 +631,11 @@ body.app-modal-open {
 
 .app-modal__btn--ghost {
   background: transparent;
-  color: rgba(220, 235, 225, 0.85);
+  color: rgba(237, 224, 212, 0.85);
   border: 1px solid var(--color-border-strong);
 }
 
 .app-modal__btn--ghost:hover {
-  background: rgba(212, 165, 116, 0.1);
+  background: rgba(166, 138, 100, 0.1);
   color: var(--color-ink);
 }

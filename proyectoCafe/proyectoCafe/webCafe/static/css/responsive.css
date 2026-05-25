@@ -19,7 +19,7 @@
   top: 12px;
   left: 14px;
   z-index: 1100;
-  background: linear-gradient(135deg, #059669, #064e3b);
+  background: linear-gradient(135deg, var(--cafe-tostado, #7f5539), var(--cafe-espresso, #414833));
   border: none;
   border-radius: 10px;
   width: 42px;
@@ -27,7 +27,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(5,150,105,0.40);
+  box-shadow: 0 4px 14px rgba(127,85,57,0.35);
   transition: all 0.22s ease;
   flex-shrink: 0;
 }
@@ -39,7 +39,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(1,26,18,0.55);
+  background: rgba(35,39,27,0.55);
   z-index: 999;
   backdrop-filter: blur(2px);
   opacity: 0;
