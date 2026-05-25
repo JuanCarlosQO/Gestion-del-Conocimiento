@@ -194,11 +194,32 @@
       .db-topbar{padding-left:68px!important}
       #db-ham-btn{display:flex}
     }
+    @media(max-width:768px){
+      .banner-stat .lbl{letter-spacing:0.08em;font-size:9px}
+      .banner-stat .val{font-size:24px}
+    }
     @media(max-width:640px){
       .db-scroll{padding:14px 12px 40px!important}
-      .welcome-banner{flex-direction:column;gap:16px;align-items:stretch}
-      .banner-stats{flex-wrap:wrap;justify-content:center;gap:10px}
-      .banner-stat{flex:1;min-width:80px}
+      .welcome-banner{flex-direction:column;gap:16px;align-items:stretch;padding:18px 20px}
+      .welcome-banner::before,.welcome-banner::after{display:none}
+      .banner-stats{flex-wrap:wrap;justify-content:center;gap:12px;width:100%}
+      .banner-stat{flex:0 1 calc(50% - 6px);min-width:calc(50% - 6px);padding:12px 14px}
+      .banner-stat .lbl{letter-spacing:0.05em;font-size:8px;word-wrap:break-word;line-height:1.2}
+      .banner-stat .val{font-size:20px}
+      .info-strip{grid-template-columns:1fr!important}
+      .kpi-grid{grid-template-columns:1fr!important}
+      .kpi-card .kpi-val{font-size:24px}
+      .kpi-card .kpi-label{font-size:10px}
+    }
+    @media(max-width:480px){
+      .banner-stat{flex:0 1 100%;min-width:100%;padding:10px 12px}
+      .banner-stats{gap:8px}
+      .banner-stat .lbl{font-size:7px}
+      .banner-stat .val{font-size:18px}
+      .topbar-left h1{font-size:16px}
+      .db-topbar{padding:0 14px;height:56px}
+      .topbar-right{gap:10px}
+      .topbar-time{font-size:11px;padding:4px 10px}
     }
   </style>
 </head>

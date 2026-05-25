@@ -16,7 +16,7 @@ services:
     restart: always
 
   fuseki:
-    image: stain/jena-fuseki:4.9.0
+    image: stain/jena-fuseki:4.8.0
     container_name: fuseki
     ports:
       - "3030:3030"
