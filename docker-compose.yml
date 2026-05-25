@@ -24,6 +24,8 @@ services:
       - ./cafeAPI/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/bdcafe
+    volumes:
+      - rdf_data:/app/rdf
     depends_on:
       - db
     restart: always
@@ -48,3 +50,4 @@ services:
 
 volumes:
   postgres_data:
+  rdf_data:

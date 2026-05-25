@@ -1,5 +1,6 @@
 
 import os
+import shutil
 from pathlib import Path
 
 # Cargar .env antes de cualquier otra cosa
@@ -10,6 +11,17 @@ if _env_path.exists():
         if _line and not _line.startswith("#") and "=" in _line:
             _k, _v = _line.split("=", 1)
             os.environ.setdefault(_k.strip(), _v.strip())
+
+# Ruta persistente del RDF (volumen Docker) con fallback al directorio local
+_RDF_DIR  = Path(os.environ.get("RDF_DIR", "/app/rdf"))
+_RDF_DIR.mkdir(parents=True, exist_ok=True)
+RDF_PATH = _RDF_DIR / "CafeV9_Final.rdf"
+# Si el volumen está vacío, copiar el RDF original incluido en la imagen
+_RDF_ORIGINAL = Path(__file__).parent / "CafeV9_Final.rdf"
+if not RDF_PATH.exists() and _RDF_ORIGINAL.exists():
+    shutil.copy2(_RDF_ORIGINAL, RDF_PATH)
+elif not RDF_PATH.exists():
+    raise FileNotFoundError(f"No se encontró CafeV9_Final.rdf en {RDF_PATH} ni en {_RDF_ORIGINAL}")
 
 from typing import Optional, List
 
@@ -50,7 +62,7 @@ app.add_middleware(
 CAFE = Namespace("http://www.semanticweb.org/cafe/")
 
 g = Graph()
-g.parse("CafeV9_Final.rdf", format="xml")
+g.parse(str(RDF_PATH), format="xml")
 
 print(f"Ontología cargada: {len(g)} triples")
 
@@ -250,8 +262,7 @@ def eliminar_individuo(id_recurso: str):
     try:
         g.remove((uri_encontrar, None, None))
         g.remove((None, None, uri_encontrar))
-        
-        g.serialize(destination="CafeV9_Final.rdf", format="xml")
+        g.serialize(destination=str(RDF_PATH), format="xml")
         return {
             "mensaje": f"El individuo ha sido eliminado.",
             "id_eliminado": id_recurso
@@ -295,7 +306,7 @@ def editar_individuo(id_recurso: str, nuevos_datos: dict):
         if tipo_original:
             g.add((uri_editar, RDF.type, tipo_original))
 
-        g.serialize(destination="CafeV9_Final.rdf", format="xml")
+        g.serialize(destination=str(RDF_PATH), format="xml")
         return {
             "mensaje": f"Individuo '{id_recurso}' actualizado correctamente.",
             "datos_actualizados": nuevos_datos
@@ -330,7 +341,7 @@ def guardar_rdf(id_uri, tipo_clase, id_numero, datos_restantes, relaciones_dict=
                 uri_destino = URIRef(f"http://www.semanticweb.org/cafe/{id_destino}")
                 g.add((uri_recurso, CAFE[prop], uri_destino))
     
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
 
 
 # Crear un individuo RDF genérico por clase
@@ -384,7 +395,7 @@ def insert_finca(data: fincaModel, db: Session = Depends(get_db)):
         g.add((uri_finca, CAFE.contieneLote, URIRef(f"http://www.semanticweb.org/cafe/{l_id}")))
     for c_id in data.compras:
         g.add((uri_finca, CAFE.realizaCompra, URIRef(f"http://www.semanticweb.org/cafe/{c_id}")))
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Finca registrada"}
 
 #Lote
@@ -402,7 +413,7 @@ def insert_lote(data: loteModel):
         g.add((uri_lote, CAFE.estableceRecoleccion, URIRef(f"http://www.semanticweb.org/cafe/{e_id}")))
     for s_id in data.suministros:
         g.add((uri_lote, CAFE.seAbastecePor, URIRef(f"http://www.semanticweb.org/cafe/{s_id}")))
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Lote registrado"}
 
 @app.post("/compras", tags=["Estructura"])
@@ -410,7 +421,7 @@ def insert_compra(data: compraModel):
     datos = {"fecha": data.fecha, "cantidad": data.cantidad, "precio": data.precio, "estado": data.estado}
     relaciones = {"incluyeInsumo": data.id_insumo, "esCompraDe": data.id_finca}
     guardar_rdf(data.id_compra, "compra", data.id_numeric, datos, relaciones)
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Compra registrada"}
 
 #Insumos
@@ -435,7 +446,7 @@ def insert_insumo(data: insumoModel):
         uri_sum = URIRef(f"http://www.semanticweb.org/cafe/{s_id}")
         g.add((uri_insumo, CAFE.permiteLa, uri_sum))
 
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Insumo registrado"}
 
 #Inventario
@@ -448,7 +459,7 @@ def insert_inventario(data: inventarioModel):
     }
     relaciones = {"contieneInsumo": data.id_insumo}
     guardar_rdf(data.id_inventario, "inventario", data.id_numeric, datos, relaciones)
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Inventario registrado"}
 
 #Suministros
@@ -460,7 +471,7 @@ def insert_suministro(data: suministraInsumoModel):
         "seaplicaEn": data.id_lote  
     }
     guardar_rdf(data.id_suministro, "suministroInsumo", data.id_numeric, datos, relaciones)
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Suministro registrado"}
 
 
@@ -664,7 +675,7 @@ def eliminar_registro(nombre_tabla: str, id_registro: str, db: Session = Depends
         uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_registro}")
         g.remove((uri_recurso, None, None))
         g.remove((None, None, uri_recurso))
-        g.serialize(destination="CafeV9_Final.rdf", format="xml")
+        g.serialize(destination=str(RDF_PATH), format="xml")
         return {"status": "Eliminacion realizada"}
 
     query = text(f"DELETE FROM {tabla.name} WHERE {pk_column} = :id")
@@ -676,7 +687,7 @@ def eliminar_registro(nombre_tabla: str, id_registro: str, db: Session = Depends
     uri_recurso = URIRef(f"http://www.semanticweb.org/cafe/{id_registro}")
     g.remove((uri_recurso, None, None))
     g.remove((None, None, uri_recurso))
-    g.serialize(destination="CafeV9_Final.rdf", format="xml")
+    g.serialize(destination=str(RDF_PATH), format="xml")
     return {"status": "Eliminacion realizada"}
 
 # Editar un registro
@@ -741,7 +752,7 @@ def editar_registro(
         predicado = CAFE[campo] 
         g.remove((uri_recurso, predicado, None))
         g.add((uri_recurso, predicado, Literal(nuevo_valor)))
-        g.serialize(destination="CafeV9_Final.rdf", format="xml")
+        g.serialize(destination=str(RDF_PATH), format="xml")
     return {
         "status": "Actualización realizada",
         "campos_modificados": list(actualizaciones.keys())
