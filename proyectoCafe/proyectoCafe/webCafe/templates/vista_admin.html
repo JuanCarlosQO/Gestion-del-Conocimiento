@@ -576,7 +576,7 @@ function renderDashboard(){
     .prog-f{height:100%;border-radius:99px;background:linear-gradient(90deg,#059669,#34d399);transition:width 1.3s ease;}
     .prog-f.gld{background:linear-gradient(90deg,#d4a843,#f0c96a);}
     .prog-f.blu{background:linear-gradient(90deg,#3b82f6,#93c5fd);}
-    .r-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(5,150,105,0.08);}
+    .r-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(5,150,105,0.08);flex-wrap:wrap;gap:8px;}
     .r-item:last-child{border-bottom:none;}
     .r-nm{font-size:12px;font-weight:500;color:#065f46;}
     .r-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#047857;}
@@ -586,6 +586,7 @@ function renderDashboard(){
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
     @media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.info-strip{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:900px){.bottom-g{grid-template-columns:1fr}.bottom-g2{grid-template-columns:1fr 1fr}}
+    @media(max-width:768px){.bottom-g2{grid-template-columns:1fr}}
   </style>
   <div id="db-inner">
 
@@ -700,14 +701,16 @@ function renderDashboard(){
       </div>
       <div class="mini-c">
         <div class="c-title" style="margin-bottom:14px;"><span class="c-dot" style="background:#d4a843;box-shadow:0 0 7px rgba(212,168,67,.5);"></span>Últimos insumos</div>
-        <table id="db-insumos-t" style="width:100%;border-collapse:collapse;font-size:11px;">
-          <thead><tr style="border-bottom:2px solid rgba(5,150,105,0.12);">
-            <th style="text-align:left;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;text-transform:uppercase;">Insumo</th>
-            <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Precio</th>
-            <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Und.</th>
-          </tr></thead>
-          <tbody id="db-insumos-body"><tr><td colspan="3" style="text-align:center;padding:10px;color:#9ca3af;"><span class="ld"></span></td></tr></tbody>
-        </table>
+        <div style="overflow-x: auto; width: 100%;">
+          <table id="db-insumos-t" style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead><tr style="border-bottom:2px solid rgba(5,150,105,0.12);">
+              <th style="text-align:left;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;text-transform:uppercase;">Insumo</th>
+              <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Precio</th>
+              <th style="text-align:right;padding:5px 3px;color:#9ca3af;font-weight:700;font-size:10px;">Und.</th>
+            </tr></thead>
+            <tbody id="db-insumos-body"><tr><td colspan="3" style="text-align:center;padding:10px;color:#9ca3af;"><span class="ld"></span></td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 

@@ -130,7 +130,7 @@
   }
 
   /* Bottom grids en 1 columna */
-  .bottom-g, .bottom-g2 {
+  .bottom-g, .bottom-g2, .bottom-grid, .bottom-grid2 {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
