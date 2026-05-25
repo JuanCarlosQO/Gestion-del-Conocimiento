@@ -1023,7 +1023,7 @@ function closeSidebar(){
   document.body.style.overflow='';
 }
 /* Cerrar sidebar al navegar (click en enlace) */
-document.querySelectorAll('.nav-sub, .nav-btn').forEach(el=>{
+document.querySelectorAll('.nav-sub, .nav-btn:not(.group-trigger)').forEach(el=>{
   el.addEventListener('click', ()=>{ if(window.innerWidth<=1024) closeSidebar(); });
 });
 /* Cerrar con Escape */

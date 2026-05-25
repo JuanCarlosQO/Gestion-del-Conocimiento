@@ -864,7 +864,7 @@ function closeSidebar(){
   const sb=document.querySelector('.sidebar'),ov=document.getElementById('sidebar-overlay');
   sb.classList.remove('open');ov.classList.remove('active');document.body.style.overflow='';
 }
-document.querySelectorAll('.nav-sub,.nav-btn').forEach(el=>el.addEventListener('click',()=>{if(window.innerWidth<=1024)closeSidebar();}));
+document.querySelectorAll('.nav-sub, .nav-btn:not(.group-trigger)').forEach(el=>el.addEventListener('click',()=>{if(window.innerWidth<=1024)closeSidebar();}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSidebar();});
 </script>
 </body>
