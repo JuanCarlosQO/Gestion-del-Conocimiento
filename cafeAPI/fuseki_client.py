@@ -187,12 +187,15 @@ def eliminar_individuo(id_recurso: str) -> None:
 
 def editar_literal(id_recurso: str, propiedad: str, nuevo_valor: Any) -> None:
     """
-    Equivalente a: g.remove((uri, pred, None)) + g.add((uri, pred, Literal(val)))
+    Reemplaza el valor de una propiedad literal específica.
     """
     update = f"""
-    DELETE WHERE {{
+    DELETE {{
         {_uri(id_recurso)} <{CAFE_NS}{propiedad}> ?o .
-    }};
+    }}
+    WHERE {{
+        {_uri(id_recurso)} <{CAFE_NS}{propiedad}> ?o .
+    }} ;
     INSERT DATA {{
         {_uri(id_recurso)} <{CAFE_NS}{propiedad}> {_literal(nuevo_valor)} .
     }}
@@ -202,27 +205,31 @@ def editar_literal(id_recurso: str, propiedad: str, nuevo_valor: Any) -> None:
 
 def editar_individuo_completo(id_recurso: str, nuevos_datos: dict) -> None:
     """
-    Equivalente a editar_individuo() en main.py original.
     Reemplaza todas las propiedades literales del individuo.
+    Usa DELETE { } WHERE { } en vez de DELETE WHERE para poder usar FILTER.
     """
-    # Eliminar todos los literales actuales
+    # Paso 1 — Eliminar todos los literales actuales con sintaxis correcta
     delete_q = f"""
-    DELETE WHERE {{
+    DELETE {{
+        {_uri(id_recurso)} ?p ?o .
+    }}
+    WHERE {{
         {_uri(id_recurso)} ?p ?o .
         FILTER(isLiteral(?o))
     }}
     """
     sparql_update(delete_q)
 
-    # Preservar el tipo (rdf:type)
+    # Paso 2 — Preservar el tipo (rdf:type)
     tipo = get_tipo_individuo(id_recurso)
 
-    # Reinsertar con nuevos valores
+    # Paso 3 — Reinsertar con nuevos valores
     triples = []
     if tipo:
         triples.append(f"{_uri(id_recurso)} a <{tipo}> .")
     for prop, valor in nuevos_datos.items():
-        triples.append(f"{_uri(id_recurso)} <{CAFE_NS}{prop}> {_literal(valor)} .")
+        if valor is not None:
+            triples.append(f"{_uri(id_recurso)} <{CAFE_NS}{prop}> {_literal(valor)} .")
 
     if triples:
         insert_q = f"""
